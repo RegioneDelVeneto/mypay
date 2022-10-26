@@ -1,0 +1,67 @@
+package routines;
+
+import it.regioneveneto.mygov.payment.pa.utils.Utilities;
+
+import it.veneto.regione.schemas.x2012.pagamenti.ente.BilancioDocument;
+import it.veneto.regione.schemas.x2012.pagamenti.ente.CtBilancio;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.xmlbeans.XmlError;
+import org.apache.xmlbeans.XmlException;
+import org.apache.xmlbeans.XmlOptions;
+
+public class Import {
+
+	public static String BILANCIO_NAMESPACE = "http://_URL_ENTE_/schemas/2012/Pagamenti/Ente/";
+
+	public static boolean validaBilancio(String bilancioString, String importoString){
+		// il bilancio è opzionale
+		if (StringUtils.isBlank(bilancioString))
+			return true;
+		else {		
+			// il bilancio non deve contenere spazi bianchi
+			if (StringUtils.containsWhitespace(bilancioString))
+				return false;
+
+			boolean validXml = false;
+
+			BigDecimal importo = new BigDecimal(importoString);
+			try {
+				List<XmlError> errors = new ArrayList<XmlError>();
+				XmlOptions xmlOptions = new XmlOptions();
+
+				// Set the namespace
+				xmlOptions.setLoadSubstituteNamespaces(Collections.singletonMap("", BILANCIO_NAMESPACE)); 
+				BilancioDocument bilancioDocument = BilancioDocument.Factory.parse(bilancioString, xmlOptions);
+
+				xmlOptions.setErrorListener(errors);
+				validXml = bilancioDocument.validate(xmlOptions);
+				if (!validXml)
+					return false;
+				else {
+					CtBilancio bilancio = bilancioDocument.getBilancio();
+					if (Utilities.verificaImportoBilancio(bilancio, importo))
+						return true;
+					else
+						return false;
+				}
+
+			} catch (XmlException e) {
+				return false;
+			}
+		}
+	}
+	
+	
+
+	public static void main(String[] args) {
+		String bilancioString = "<bilancio><capitolo><codCapitolo>012345678901234567890123456789012345678901234567890123456789ABCD</codCapitolo><codUfficio>UFF1</codUfficio><accertamento><codAccertamento>012345678901234567890123456789012345678901234567890123456789ABCD</codAccertamento><importo>0.49</importo></accertamento></capitolo><capitolo><codCapitolo>COD2</codCapitolo><accertamento><importo>4</importo></accertamento></capitolo><capitolo><codCapitolo>COD3</codCapitolo><codUfficio>012345678901234567890123456789012345678901234567890123456789ABCD</codUfficio><accertamento><codAccertamento>ACC.Z</codAccertamento><importo>3.00</importo></accertamento></capitolo></bilancio>";
+		String importoString = "7.49";
+		System.out.println(validaBilancio(bilancioString, importoString));
+	}
+}

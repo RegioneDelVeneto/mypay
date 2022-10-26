@@ -1,0 +1,95 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+@import '../my-pay-table-operatore/my-pay-table-operatore.component.scss';
+
+@include mat-table-columns((
+  id: (width: 10%),
+  nomeFlusso: (width: 35%),
+  dataCaricamento: (width: 8em),
+  operatore: (width: 15%),
+  statoToShow: (width: 20%),
+));
+
+$buttonWidth: 110px;
+
+.file-buttons {
+  //Button dimensions
+  width: $buttonWidth;
+  min-width: $buttonWidth;
+  height: 36px;
+}
+
+#filebutton {
+  float:left;
+  position:absolute;
+  z-index: 1;
+}
+
+#fileinput {
+  opacity: 0; //Not visible
+  font-size: 0;
+  float: left;
+  position:relative;
+  z-index: 2;
+}
+
+#fileinput:hover {
+  cursor: pointer;
+}
+
+#fileinput:disabled {
+  cursor: auto;
+}
+
+#filelabel {
+  float: left;
+  margin-left: 6px;
+  margin-top: 7px;
+}
+
+::ng-deep .badge-download {
+  color: $accent;
+  font-weight:900;
+}
+
+#fileinput-form {
+  display: inline-block;
+}
+
+@media only screen and (max-width: 960px) {
+  #fileinput-form {
+    display: contents !important;
+  }
+
+  #fileinput-form form {
+    position: absolute;
+    width: 90%;
+  }
+
+  input#fileinput {
+    width: 100%;
+  }
+
+  #filebutton {
+    position: unset;
+  }
+
+  button.file-buttons {
+    margin-left: 0 !important;
+  }
+}

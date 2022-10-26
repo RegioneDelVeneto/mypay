@@ -1,0 +1,143 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+$fa-font-path : '../fonts';
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@import '~@angular/material/theming';
+
+$md-mypay4cittadino: (
+    50 : #e6e6e6,
+    100 : #c1c1c1,
+    200 : #989898,
+    300 : #6e6e6e,
+    400 : #4f4f4f,
+    500 : #303030,
+    600 : #2b2b2b,
+    700 : #242424,
+    800 : #1e1e1e,
+    900 : #131313,
+    A100 : #ef6c6c,
+    A200 : #ea3e3e,
+    A400 : #f50000,
+    A700 : #db0000,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #ffffff,
+        400 : #ffffff,
+        500 : #ffffff,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$md-mypay4cittadinoaccent: (
+    50 : #e9f9fa,
+    100 : #c7eff2,
+    200 : #a2e4e9,
+    300 : #7cd9e0,
+    400 : #60d1da,
+    500 : #44c9d3,
+    600 : #3ec3ce,
+    700 : #35bcc8,
+    800 : #2db5c2,
+    900 : #196161,
+    A100 : #f0fdff,
+    A200 : #bdf8ff,
+    A400 : #8af3ff,
+    A700 : #70f0ff,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #000000,
+        800 : #000000,
+        900 : #000000,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+
+
+
+
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+$mypay4-fe-cittadino-primary: mat-palette($md-mypay4cittadino);
+$mypay4-fe-cittadino-accent: mat-palette($md-mypay4cittadinoaccent);
+
+// The warn palette is optional (defaults to red).
+$mypay4-fe-cittadino-warn: mat-palette($md-mypay4cittadino, 'A700');
+
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$mypay4-fe-cittadino-theme: mat-light-theme((
+  color: (
+    primary: $mypay4-fe-cittadino-primary,
+    accent: $mypay4-fe-cittadino-accent,
+    warn: $mypay4-fe-cittadino-warn,
+  )
+));
+
+// Create your Sass color vars (will be available in all the project)
+$primary: mat-color($mypay4-fe-cittadino-primary);
+$primary-contrast: mat-color($mypay4-fe-cittadino-primary, '500-contrast');
+$accent: mat-color($mypay4-fe-cittadino-accent);
+$accent-contrast: mat-color($mypay4-fe-cittadino-accent, '500-contrast');
+$warn: mat-color($mypay4-fe-cittadino-warn);
+
+$primary-lighter: mat-color($mypay4-fe-cittadino-primary, 100);
+$primary-lighter-contrast: mat-color($mypay4-fe-cittadino-primary, '100-contrast');
+$primary-lightest: #f2f2f2;
+$white: white;
+
+// Define a custom typography config that overrides the font-family
+$mypay4-fe-cittadino-typography: mat-typography-config(
+  $font-family: 'Titillium Web,sans-serif',
+  $display-4:     mat-typography-level(129px,129px,300),
+  $display-3:     mat-typography-level(64px,64px,400),
+  $display-2:     mat-typography-level(52px,55px,400),
+  $display-1:     mat-typography-level(39px,46px,400),
+  $headline:      mat-typography-level(28px,37px,400),
+  $title:         mat-typography-level(23px,37px,500),
+  $subheading-2:  mat-typography-level(18px,32px,400),
+  $subheading-1:  mat-typography-level(17px,28px,400),
+  $body-2:        mat-typography-level(16px,28px,600),
+  $body-1:        mat-typography-level(16px,23px,400),
+  $caption:       mat-typography-level(14px,23px,400),
+  $button:        mat-typography-level(16px,16px,500),
+    // Line-height must be unit-less fraction of the font-size.
+  $input:         mat-typography-level(16px,1,25,400)
+);

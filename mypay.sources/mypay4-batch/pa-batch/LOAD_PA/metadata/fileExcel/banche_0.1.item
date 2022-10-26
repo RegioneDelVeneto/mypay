@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:TalendMetadata="http://www.talend.org/metadata/connection/2010" xmlns:orgomg.cwm.resource.record="http:///orgomg/cwm/resource/record.ecore">
+  <TalendMetadata:FileExcelConnection xmi:id="_lusoYEWIEeSROa4xL63kpg" name="banche" dataPackage="_lusoYUWIEeSROa4xL63kpg _6c_4gEofEeS1Fde6yY9hrQ" Server="Localhost 127.0.0.1" FilePath="C:/Users/lavoro/Desktop/banche.xls" Encoding="UTF-8" UseHeader="true" HeaderValue="1" FirstLineCaption="true" SheetName="Foglio1" firstColumn="1" thousandSeparator="','" decimalSeparator="'.'" sheetList="Foglio1:w&#xA;">
+    <sheetColumns>A</sheetColumns>
+    <sheetColumns>B</sheetColumns>
+    <sheetColumns>C</sheetColumns>
+    <sheetColumns>D</sheetColumns>
+  </TalendMetadata:FileExcelConnection>
+  <orgomg.cwm.resource.record:RecordFile xmi:id="_lusoYUWIEeSROa4xL63kpg" name="default" dataManager="_lusoYEWIEeSROa4xL63kpg">
+    <ownedElement xsi:type="TalendMetadata:MetadataTable" xmi:id="_lusoYkWIEeSROa4xL63kpg" id="_dpWR4EWIEeSROa4xL63kpg" label="metadata">
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_lusoY0WIEeSROa4xL63kpg" label="numero" length="2" talendType="id_Integer" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_lusoZEWIEeSROa4xL63kpg" label="descrizione_banca" length="62" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_lusoZUWIEeSROa4xL63kpg" label="comune_attivita" length="31" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_lusoZkWIEeSROa4xL63kpg" label="swift_code" length="11" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+    </ownedElement>
+  </orgomg.cwm.resource.record:RecordFile>
+  <orgomg.cwm.resource.record:RecordFile xmi:id="_6c_4gEofEeS1Fde6yY9hrQ" name="default" dataManager="_lusoYEWIEeSROa4xL63kpg">
+    <ownedElement xsi:type="TalendMetadata:MetadataTable" xmi:id="_6c_4gUofEeS1Fde6yY9hrQ" id="_3Xk_sEofEeS1Fde6yY9hrQ" label="metadata1">
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_6c_4gkofEeS1Fde6yY9hrQ" label="numero" length="2" talendType="id_Integer" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_6c_4g0ofEeS1Fde6yY9hrQ" label="descrizione_banca" length="255" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;" originalLength="255"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_6c_4hEofEeS1Fde6yY9hrQ" label="comune_attivita" length="64" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;" originalLength="64"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_6c_4hUofEeS1Fde6yY9hrQ" label="swift_code" length="11" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+    </ownedElement>
+  </orgomg.cwm.resource.record:RecordFile>
+</xmi:XMI>

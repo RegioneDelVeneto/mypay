@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType xmi:id="_6TcqIPzdEeqmGoq0aiSZBQ" confirmationNeeded="false" name="Default">
+    <contextParameter xmi:id="_6TcqIfzdEeqmGoq0aiSZBQ" comment="" name="MQHost" prompt="MQHost?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_6TcqIvzdEeqmGoq0aiSZBQ" comment="" name="MQPort" prompt="MQPort?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_6TcqI_zdEeqmGoq0aiSZBQ" comment="" name="MQUsername" prompt="MQUsername?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_6TdRMPzdEeqmGoq0aiSZBQ" comment="" name="MQPassword" prompt="MQPassword?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_6TdRMfzdEeqmGoq0aiSZBQ" comment="" name="MQQueue" prompt="MQQueue?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType xmi:id="_6TdRMvzdEeqmGoq0aiSZBQ" confirmationNeeded="false" name="local">
+    <contextParameter xmi:id="_6TdRM_zdEeqmGoq0aiSZBQ" comment="" name="MQHost" prompt="MQHost?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_6TdRNPzdEeqmGoq0aiSZBQ" comment="" name="MQPort" prompt="MQPort?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_6TdRNfzdEeqmGoq0aiSZBQ" comment="" name="MQUsername" prompt="MQUsername?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_6TdRNvzdEeqmGoq0aiSZBQ" comment="" name="MQPassword" prompt="MQPassword?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_6TdRN_zdEeqmGoq0aiSZBQ" comment="" name="MQQueue" prompt="MQQueue?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

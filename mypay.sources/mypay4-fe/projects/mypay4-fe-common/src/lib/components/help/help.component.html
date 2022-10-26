@@ -1,0 +1,32 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<fa-icon [icon]="iconQuestionCircle" title="Clicca qui per visualizzare l’help" (click)="openHelp(helpdialog)" aria-label="Help online della pagina"></fa-icon>
+
+<ng-template #helpdialog>
+  <div mat-dialog-title fxLayout="row" fxLayoutAlign="start start">
+    <h2>Help online</h2>
+    <span class="flex-spacer"></span>
+    <button mat-flat-button mat-dialog-close aria-label="Chiudi help"><fa-icon [icon]="iconTimes" size="lg" aria-label="Chiudi help" alt="Chiudi help"></fa-icon></button>
+  </div>
+
+  <mat-dialog-content>
+    <ng-container *ngTemplateOutlet="templateRef"></ng-container>
+  </mat-dialog-content>
+</ng-template>

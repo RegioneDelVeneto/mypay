@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:TalendMetadata="http://www.talend.org/metadata/connection/2010" xmlns:orgomg.cwm.resource.record="http:///orgomg/cwm/resource/record.ecore">
+  <TalendMetadata:XmlFileConnection xmi:id="_TYyZEH8GEea-tMx6UDI3Dg" name="file_ACK" dataPackage="_TYzAI38GEea-tMx6UDI3Dg" XmlFilePath="_USER_REPO_" Encoding="utf-8" fileContent="3C3F786D6C2076657273696F6E3D22312E302220656E636F64696E673D227574662D38223F3E0D0A3C657369746F5072657361496E43617269636F3E0D0A20203C6964656E7469666963617469766F466C7573736F3E6E6F6D652064656C2066696C652072656C617469766F2E7A69703C2F6964656E7469666963617469766F466C7573736F3E0D0A20203C636F64696365457369746F5072657361496E43617269636F3E303C2F636F64696365457369746F5072657361496E43617269636F3E0D0A20203C6465736372697A696F6E65457369746F5072657361496E43617269636F3E46696C6520707265736F20696E2063617269636F20636F7272657474616D656E74653C2F6465736372697A696F6E65457369746F5072657361496E43617269636F3E0D0A3C2F657369746F5072657361496E43617269636F3E0D0A0D0A0D0A0D0A0D0A">
+    <schema xmi:id="_TYyZEX8GEea-tMx6UDI3Dg" LimitBoucle="1" AbsoluteXPathQuery="/esitoPresaInCarico">
+      <schemaTargets xmi:id="_TYzAIH8GEea-tMx6UDI3Dg" RelativeXPathQuery="identificativoFlusso" TagName="identificativoFlusso"/>
+      <schemaTargets xmi:id="_TYzAIX8GEea-tMx6UDI3Dg" RelativeXPathQuery="codiceEsitoPresaInCarico" TagName="codiceEsitoPresaInCarico"/>
+      <schemaTargets xmi:id="_TYzAIn8GEea-tMx6UDI3Dg" RelativeXPathQuery="descrizioneEsitoPresaInCarico" TagName="descrizioneEsitoPresaInCarico"/>
+    </schema>
+  </TalendMetadata:XmlFileConnection>
+  <orgomg.cwm.resource.record:RecordFile xmi:id="_TYzAI38GEea-tMx6UDI3Dg" name="default" dataManager="_TYyZEH8GEea-tMx6UDI3Dg">
+    <ownedElement xsi:type="TalendMetadata:MetadataTable" xmi:id="_TYzAJH8GEea-tMx6UDI3Dg" id="_CHjh0H8GEea-tMx6UDI3Dg" label="metadata">
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_TYzAJX8GEea-tMx6UDI3Dg" label="identificativoFlusso" length="70" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;" originalLength="70"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_TYzAJn8GEea-tMx6UDI3Dg" label="codiceEsitoPresaInCarico" length="1" talendType="id_Integer" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_TYzAJ38GEea-tMx6UDI3Dg" label="descrizioneEsitoPresaInCarico" length="140" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;" originalLength="140"/>
+    </ownedElement>
+  </orgomg.cwm.resource.record:RecordFile>
+</xmi:XMI>

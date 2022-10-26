@@ -1,0 +1,102 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+@import '../_variables';
+
+.mat-drawer-container {
+  background-color: unset;
+  height: calc(100% - 64px);
+  .main-container {
+    min-height: calc(100vh - 513px);
+  }
+}
+.mat-drawer.mat-sidenav {
+  opacity: 0.9;
+  color: $primary-contrast;
+  background-color: rgba(18,28,40,0.9);
+  min-width: 200px;
+  top:64px !important;
+}
+
+.mat-list-base .mat-list-item {
+  //border-bottom: 1px solid $primary-contrast;
+  color: $primary-contrast;
+}
+
+.mat-list-base .mat-list-item:hover {
+  background-color: $primary-contrast;
+  color: $primary;
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background-color: $primary-contrast;
+  color: $primary;
+}
+
+.side-menu-item {
+  font-size: mat-font-size($mypay4-fe-operatore-typography, subheading-2);
+  line-height: mat-line-height($mypay4-fe-operatore-typography, subheading-2);
+}
+
+.side-menu-item-submenu {
+  margin-left: 40px;
+  padding-right: 30px;
+}
+
+.padding-right {
+  padding-right: 16px;
+}
+
+.side-user-item {
+  padding-top: 10px;
+  padding-bottom: 20px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.side-user-icon {
+  min-width: 30px;
+  max-width: 30px;
+  width: 30px;
+  padding-right: 6px;
+  display: inline-block;
+  text-align: center;
+}
+
+.side-user-icon-img {
+  vertical-align: text-bottom;
+  max-height: 30px;
+}
+
+.disabled-link:hover {
+  cursor: unset !important;
+}
+
+.enabled-link:hover {
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  right: 5px;
+  //transition: all 0.25s linear;
+}
+
+.chevron-opened {
+  transform:rotate(90deg);
+}

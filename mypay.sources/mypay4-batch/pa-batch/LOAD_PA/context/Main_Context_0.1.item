@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" confirmationNeeded="false" name="Default">
+  <contextParameter comment="" name="percentuale_caricamento" prompt="percentuale_caricamento?" promptNeeded="false" type="id_Integer" value="null"/>
+  <contextParameter comment="" name="modalita" prompt="modalita?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="directory_talend" prompt="directory_talend?" promptNeeded="false" type="id_Directory" value="null"/>
+  <contextParameter comment="" name="totale_popolazione" prompt="totale_popolazione?" promptNeeded="false" type="id_Integer" value="null"/>
+  <contextParameter comment="" name="num_tot_utenti" prompt="num_tot_utenti?" promptNeeded="false" type="id_Long" value="null"/>
+</talendfile:ContextType>

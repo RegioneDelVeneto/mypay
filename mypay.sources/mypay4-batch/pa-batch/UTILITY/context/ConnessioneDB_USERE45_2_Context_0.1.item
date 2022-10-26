@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType confirmationNeeded="false" name="_ENV_">
+    <contextParameter comment="" name="conn_host_USERE45_2" prompt="conn_host_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_port_USERE45_2" prompt="conn_port_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_db_USERE45_2" prompt="conn_db_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_schema_USERE45_2" prompt="conn_schema_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_usr_USERE45_2" prompt="conn_usr_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_psw_USERE45_2" prompt="conn_psw_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType confirmationNeeded="false" name="Default">
+    <contextParameter comment="" name="conn_host_USERE45_2" prompt="conn_host_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_port_USERE45_2" prompt="conn_port_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_db_USERE45_2" prompt="conn_db_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_schema_USERE45_2" prompt="conn_schema_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_usr_USERE45_2" prompt="conn_usr_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_psw_USERE45_2" prompt="conn_psw_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType confirmationNeeded="false" name="produzione">
+    <contextParameter comment="" name="conn_host_USERE45_2" prompt="conn_host_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_port_USERE45_2" prompt="conn_port_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_db_USERE45_2" prompt="conn_db_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_schema_USERE45_2" prompt="conn_schema_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_usr_USERE45_2" prompt="conn_usr_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_psw_USERE45_2" prompt="conn_psw_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType confirmationNeeded="false" name="test">
+    <contextParameter comment="" name="conn_host_USERE45_2" prompt="conn_host_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_port_USERE45_2" prompt="conn_port_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_db_USERE45_2" prompt="conn_db_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_schema_USERE45_2" prompt="conn_schema_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_usr_USERE45_2" prompt="conn_usr_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_psw_USERE45_2" prompt="conn_psw_USERE45_2?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

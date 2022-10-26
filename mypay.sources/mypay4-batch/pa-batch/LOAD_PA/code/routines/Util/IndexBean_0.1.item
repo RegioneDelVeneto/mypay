@@ -1,0 +1,55 @@
+package routines;
+
+public class IndexBean {
+
+	private String relname;
+	private String pg_get_indexdef;
+	
+	public IndexBean() {
+		super();
+	}
+	
+	public IndexBean(String relname, String pg_get_indexdef) {
+		this.relname = relname;
+		this.pg_get_indexdef = pg_get_indexdef;
+	}
+	
+	public String createIndex(){
+		return this.pg_get_indexdef + ";";
+	}
+	
+	public String dropIndex(){
+		return "DROP INDEX " + 
+			this.relname + 
+			";";
+	}
+
+	/**
+	 * @return the relname
+	 */
+	public String getRelname() {
+		return relname;
+	}
+
+	/**
+	 * @param relname the relname to set
+	 */
+	public void setRelname(String relname) {
+		this.relname = relname;
+	}
+
+	/**
+	 * @return the pg_get_indexdef
+	 */
+	public String getPg_get_indexdef() {
+		return pg_get_indexdef;
+	}
+
+	/**
+	 * @param pg_get_indexdef the pg_get_indexdef to set
+	 */
+	public void setPg_get_indexdef(String pg_get_indexdef) {
+		this.pg_get_indexdef = pg_get_indexdef;
+	}
+
+}

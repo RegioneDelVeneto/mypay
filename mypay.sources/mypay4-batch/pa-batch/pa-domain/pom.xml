@@ -1,0 +1,112 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>it.regioneveneto.mygov.payment.pa</groupId>
+		<artifactId>pa</artifactId>
+		<version>5.9.69</version>
+	</parent>
+
+	<artifactId>pa-domain</artifactId>
+
+	<packaging>jar</packaging>
+
+	<name>Portale Pagamenti - Domain</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+		</dependency>
+					<dependency>
+			<groupId>com.sun.xml.ws</groupId>
+			<artifactId>jaxws-ri</artifactId>
+			<version>2.3.3</version>
+			<type>pom</type>
+		</dependency>
+
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>hibernate3-maven-plugin</artifactId>
+				<configuration>
+					<components>
+						<component>
+							<name>hbm2java</name>
+							<implementation>jdbcconfiguration</implementation>
+							<outputDirectory>orm/generated</outputDirectory>
+						</component>
+						<component>
+							<name>hbm2hbmxml</name>
+							<implementation>jdbcconfiguration</implementation>
+							<outputDirectory>orm/generated</outputDirectory>
+						</component>
+					</components>
+					<componentProperties>
+						<configurationfile>/orm/config/pa-cfg.xml</configurationfile>
+						<packagename>it.regioneveneto.mygov.payment.pa.domain.po</packagename>
+						<revengfile>/orm/config/pa-reveng.xml</revengfile>
+						<jdk5>false</jdk5>
+						<ejb3>false</ejb3>
+					</componentProperties>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>cglib</groupId>
+						<artifactId>cglib-nodep</artifactId>
+						<version>2.1_3</version>
+					</dependency>
+					<dependency>
+						<groupId>org.hibernate</groupId>
+						<artifactId>hibernate-tools</artifactId>
+						<version>3.2.4.GA</version>
+					</dependency>
+		<!-- 
+					<dependency>
+					    <groupId>org.postgresql</groupId>
+					    <artifactId>postgresql</artifactId>
+					    <version>9.3-1101-jdbc4</version>
+					</dependency>
+		 -->					
+		 			<dependency>
+					    <groupId>org.postgresql</groupId>
+					    <artifactId>postgresql</artifactId>
+					    <version>42.2.9</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>xmlbeans-maven-plugin</artifactId>
+				<version>2.3.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>xmlbeans</goal>
+						</goals>
+					</execution>
+				</executions>
+				<inherited>true</inherited>
+				<configuration>
+					<schemaDirectory>src/main/xsd</schemaDirectory>
+					<javaSource>1.8</javaSource>
+					<xmlConfigs>
+						<xmlConfig implementation="java.io.File">src/main/xsdconfig/nstopkg.xsdconfig</xmlConfig>
+					</xmlConfigs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

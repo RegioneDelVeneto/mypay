@@ -1,0 +1,45 @@
+[INFO] Disabling enhanced local repository: using legacy is strongly discouraged to ensure build reproducibility.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------< org.example.test.job:testSendRabbitMqMessage >------------
+[INFO] Building TEST testSendRabbitMqMessage-0.1.0 (0.1,Job Designs) 0.1.0
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The POM for org.dom4j:dom4j:jar:2.1.1 is missing, no dependency information available
+[WARNING] The POM for org.apache.logging.log4j:log4j-api:jar:2.12.1 is missing, no dependency information available
+[WARNING] The POM for org.apache.logging.log4j:log4j-core:jar:2.12.1 is missing, no dependency information available
+[WARNING] The POM for org.apache.logging.log4j:log4j-slf4j-impl:jar:2.12.1 is missing, no dependency information available
+[INFO] 
+[INFO] --- maven-resources-plugin:3.0.2:resources (default-resources) @ testSendRabbitMqMessage ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 2 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.6.1:compile (default-compile) @ testSendRabbitMqMessage ---
+[WARNING] The POM for org.eclipse.platform:org.eclipse.osgi:jar:3.13.300 is missing, no dependency information available
+[WARNING] The POM for org.apache.commons:commons-exec:jar:1.2 is missing, no dependency information available
+[INFO] Not compiling main sources
+[INFO] 
+[INFO] --- maven-resources-plugin:3.0.2:testResources (default-testResources) @ testSendRabbitMqMessage ---
+[INFO] Not copying test resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.6.1:testCompile (default-testCompile) @ testSendRabbitMqMessage ---
+[INFO] Not compiling test sources
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.20:test (default-test) @ testSendRabbitMqMessage ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ testSendRabbitMqMessage ---
+[INFO] Building jar: H:\talend7\TOS_DI-Win32-20200219_1130-V7.3.1\workspace\TEST\poms\jobs\process\testsendrabbitmqmessage_0.1\target\testsendrabbitmqmessage_0_1.jar
+[INFO] 
+[INFO] --- maven-assembly-plugin:3.0.0:single (default) @ testSendRabbitMqMessage ---
+[INFO] Reading assembly descriptor: H:\talend7\TOS_DI-Win32-20200219_1130-V7.3.1\workspace\TEST\poms\jobs\process\testsendrabbitmqmessage_0.1/src/main/assemblies/assembly.xml
+[WARNING] Missing POM for org.dom4j:dom4j:jar:2.1.1
+[WARNING] Missing POM for org.apache.logging.log4j:log4j-api:jar:2.12.1
+[WARNING] Missing POM for org.apache.logging.log4j:log4j-core:jar:2.12.1
+[WARNING] Missing POM for org.apache.logging.log4j:log4j-slf4j-impl:jar:2.12.1
+[INFO] Building zip: H:\talend7\TOS_DI-Win32-20200219_1130-V7.3.1\workspace\TEST\poms\jobs\process\testsendrabbitmqmessage_0.1\target\testsendrabbitmqmessage_0_1.zip
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 3.811 s
+[INFO] Finished at: 2020-10-30T09:04:28+01:00
+[INFO] ------------------------------------------------------------------------

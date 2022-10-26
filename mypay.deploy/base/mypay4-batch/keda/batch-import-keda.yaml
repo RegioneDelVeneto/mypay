@@ -1,0 +1,21 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: mypay4-batch-import-keda
+spec:
+  scaleTargetRef:
+    name: mypay4-batch-import
+  pollingInterval: 30  # Optional. Default: 30 seconds
+  cooldownPeriod: 300 # Optional. Default: 300 seconds
+  minReplicaCount: 1   # Optional. Default: 0
+  maxReplicaCount: 30 # Optional. Default: 100
+  triggers:
+  - type: artemis-queue
+    metadata:
+      managementEndpoint: "rve-artemis-e45-hdls-svc.ke45c.svc.cluster.local:8161"
+      queueName: "IMPORT_DOVUTI"
+      queueLength: "2"
+      brokerName: "0.0.0.0"
+      brokerAddress: "IMPORT_DOVUTI"
+    authenticationRef:
+      name: trigger-auth-kedartemis

@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Nov 23, 2018 12:29:31 PM by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRichiestaAvvisi" table="mygov_richiesta_avvisi">
+        <id name="mygovRichiestaAvvisiId" type="java.lang.Long">
+            <column name="mygov_richiesta_avvisi_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_richiesta_avvisi_mygov_richiesta_avvisi_id_seq</param>
+            </generator>
+        </id>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" not-null="true" />
+        </property>
+        <property name="codIdentificativoIntermediarioPa" type="string">
+            <column name="cod_identificativo_intermediario_pa" length="35" not-null="true" />
+        </property>
+        <property name="codIdentificativoStazioneIntermediarioPa" type="string">
+            <column name="cod_identificativo_stazione_intermediario_pa" length="35" not-null="true" />
+        </property>
+        <property name="codIdentificativoDominio" type="string">
+            <column name="cod_identificativo_dominio" length="35" not-null="true" />
+        </property>
+        <property name="codIdentificativoPsp" type="string">
+            <column name="cod_identificativo_psp" length="35" not-null="true" />
+        </property>
+        <property name="codIdServizio" type="string">
+            <column name="cod_id_servizio" length="5" />
+        </property>
+        <property name="deDatiSpecificiServizio" type="string">
+            <column name="de_dati_specifici_servizio" not-null="true" />
+        </property>
+        <property name="codEsito" type="string">
+            <column name="cod_esito" length="2" />
+        </property>
+        <property name="codNumeroAvvisoAuxDigit" type="string">
+            <column name="cod_numero_avviso_aux_digit" length="1" />
+        </property>
+        <property name="codNumeroAvvisoApplicationCode" type="string">
+            <column name="cod_numero_avviso_application_code" length="2" />
+        </property>
+        <property name="codNumeroAvvisoCodIuv" type="string">
+            <column name="cod_numero_avviso_cod_iuv" length="17" />
+        </property>
+        <property name="numDatiPagamPaImportoSingoloVersamento" type="big_decimal">
+            <column name="num_dati_pagam_pa_importo_singolo_versamento" precision="12" />
+        </property>
+        <property name="codDatiPagamPaIbanAccredito" type="string">
+            <column name="cod_dati_pagam_pa_iban_accredito" length="27" />
+        </property>
+        <property name="codDatiPagamPaBicAccredito" type="string">
+            <column name="cod_dati_pagam_pa_bic_accredito" length="11" />
+        </property>
+        <property name="codDatiPagamPaEnteBenefIdUnivBenefTipoIdUnivoco" type="string">
+            <column name="cod_dati_pagam_pa_ente_benef_id_univ_benef_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codDatiPagamPaEnteBenefIdUnivBenefCodiceIdUnivoco" type="string">
+            <column name="cod_dati_pagam_pa_ente_benef_id_univ_benef_codice_id_univoco" length="35" />
+        </property>
+        <property name="deDatiPagamPaEnteBenefDenominazioneBeneficiario" type="string">
+            <column name="de_dati_pagam_pa_ente_benef_denominazione_beneficiario" length="70" />
+        </property>
+        <property name="codDatiPagamPaEnteBenefCodiceUnitOperBeneficiario" type="string">
+            <column name="cod_dati_pagam_pa_ente_benef_codice_unit_oper_beneficiario" length="35" />
+        </property>
+        <property name="deDatiPagamPaEnteBenefDenomUnitOperBeneficiario" type="string">
+            <column name="de_dati_pagam_pa_ente_benef_denom_unit_oper_beneficiario" length="70" />
+        </property>
+        <property name="deDatiPagamPaEnteBenefIndirizzoBeneficiario" type="string">
+            <column name="de_dati_pagam_pa_ente_benef_indirizzo_beneficiario" length="70" />
+        </property>
+        <property name="deDatiPagamPaEnteBenefCivicoBeneficiario" type="string">
+            <column name="de_dati_pagam_pa_ente_benef_civico_beneficiario" length="16" />
+        </property>
+        <property name="codDatiPagamPaEnteBenefCapBeneficiario" type="string">
+            <column name="cod_dati_pagam_pa_ente_benef_cap_beneficiario" length="16" />
+        </property>
+        <property name="deDatiPagamPaEnteBenefLocalitaBeneficiario" type="string">
+            <column name="de_dati_pagam_pa_ente_benef_localita_beneficiario" length="35" />
+        </property>
+        <property name="deDatiPagamPaEnteBenefProvinciaBeneficiario" type="string">
+            <column name="de_dati_pagam_pa_ente_benef_provincia_beneficiario" length="35" />
+        </property>
+        <property name="codDatiPagamPaEnteBenefNazioneBeneficiario" type="string">
+            <column name="cod_dati_pagam_pa_ente_benef_nazione_beneficiario" length="2" />
+        </property>
+        <property name="deDatiPagamentoPaCredenzialiPagatore" type="string">
+            <column name="de_dati_pagamento_pa_credenziali_pagatore" length="70" />
+        </property>
+        <property name="deDatiPagamentoPaCausaleVersamento" type="string">
+            <column name="de_dati_pagamento_pa_causale_versamento" length="140" />
+        </property>
+        <property name="codRichiediAvvisoFaultId" type="string">
+            <column name="cod_richiedi_avviso_fault_id" length="256" />
+        </property>
+        <property name="codRichiediAvvisoFaultCode" type="string">
+            <column name="cod_richiedi_avviso_fault_code" length="256" />
+        </property>
+        <property name="codRichiediAvvisoFaultString" type="string">
+            <column name="cod_richiedi_avviso_fault_string" length="256" />
+        </property>
+        <property name="codRichiediAvvisoFaultDescription" type="string">
+            <column name="cod_richiedi_avviso_fault_description" length="1024" />
+        </property>
+        <property name="codRichiediAvvisoFaultSerial" type="java.lang.Integer">
+            <column name="cod_richiedi_avviso_fault_serial" />
+        </property>
+        <property name="codRichiediAvvisoOriginalFaultCode" type="string">
+            <column name="cod_richiedi_avviso_original_fault_code" length="256" />
+        </property>
+        <property name="deRichiediAvvisoOriginalFaultString" type="string">
+            <column name="de_richiedi_avviso_original_fault_string" length="256" />
+        </property>
+        <property name="deRichiediAvvisoOriginalFaultDescription" type="string">
+            <column name="de_richiedi_avviso_original_fault_description" length="1024" />
+        </property>
+    </class>
+</hibernate-mapping>

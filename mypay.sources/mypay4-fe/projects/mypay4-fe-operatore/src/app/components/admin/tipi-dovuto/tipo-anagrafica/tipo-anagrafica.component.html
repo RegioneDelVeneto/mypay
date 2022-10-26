@@ -1,0 +1,350 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpPageFlgFunzionalita>
+  <div>
+    <p>Attenzione, selezionando il flag la funzionalità è abilitata soltanto se è abilitata anche a livello di ente al tab Lista funzionalità.</p>
+  </div>
+</ng-template>
+
+<ng-template #helpBilancio>
+  <div>
+    <p>Attenzione, la modifica del seguente parametro implica dirette conseguenze alla ripartizione del/degli importo/i sui capitoli di bilancio del pagamento</p>
+  </div>
+</ng-template>
+
+<ng-template #helpFlagSpontaneo>
+  <div>
+    <p>Attenzione</p>
+    <p>Per abilitare il pagamento spontaneo, oltre all’abilitazione a livello di Tipo dovuto è necessario che sia attiva la corrispondente Funzionalità a livello di Ente.
+      · se impostato “Flag Spontaneo” a True allora i flag “flag Data Scadenza Obbligatoria” e “Flag Visualizza Data Scadenza” saranno a False e non saranno modificabili, in questo modo la data di scadenza se valorizzata non sarà mai visualizzata nell’Avviso.    
+      · se impostato “Flag Spontaneo” a False allora la data di scadenza sarà visualizzata nell’Avviso a seconda delle seguenti configurazioni </p>
+  </div>
+</ng-template>
+
+<ng-template #helpFlagScadenzaObbligatoria>
+  <div>
+    <p>Attenzione, se ”Flag Data Scadenza Obbligatoria” è True, il “Flag Visualizza Data Scadenza” sarà automaticamente a True e non sarà modificabile.</p>
+    <p>Oppure, se “Flag Data Scadenza Obbligatoria” è False, sarà possibile impostare a True o False il “Flag Visualizza Data Scadenza</p>
+  </div>
+</ng-template>
+
+<ng-template #alertTemplateRef>
+  <div mat-dialog-title fxLayout="row" fxLayoutAlign="start start">
+    <h2>Help online</h2>
+    <span class="flex-spacer"></span>
+    <button mat-flat-button mat-dialog-close><fa-icon [icon]="iconTimes" size="lg"></fa-icon></button>
+  </div>
+  <mat-dialog-content>
+    <ng-container>
+      <div>
+        <p>Attenzione, Il tipo dovuto selezionato contiene uno o più dovuti aventi data scadenza obbligatoria non valorizzata perciò non sarà possibile impostare a True il “Flag Data Scadenza Obbligatoria".</p>
+      </div>
+    </ng-container>
+  </mat-dialog-content>
+</ng-template>
+
+<div [class.container]="modeAnag==='insert'">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="10px">
+
+    <div *ngIf="modeAnag==='insert'" class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+    </div>
+
+    <div class="w100 mypay-search-form">
+      <form fxFlex novalidate #sForm="ngForm" [formGroup]="formAnag" (ngSubmit)="onSubmit()">
+
+        <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="10px">
+
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+              <mat-label>Codice IPA</mat-label>
+              <input matInput readonly required value="{{ ente?.codIpaEnte }}">
+            </mat-form-field>
+          </div>
+
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}">
+              <mat-label>Codice tipo dovuto</mat-label>
+              <input matInput [readonly]="modeAnag=='view'" required formControlName="codTipo" placeholder="Inserire un testo">
+              <mat-error *ngIf="formAnagErrors['codTipo']">{{ formAnagErrors.codTipo }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="60%" appearance="{{'appearance'|global}}">
+              <mat-label>Descrizione tipo dovuto</mat-label>
+              <input matInput [readonly]="modeAnag=='view'" required formControlName="deTipo" placeholder="Inserire un testo">
+              <mat-error *ngIf="formAnagErrors['deTipo']">{{ formAnagErrors.deTipo }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="90%" appearance="{{'appearance'|global}}">
+              <mat-label>Macroarea</mat-label>
+              <mat-select required formControlName="macroArea" name="macroArea" [compareWith]="compareMacroArea"
+                  (selectionChange)="macroAreaOnChange($event.value)" typeaheadDebounceInterval="800">
+                <mat-option *ngFor="let macroArea of macroAreas" [value]="macroArea">
+                  {{macroArea.description}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="formAnagErrors['macroArea']">{{ formAnagErrors.macroArea }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" style="margin-top: -20px;">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+              <mat-label>Tipo Servizio</mat-label>
+              <mat-select required formControlName="tipoServizio" name="tipoServizio" [compareWith]="compareTipoServizio"
+                  (selectionChange)="tipoServizioOnChange($event.value)" typeaheadDebounceInterval="800">
+                <mat-option *ngFor="let tipoServizio of tipoServizios" [value]="tipoServizio">
+                  {{tipoServizio.description}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="formAnagErrors['tipoServizio']">{{ formAnagErrors.tipoServizio }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+              <mat-label>Motivo riscossione</mat-label>
+              <mat-select required formControlName="motivoRiscossione" name="motivoRiscossione" [compareWith]="compareMotivoRiscossione"
+                  (selectionChange)="motivoRiscossioneOnChange($event.value)" typeaheadDebounceInterval="800">
+                <mat-option *ngFor="let motivoRiscossione of motivoRiscossiones" [value]="motivoRiscossione">
+                  {{motivoRiscossione.description}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="formAnagErrors['motivoRiscossione']">{{ formAnagErrors.motivoRiscossione }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+              <mat-label>Codice Tassonomico</mat-label>
+              <mat-select required formControlName="codTassonomico" name="codTassonomico" [compareWith]="compareMacroArea"
+                  (selectionChange)="codTassonomicoOnChange($event.value)" typeaheadDebounceInterval="800">
+                <mat-option *ngFor="let codTassonomico of codTassonomicos" [value]="codTassonomico">
+                  {{codTassonomico.description}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="formAnagErrors['codTassonomico']">{{ formAnagErrors.codTassonomico }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="49%" appearance="{{'appearance'|global}}">
+              <mat-label>Iban accredito poste</mat-label>
+              <input matInput [readonly]="modeAnag=='view'" formControlName="ibanAccreditoPi" placeholder="Inserire un testo">
+              <mat-error *ngIf="formAnagErrors['ibanAccreditoPi']">{{ formAnagErrors.ibanAccreditoPi }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="49%" appearance="{{'appearance'|global}}">
+              <mat-label>Iban accredito PSP</mat-label>
+              <input matInput [readonly]="modeAnag=='view'" formControlName="ibanAccreditoPsp" placeholder="Inserire un testo">
+              <mat-error *ngIf="formAnagErrors['ibanAccreditoPsp']">{{ formAnagErrors.ibanAccreditoPsp }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}">
+              <mat-label>Codice XSD causale</mat-label>
+              <input matInput [readonly]="modeAnag=='view'" formControlName="codXsdCausale" placeholder="Inserire un testo">
+              <mat-error *ngIf="formAnagErrors['codXsdCausale']">{{ formAnagErrors.codXsdCausale }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <ng-contener *ngIf="modeAnag!='insert'">
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="20px">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+                <mat-label>Importo predefinito</mat-label>
+                <input matInput [readonly]="modeAnag=='view'" formControlName="importo" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['importo']">{{ formAnagErrors.importo }}</mat-error>
+              </mat-form-field>
+
+              <div fxFlex.gt-sm="10%"></div>
+
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view'" formControlName="spontaneo"
+                    name="spontaneo" (change)="spontaneoOnChange($event.checked)">
+                  Flag Spontaneo
+                </mat-checkbox>
+                <my-pay-help-field [template]="helpFlagSpontaneo"></my-pay-help-field>
+              </div>
+
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view'" formControlName="flgCfAnonimo" name="flgCfAnonimo">
+                  Abilita CF anonimo
+                </mat-checkbox>
+              </div>
+
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="20px">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+                <mat-label>URL Pagamento Dovuto</mat-label>
+                <input matInput [readonly]="modeAnag=='view'" formControlName="deUrlPagamentoDovuto" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['deUrlPagamentoDovuto']">{{ formAnagErrors.deUrlPagamentoDovuto }}</mat-error>
+              </mat-form-field>
+
+              <div fxFlex.gt-sm="10%"></div>
+
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="!flgScadenzaObbligatoriaEnable || modeAnag=='view' || formAnag.get('spontaneo').value"
+                    formControlName="flgScadenzaObbligatoria" name="flgScadenzaObbligatoria" (change)="flgScadenzaObbligatoriaOnChange($event.checked, alertTemplateRef)">
+                  Flag Data Scadenza Obbligatoria
+                </mat-checkbox>
+                <my-pay-help-field [template]="helpFlagScadenzaObbligatoria"></my-pay-help-field>
+              </div>
+
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="!flgScadenzaObbligatoriaEnable || modeAnag=='view' || formAnag.get('spontaneo').value || formAnag.get('flgScadenzaObbligatoria').value"
+                    formControlName="flgStampaDataScadenza" name="flgStampaDataScadenza">
+                  Flag Visualizza Data Scadenza
+                </mat-checkbox>
+              </div>
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}">
+                <mat-label>Struttura bilancio default</mat-label>
+                <textarea matInput [readonly]="modeAnag=='view'" formControlName="deBilancioDefault" placeholder="Inserire un testo">
+                </textarea>
+                <mat-error *ngIf="formAnagErrors['deBilancioDefault']">{{ formAnagErrors.deBilancioDefault }}</mat-error>
+              </mat-form-field>
+              <my-pay-help-field [template]="helpBilancio"></my-pay-help-field>
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}">
+                <mat-label>Settore ente</mat-label>
+                <input matInput [readonly]="modeAnag=='view'" formControlName="deSettoreEnte" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['deSettoreEnte']">{{ formAnagErrors.deSettoreEnte }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}">
+                <mat-label>Intestatario CC poste</mat-label>
+                <input matInput [readonly]="modeAnag=='view'" formControlName="deIntestatarioCCPostale" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['deIntestatarioCCPostale']">{{ formAnagErrors.deIntestatarioCCPostale }}</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view'" formControlName="flgNotificaIo" name="flgNotificaIo">
+                  Flag invio notifica avvisi IO <my-pay-help-field [template]="helpPageFlgFunzionalita"></my-pay-help-field>
+                </mat-checkbox>
+              </div>
+
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view'" formControlName="flgDisabilitaStampaAvviso" name="flgDisabilitaStampaAvviso">
+                  Flag disabilita stampa avviso
+                </mat-checkbox>
+              </div>
+
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}">
+                <mat-label>Codice contesto pagamento Tipo Dovuto</mat-label>
+                <input matInput [readonly]="modeAnag=='view'" formControlName="codiceContestoPagamento" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['codiceContestoPagamento']">{{ formAnagErrors.codiceContestoPagamento }}</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+              <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view'" formControlName="flgNotificaEsitoPush"
+                    name="flgNotificaEsitoPush" (change)="flgNotificaEsitoPushOnChange($event.checked)" >
+                  Flag Invio Push Esito Pagamento <my-pay-help-field [template]="helpPageFlgFunzionalita"></my-pay-help-field>
+                </mat-checkbox>
+              </div>
+
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}">
+                <mat-label>Massimo tentativi inoltro esito</mat-label>
+                <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgNotificaEsitoPush').value" formControlName="maxTentativiInoltroEsito" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['maxTentativiInoltroEsito']">{{ formAnagErrors.maxTentativiInoltroEsito }}</mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-accordion>
+              <mat-expansion-panel [expanded]="formAnag.get('flgNotificaEsitoPush').value">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>Configurazione Invio Push Esito Pagamento</mat-panel-title>
+                  <mat-panel-description>Clicca per modificare la configurazione</mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+                    <mat-label>Nome Applicativo</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgNotificaEsitoPush').value" formControlName="nomeApplicativo" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['nomeApplicativo']">{{ formAnagErrors.nomeApplicativo }}</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="45%" appearance="{{'appearance'|global}}">
+                    <mat-label>Url Inoltro RT</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgNotificaEsitoPush').value" formControlName="deUrlInoltroEsitoPagamentoPush" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['deUrlInoltroEsitoPagamentoPush']">{{ formAnagErrors.deUrlInoltroEsitoPagamentoPush }}</mat-error>
+                  </mat-form-field>
+
+                  <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
+                    <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view'" formControlName="flgJwtAttivo" name="flgNotificaEsitoPush">
+                      Flag JWT attivo
+                    </mat-checkbox>
+                  </div>
+                </div>
+
+                <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="45%" appearance="{{'appearance'|global}}">
+                    <mat-label>Client ID</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgJwtAttivo').value" formControlName="codServiceAccountJwtUscitaClientId" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['codServiceAccountJwtUscitaClientId']">{{ formAnagErrors.codServiceAccountJwtUscitaClientId }}</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="45%" appearance="{{'appearance'|global}}">
+                    <mat-label>Client Mail</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgJwtAttivo').value" formControlName="deServiceAccountJwtUscitaClientMail" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['deServiceAccountJwtUscitaClientMail']">{{ formAnagErrors.deServiceAccountJwtUscitaClientMail }}</mat-error>
+                  </mat-form-field>
+                </div>
+
+                <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="45%" appearance="{{'appearance'|global}}">
+                    <mat-label>Secret key ID</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgJwtAttivo').value" formControlName="codServiceAccountJwtUscitaSecretKeyId" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['codServiceAccountJwtUscitaSecretKeyId']">{{ formAnagErrors.codServiceAccountJwtUscitaSecretKeyId }}</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="45%" appearance="{{'appearance'|global}}">
+                    <mat-label>Secret key</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgJwtAttivo').value" formControlName="codServiceAccountJwtUscitaSecretKey" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['codServiceAccountJwtUscitaSecretKey']">{{ formAnagErrors.codServiceAccountJwtUscitaSecretKey }}</mat-error>
+                  </mat-form-field>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+
+          </ng-contener>
+
+          <div class="container" fxFlex fxLayout="row" fxLayoutGap="10px">
+            <button fxFlex="25%" fxFlex.gt-sm="10" type="button" mat-flat-button (click)="goBack()" color="primary">Indietro</button>
+            <span class="flex-spacer"></span>
+            <button fxFlex="25%" fxFlex.gt-sm="10" type="button" mat-flat-button *ngIf="modeAnag==='view'" (click)="enableEdit()" color="accent">Modifica</button>
+            <button fxFlex="25%" fxFlex.gt-sm="10" type="button" mat-flat-button *ngIf="modeAnag==='edit'" (click)="onReset()" color="primary">Annulla</button>
+            <button fxFlex="25%" fxFlex.gt-sm="10" type="button" mat-flat-button *ngIf="modeAnag!=='view'" [app-confirm]="saveConfirmMsg(this)"
+                [disabled]="formAnag.invalid || blockingError" color="accent" (clickConfirmed)="onSubmit()">Salva</button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>

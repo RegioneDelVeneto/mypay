@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" confirmationNeeded="false" name="Default">
+  <contextParameter comment="" name="server_sftp_host" prompt="server_sftp_host?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="server_sftp_port" prompt="server_sftp_port?" promptNeeded="false" type="id_Integer" value="null"/>
+  <contextParameter comment="" name="server_sftp_username" prompt="server_sftp_username?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="server_sftp_password" prompt="server_sftp_password?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="server_sftp_remote_directory" prompt="server_sftp_remote_directory?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="server_sftp_remote_directory_tmp" prompt="server_sftp_remote_directory_tmp?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="server_sftp_auth_method" prompt="server_sftp_auth_method?" promptNeeded="false" type="id_String" value="null"/>
+</talendfile:ContextType>

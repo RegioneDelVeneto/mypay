@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 15-giu-2017 10.39.57 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovTipiversamento" table="mygov_tipiversamento">
+        <id name="id" type="java.lang.Long">
+            <column name="id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_tipiversamento_id_seq</param>
+            </generator>
+        </id>
+        <property name="tipoVersamento" type="string">
+            <column name="tipo_versamento" length="5" not-null="true" unique="true" />
+        </property>
+        <property name="iuvCodiceTipoVersamentoId" type="string">
+            <column name="iuv_codice_tipo_versamento_id" length="2" not-null="true" />
+        </property>
+        <property name="descrizione" type="string">
+            <column name="descrizione" length="100" />
+        </property>
+    </class>
+</hibernate-mapping>

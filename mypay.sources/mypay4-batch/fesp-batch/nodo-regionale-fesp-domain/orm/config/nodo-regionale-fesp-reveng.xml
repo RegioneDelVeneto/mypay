@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN" "classpath://org/hibernate/hibernate-reverse-engineering-3.0.dtd">
+
+<hibernate-reverse-engineering>
+	<type-mapping>
+		<sql-type jdbc-type="CHAR" length='1' hibernate-type="string" />
+	</type-mapping>
+	<table-filter match-name="mygov_rp_e" />
+	<table-filter match-name="mygov_rp_e_dettaglio" />
+	<table-filter match-name="mygov_rpt_rt" />
+	<table-filter match-name="mygov_rpt_rt_dettaglio" />
+	<table-filter match-name="mygov_iuv" />
+	<table-filter match-name="mygov_catalogoinformativo" />
+	<table-filter match-name="mygov_catalogopsp" />
+	<table-filter match-name="mygov_tipiversamento" />
+	<table-filter match-name="mygov_progressiviversamento" />
+	<table-filter match-name="mygov_ente" />
+	<table-filter match-name="mygov_flusso_rend_spc" />
+	<table-filter match-name="mygov_flusso_quad_spc" />
+	<table-filter match-name="mygov_attiva_rpt_e" />
+	<table-filter match-name="mygov_giornale" />
+	<table-filter match-name="mygov_carrello_rp" />
+	<table-filter match-name="mygov_carrello_rpt" />
+	<table-filter match-name="mygov_richiesta_avvisi" />
+	<table-filter match-name="mygov_rr_er" />
+	<table-filter match-name="mygov_rr_er_dettaglio" />
+	
+	<table name="mygov_rr_er">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_rr_er_id_seq</param>
+			</generator>
+			<key-column name="mygov_rr_er_id" />
+		</primary-key>
+	</table>
+	
+	<table name="mygov_rr_er_dettaglio">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_rr_er_dettaglio_id_seq</param>
+			</generator>
+			<key-column name="mygov_rr_er_dettaglio_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_rr_er_dettaglio_fkey">
+			<many-to-one property="mygov_rr_er" />
+			<set property="mygov_rr_er_dettaglio" />
+		</foreign-key>
+	</table>
+  
+  <table name="mygov_carrello_rp">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_carrello_rp_id_seq</param>
+			</generator>
+			<key-column name="mygov_carrello_rp_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_rp_e">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_rp_e_mygov_rp_e_id_seq</param>
+			</generator>
+			<key-column name="mygov_rp_e_id" />
+		</primary-key>
+    <foreign-key constraint-name="mygov_rp_e_mygov_carrello_rp_fkey">
+			<many-to-one property="mygov_carrello_rp" />
+			<set property="mygov_rp_e" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_rp_e_dettaglio">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_rp_e_dettaglio_mygov_rp_e_dettaglio_id_seq</param>
+			</generator>
+			<key-column name="mygov_rp_e_dettaglio_id" />
+		</primary-key>
+		<foreign-key constraint-name="my_gov_rp_e_dettaglio_mygov_rp_e_fkey">
+			<many-to-one property="mygov_rp_e" />
+			<set property="mygov_rp_e_dettaglio" />
+		</foreign-key>
+	</table>
+  
+  <table name="mygov_carrello_rpt">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_carrello_rpt_id_seq</param>
+			</generator>
+			<key-column name="mygov_carrello_rpt_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_rpt_rt">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_rpt_rt_mygov_rpt_rt_id_seq</param>
+			</generator>
+			<key-column name="mygov_rpt_rt_id" />
+		</primary-key>
+    <foreign-key constraint-name="mygov_rpt_rt_mygov_carrello_rpt_fkey">
+			<many-to-one property="mygov_carrello_rpt" />
+			<set property="mygov_rpt_rt" />
+		</foreign-key>
+	</table>
+  
+
+	<table name="mygov_rpt_rt_dettaglio">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_rpt_rt_dettaglio_mygov_rpt_rt_dettaglio_id_seq</param>
+			</generator>
+			<key-column name="mygov_rpt_rt_dettaglio_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_rpt_rt_dettaglio_mygov_rpt_rt_fkey">
+			<many-to-one property="mygov_rpt_rt" />
+			<set property="mygov_rpt_rt_dettaglio" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_iuv">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_iuv_id_seq</param>
+			</generator>
+			<key-column name="id" />
+		</primary-key>
+		<foreign-key constraint-name="fk_mygov_iuv_mygov_ente">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_catalogoinformativo">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_catalogoinformativo_id_seq</param>
+			</generator>
+			<key-column name="id" />
+		</primary-key>
+		<foreign-key constraint-name="fk_mygov_catalogoinformativo_mygov_ente">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	<table name="mygov_catalogopsp">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_catalogopsp_id_seq</param>
+			</generator>
+			<key-column name="id" />
+		</primary-key>
+	</table>
+	<table name="mygov_tipiversamento">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_tipiversamento_id_seq</param>
+			</generator>
+			<key-column name="id" />
+		</primary-key>
+	</table>
+	<table name="mygov_progressiviversamento">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_progressiviversamento_id_seq</param>
+			</generator>
+			<key-column name="id" />
+		</primary-key>
+		<foreign-key constraint-name="fk_mygov_progressiviversamento_mygov_ente">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="fk_mygov_progressiviversamento_mygov_tipiversamento">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	<table name="mygov_ente">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_ente_mygov_ente_id_seq</param>
+			</generator>
+			<key-column name="mygov_ente_id" />
+		</primary-key>
+	</table>
+	<table name="mygov_flusso_quad_spc">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_flusso_quad_spc_mygov_flusso_quad_spc_id_seq</param>
+			</generator>
+			<key-column name="mygov_flusso_quad_spc_id" />
+		</primary-key>
+		<foreign-key constraint-name="fk_mygov_flusso_quad_spc_mygov_ente">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>	
+	<table name="mygov_flusso_rend_spc">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_flusso_rend_spc_mygov_flusso_rend_spc_id_seq</param>
+			</generator>
+			<key-column name="mygov_flusso_rend_spc_id" />
+		</primary-key>
+		<foreign-key constraint-name="fk_mygov_flusso_rend_spc_mygov_ente">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	<table name="mygov_attiva_rpt_e">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_attiva_rpt_e_id_seq</param>
+			</generator>
+			<key-column name="mygov_attiva_rpt_e_id" />
+		</primary-key>
+	</table>
+	<table name="mygov_giornale">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_giornale_mygov_giornale_id_seq</param>
+			</generator>
+			<key-column name="mygov_giornale_id" />
+		</primary-key>
+	</table>
+	<table name="mygov_richiesta_avvisi">
+		<primary-key>
+			<generator class="sequence">
+				<param name="sequence">mygov_richiesta_avvisi_mygov_richiesta_avvisi_id_seq</param>
+			</generator>
+			<key-column name="mygov_richiesta_avvisi_id" />
+		</primary-key>
+	</table>
+
+</hibernate-reverse-engineering>

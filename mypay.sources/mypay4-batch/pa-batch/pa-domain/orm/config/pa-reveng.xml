@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-reverse-engineering-3.0.dtd" >
+
+<hibernate-reverse-engineering>
+	<table-filter match-name="mygov_anagrafica_stato" />
+	<table-filter match-name="mygov_avviso" />   
+	<table-filter match-name="mygov_carrello" />
+  	<table-filter match-name="mygov_carrello_multi_beneficiario" />
+	<table-filter match-name="mygov_dovuto" />
+	<table-filter match-name="mygov_dovuto_carrello" />
+	<table-filter match-name="mygov_dovuto_elaborato" />
+	<table-filter match-name="mygov_ente" />
+	<table-filter match-name="mygov_ente_tipo_dovuto" />
+	<table-filter match-name="mygov_ente_funzionalita" />
+	<table-filter match-name="mygov_flusso" />
+	<table-filter match-name="mygov_flusso_tassonomia" />
+	<table-filter match-name="mygov_tassonomia" />
+	<table-filter match-name="mygov_flusso_massivo" />
+	<table-filter match-name="mygov_operatore" />
+	<table-filter match-name="mygov_operatore_ente_tipo_dovuto" />
+	<table-filter match-name="mygov_utente" />
+	<table-filter match-name="mygov_identificativo_univoco" />
+	<table-filter match-name="mygov_import_dovuti" />
+	<table-filter match-name="mygov_export_dovuti" />
+	<table-filter match-name="mygov_nazione" />
+	<table-filter match-name="mygov_comune" />
+	<table-filter match-name="mygov_avviso_anonimo" />
+	<table-filter match-name="mygov_spontaneo_anonimo" />
+	<table-filter match-name="mygov_provincia" />
+	<table-filter match-name="mygov_giornale" />
+	<table-filter match-name="mygov_delega" />
+	<table-filter match-name="mygov_soggetto_delega" />
+	<table-filter match-name="mygov_soggetto_delegante_coordinate_addebito" />
+	<table-filter match-name="mygov_dati_marca_bollo_digitale" />
+	<table-filter match-name="mygov_avviso_digitale" />
+	<table-filter match-name="mygov_flusso_avviso_digitale" />
+	<table-filter match-name="mygov_esito_avviso_digitale" />
+	<table-filter match-name="mygov_wisp" />    
+	<table-filter match-name="mygov_avviso_tassa_auto" />
+	<table-filter match-name="mygov_revoca" />
+	<table-filter match-name="mygov_revoca_dati_pagamenti" />
+	<table-filter match-name="mygov_push_esito_sil" />
+	<table-filter match-name="mygov_ente_sil" />
+	<table-filter match-name="mygov_tassonomia" />
+	
+
+	<table name="mygov_anagrafica_stato"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.AnagraficaStato">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_anagrafica_stato_mygov_anagrafica_stato_id_seq</param>
+			</generator>
+			<key-column name="mygov_anagrafica_stato_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_avviso" class="it.regioneveneto.mygov.payment.pa.domain.po.Avviso">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_avviso_mygov_avviso_id_seq</param>
+			</generator>
+			<key-column name="mygov_avviso_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_avviso_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_carrello"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Carrello">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_carrello_mygov_carrello_id_seq</param>
+			</generator>
+			<key-column name="mygov_carrello_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_carrello_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+    	<foreign-key constraint-name="mygov_carrello_mygov_carrello_multi_beneficiario_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+  
+  	<table name="mygov_carrello_multi_beneficiario"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.CarrelloMultiBeneficiario">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_carrello_multi_beneficiario_id_seq</param>
+			</generator>
+			<key-column name="mygov_carrello_multi_beneficiario_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_carrello_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+
+	<table name="mygov_dovuto" class="it.regioneveneto.mygov.payment.pa.domain.po.Dovuto">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_dovuto_mygov_dovuto_id_seq</param>
+			</generator>
+			<key-column name="mygov_dovuto_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_dovuto_mygov_flusso_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_mygov_carrello_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_mygov_avviso_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_mygov_dati_mbd_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_dovuto_carrello"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.DovutoCarrello">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_dovuto_carrello_mygov_dovuto_carrello_id_seq</param>
+			</generator>
+			<key-column name="mygov_dovuto_carrello_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_dovuto_carrello_mygov_carrello_fk">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_carrello_mygov_dovuto_fk">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_dovuto_elaborato"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.DovutoElaborato">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_dovuto_elaborato_mygov_dovuto_elaborato_id_seq</param>
+			</generator>
+			<key-column name="mygov_dovuto_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_dovuto_elaborato_mygov_flusso_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_elaborato_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_dovuto_elaborato_mygov_carrello_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_ente" class="it.regioneveneto.mygov.payment.pa.domain.po.Ente">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_ente_mygov_ente_id_seq</param>
+			</generator>
+			<key-column name="mygov_ente_id" />
+		</primary-key>
+		<column name="de_logo_ente" exclude="true" />
+	</table>
+
+	<table name="mygov_ente_tipo_dovuto"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.EnteTipoDovuto">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_ente_tipo_dovuto_mygov_ente_tipo_dovuto_id_seq</param>
+			</generator>
+			<key-column name="mygov_ente_tipo_dovuto_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_ente_tipo_dovuto_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_ente_tipo_dovuto_mygov_ente_sil_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_ente_funzionalita"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.EnteFunzionalita">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_ente_funzionalita_mygov_ente_funzionalita_id_seq</param>
+			</generator>
+			<key-column name="mygov_ente_funzionalita_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_flusso" class="it.regioneveneto.mygov.payment.pa.domain.po.Flusso">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_flusso_mygov_flusso_id_seq</param>
+			</generator>
+			<key-column name="mygov_flusso_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_flusso_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_flussi_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_flusso_tassonomia" class="it.regioneveneto.mygov.payment.pa.domain.po.FlussoTassonomia">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_flusso_tassonomia_mygov_flusso_tassonomia_id_seq</param>
+			</generator>
+			<key-column name="mygov_flusso_tassonomia_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_flussi_tassonomia_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	<table name="mygov_tassonomia" class="it.regioneveneto.mygov.payment.pa.domain.po.Tassonomia">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_tassonomia_mygov_tassonomia_id_seq</param>
+			</generator>
+			<key-column name="mygov_tassonomia_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_tassonomia_mygov_anagrafica_stato_fkey">
+
+	<table name="mygov_flusso_massivo" class="it.regioneveneto.mygov.payment.pa.domain.po.FlussoMassivo">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_flusso_massivo_mygov_flusso_massivo_id_seq</param>
+			</generator>
+			<key-column name="mygov_flusso_massivo_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_flussi_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	<table name="mygov_operatore"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Operatore">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_operatore_mygov_operatore_id_seq</param>
+			</generator>
+			<key-column name="mygov_operatore_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_operatore_mygov_utente_fkey">
+			<one-to-one exclude="true" />
+			<inverse-one-to-one exclude="false" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_operatore_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_operatore_ente_tipo_dovuto"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.OperatoreEnteTipoDovuto">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_operatore_mygov_operatore_ente_tipo_dovuto_id_seq</param>
+			</generator>
+			<key-column name="mygov_operatore_ente_tipo_dovuto_id" />
+		</primary-key>
+		<foreign-key
+			constraint-name="mygov_operatore_ente_tipo_dovuto_mygov_ente_tipo_dovuto_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_operatore_ente_tipo_dovuto_mygov_operatore_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_utente" class="it.regioneveneto.mygov.payment.pa.domain.po.Utente">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_utente_mygov_utente_id_seq</param>
+			</generator>
+			<key-column name="mygov_utente_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_utente_comune_id">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_utente_provincia_id">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_utente_nazione_id">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_identificativo_univoco"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.IdentificativoUnivoco">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_identificativo_univoco_id_seq</param>
+			</generator>
+			<key-column name="mygov_identificativo_univoco_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_import_dovuti"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.ImportDovuti">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_import_dovuti_id_seq</param>
+			</generator>
+			<key-column name="mygov_import_dovuti_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_import_dovuti_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_import_dovuti_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_import_dovuti_mygov_utente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_export_dovuti"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.ExportDovuti">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_export_dovuti_mygov_export_dovuti_id_seq</param>
+			</generator>
+			<key-column name="mygov_export_dovuti_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_export_dovuti_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_export_dovuti_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_export_dovuti_mygov_utente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_nazione" class="it.regioneveneto.mygov.payment.pa.domain.po.Nazione">
+		<primary-key property="id">
+			<key-column name="nazione_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_avviso_anonimo"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.AvvisoAnonimo">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_avviso_anonimo_mygov_avviso_anonimo_id_seq</param>
+			</generator>
+			<key-column name="mygov_avviso_anonimo_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_avviso_anonimo_mygov_carrello_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_spontaneo_anonimo"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.SpontaneoAnonimo">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_spontaneo_anonimo_mygov_spontaneo_anonimo_id_seq</param>
+			</generator>
+			<key-column name="mygov_spontaneo_anonimo_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_spontaneo_anonimo_mygov_carrello_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_provincia"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Provincia">
+		<primary-key property="id">
+			<key-column name="provincia_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_comune" class="it.regioneveneto.mygov.payment.pa.domain.po.Comune">
+		<primary-key property="id">
+			<key-column name="comune_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_comune_provincia_fk">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_giornale"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Giornale">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_giornale_mygov_giornale_id_seq</param>
+			</generator>
+			<key-column name="mygov_giornale_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_delega" class="it.regioneveneto.mygov.payment.pa.domain.po.Delega">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_delega_mygov_delega_id_seq</param>
+			</generator>
+			<key-column name="mygov_delega_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_delega_mygov_soggetto_delegante">
+			<one-to-one exclude="false" property="soggettoDelegante" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_delega_mygov_soggetto_delegato">
+			<one-to-one exclude="false" property="soggettoDelegato" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_utente_delega_mygov_ente">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_soggetto_delega"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.SoggettoDelega">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_soggetto_delega_mygov_soggetto_delega_id_seq</param>
+			</generator>
+			<key-column name="mygov_soggetto_delega_id" />
+		</primary-key>
+	</table>
+
+	<table name="mygov_soggetto_delegante_coordinate_addebito"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.SoggettoDeleganteCoordinateAddebito">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_soggetto_delegante_coordinate_addebito_id_seq</param>
+			</generator>
+			<key-column name="mygov_soggetto_delegante_coordinate_addebito_id" />
+		</primary-key>
+		<foreign-key
+			constraint-name="mygov_soggetto_delegante_coordinate_addebito_mygov_delega">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	<table name="mygov_dati_marca_bollo_digitale"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.DatiMarcaBolloDigitale">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_dati_marca_bollo_digitale_id_seq</param>
+			</generator>
+			<key-column name="mygov_dati_marca_bollo_digitale_id" />
+		</primary-key>
+	</table>
+	
+	<table name="mygov_avviso_digitale"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.AvvisoDigitale">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_avviso_digitale_id_seq</param>
+			</generator>
+			<key-column name="mygov_avviso_digitale_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_avviso_digitale_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	
+	<table name="mygov_flusso_avviso_digitale" class="it.regioneveneto.mygov.payment.pa.domain.po.FlussoAvvisoDigitale">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_flusso_avviso_digitale_id_seq</param>
+			</generator>
+			<key-column name="mygov_flusso_avviso_digitale_id" />
+		</primary-key>
+		<column name="num_fad_e_presa_in_carico_cod_e_presa_in_carico" exclude="true" />
+		<foreign-key constraint-name="mygov_flusso_avviso_digitale_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	
+	<table name="mygov_esito_avviso_digitale" class="it.regioneveneto.mygov.payment.pa.domain.po.EsitoAvvisoDigitale">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_esito_avviso_digitale_mygov_esito_avviso_digitale_id_seq</param>
+			</generator>
+			<key-column name="mygov_esito_avviso_digitale_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_esito_avviso_digitale_mygov_avviso_digitale_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	<table name="mygov_wisp"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Wisp">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_wisp_id_seq</param>
+			</generator>
+			<key-column name="mygov_wisp_id" />
+		</primary-key>
+	</table>
+  
+	<table name="mygov_avviso_tassa_auto"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.AvvisoTassaAuto">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_avviso_tassa_auto_id_seq</param>
+			</generator>
+			<key-column name="mygov_avviso_tassa_auto_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_avviso_tassa_auto_dovuto_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>  
+	<table name="mygov_precaricato_anonimo_ente"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.PrecaricatoAnonimo">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_precaricato_anonimo_mygov_precaricato_anonimo_id_seq</param>
+			</generator>
+			<key-column name="mygov_precaricato_anonimo_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_precaricato_anonimo_mygov_carrello_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	<table name="mygov_revoca"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Revoca">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_revoca_mygov_revoca_id_seq</param>
+			</generator>
+			<key-column name="mygov_revoca_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_revoca_mygov_anagrafica_stato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	
+	<table name="mygov_revoca_dati_pagamenti" class="it.regioneveneto.mygov.payment.pa.domain.po.RevocaDatiPagamenti">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_revoca_dati_pagamenti_id_seq</param>
+			</generator>
+			<key-column name="mygov_revoca_dati_pagamenti_id" />
+		</primary-key>
+    	<foreign-key constraint-name="mygov_revoca_dati_pagamenti_mygov_revoca_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	<table name="mygov_push_esito_sil"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.PushEsitoSil">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_push_esito_sil_mygov_push_esito_sil_id_seq</param>
+			</generator>
+			<key-column name="mygov_push_esito_sil_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_push_esito_sil_mygov_dovuto_elaborato_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+	
+	<table name="mygov_ente_sil"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.EnteSil">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_ente_sil_mygov_ente_sil_id_seq</param>
+			</generator>
+			<key-column name="mygov_ente_sil_id" />
+		</primary-key>
+		<foreign-key constraint-name="mygov_ente_sil_mygov_ente_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+		<foreign-key constraint-name="mygov_ente_sil_mygov_ente_tipo_dovuto_fkey">
+			<one-to-one exclude="false" />
+			<inverse-one-to-one exclude="true" />
+		</foreign-key>
+	</table>
+
+	<table name="mygov_tassonomia"
+		class="it.regioneveneto.mygov.payment.pa.domain.po.Tassonomia">
+		<primary-key property="id">
+			<generator class="sequence">
+				<param name="sequence">mygov_tassonomia_mygov_tassonomia_id_seq</param>
+			</generator>
+			<key-column name="mygov_tassonomia_id" />
+		</primary-key>
+	</table>
+</hibernate-reverse-engineering>

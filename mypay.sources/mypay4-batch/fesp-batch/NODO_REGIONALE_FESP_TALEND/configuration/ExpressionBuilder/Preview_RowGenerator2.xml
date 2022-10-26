@@ -1,0 +1,19 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:expression="http:///expression.ecore">
+  <expression:EMFExpression id="null=>tipoVersamento=>length" expression="6,4"/>
+  <expression:EMFExpression id="null=>tipoVersamento=>customize parameter" expression="&quot;BP&quot;, &quot;BBP&quot;, &quot;AD&quot;, &quot;CP&quot;, &quot;PO&quot;, &quot;RD&quot;, &quot;BBP, AD&quot;, &quot;ALL&quot;, &quot;BP, AD, PO&quot;, &quot;BBP, AD, ALL&quot;"/>
+  <expression:EMFExpression id="null=>dataScadenzaPagamento=>customize parameter" expression=""/>
+  <expression:EMFExpression id="null=>dataScadenzaPagamento=>dateType" expression="&quot;MM&quot;  "/>
+  <expression:EMFExpression id="null=>dataScadenzaPagamento=>date" expression="TalendDate.getCurrentDate()"/>
+  <expression:EMFExpression id="null=>dataScadenzaPagamento=>nb" expression="Numeric.random(0,100)"/>
+  <expression:EMFExpression id="null=>importoDovuto=>customize parameter" expression="new Double(10.03 + Numeric.random(0,100)) "/>
+  <expression:EMFExpression id="null=>commissioneCaricoPa=>customize parameter" expression="new Double(10.03 + Numeric.random(0,100)) "/>
+  <expression:EMFExpression id="null=>emailPagatore=>length" expression="35"/>
+  <expression:EMFExpression id="null=>nazionePagatore=>customize parameter" expression="&quot;IT&quot;"/>
+  <expression:EMFExpression id="null=>tipoIdentificativoUnivoco=>customize parameter" expression="&quot;F&quot;, &quot;G&quot;, &quot;K&quot;"/>
+  <expression:EMFExpression id="null=>anagraficaPagatore=>customize parameter" expression="TalendDataGenerator.getFirstName() + &quot; &quot; + TalendDataGenerator.getLastName()"/>
+  <expression:EMFExpression id="null=>civicoPagatore=>customize parameter" expression="Numeric.random(0,100).toString()"/>
+  <expression:EMFExpression id="null=>capPagatore=>customize parameter" expression="Numeric.random(10000,99999).toString()"/>
+  <expression:EMFExpression id="null=>provinciaPagatore=>customize parameter" expression="&quot;VERONA&quot;, &quot;VICENZA&quot;, &quot;TREVISO&quot;, &quot;PADOVA&quot;, &quot;VENEZIA&quot;, &quot;ROVIGO&quot;, &quot;BELLUNO&quot;"/>
+  <expression:EMFExpression id="null=>azione=>customize parameter" expression="&quot;I&quot;"/>
+</xmi:XMI>

@@ -1,0 +1,168 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div
+    class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayout.gt-sm="row wrap"
+    fxLayoutAlign="start center"
+    fxLayoutGap="10px">
+
+  <div class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+  </div>
+
+  <mat-card *ngIf="isUserAdmin || isUserAdminEnte" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" tabindex="0">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="enti"><fa-icon [icon]="iconUniversity" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="enti" id="sr-ge">Gestione enti</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="enti"><span class="font-bold" aria-labelledby="sr-ge"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai consultare la lista degli Enti, inserire un nuovo Ente e gestire il dettaglio di un
+        singolo Ente, che comprende la gestione dell'anagrafica, della lista dei tipi dovuto, della lista operatori, della
+        lista funzionalità.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="enti"><span class="font-bold" aria-labelledby="sr-ge"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" tabindex="0">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="utenti"><fa-icon [icon]="iconUsers" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="utenti" id="sr-gu">Gestione utenti</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="utenti"><span class="font-bold" aria-labelledby="sr-gu"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai consultare la lista degli Utenti, inserire un nuovo utente e gestire il dettaglio di un
+        singolo utente, che comprende la gestione dell'anagrafica e degli enti associati.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="utenti"><span class="font-bold" aria-labelledby="sr-gu"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card *ngIf="!isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" class="placeholder-card">
+  </mat-card>
+
+  <div *ngIf="isUserAdmin" fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" tabindex="0">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="tipiDovuto"><fa-icon [icon]="iconClone" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="tipiDovuto" id="sr-td">Gestione tipi dovuto</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="tipiDovuto"><span class="font-bold" aria-labelledby="sr-td"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai consultare la lista dei Tipi Dovuto e consultare il dettaglio del singolo Tipo Dovuto,
+        che comprende la consultazione degli Enti associati e funzioni di dettaglio e abilitazione/disabilitazione su singolo
+        Ente.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="tipiDovuto"><span class="font-bold" aria-labelledby="sr-td"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" tabindex="0">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="tassonomie"><fa-icon [icon]="iconListAlt" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="tassonomie" id="sr-ta">Gestione tassonomia</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="tassonomie"><span class="font-bold" aria-labelledby="sr-ta"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai gestire i caricamenti dei file Tassonomia, consultare la lista dei file caricati,
+        scaricare file originale e scarti su singolo file.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="tassonomie"><span class="font-bold" aria-labelledby="sr-ta"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <div *ngIf="isUserAdmin" fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" tabindex="0">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="giornale/pa"><fa-icon [icon]="iconBook" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="giornale/pa" id="sr-gp">Giornale degli eventi - PA</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="giornale/pa"><span class="font-bold" aria-labelledby="sr-gp"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai consultare il giornale degli eventi del modulo PA.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="giornale/pa"><span class="font-bold" aria-labelledby="sr-gp"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" tabindex="0">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="giornale/fesp"><fa-icon [icon]="iconBook" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="giornale/fesp" id="sr-gf">Giornale degli eventi - FESP</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="giornale/fesp"><span class="font-bold" aria-labelledby="sr-gf"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai consultare il giornale degli eventi del modulo FESP.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="giornale/fesp"><span class="font-bold" aria-labelledby="sr-gf"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <!--div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="massive"><fa-icon [icon]="iconExpandArrowsAlt" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="-1" class="no-decoration" routerLink="massive" id="sr-fr">Gestione operazioni massive</a></mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>Gestione caricamenti massivi che comprendono funzionalità di caricamento file per varie tipologie di flusso,
+        consultazione lista flussi caricati, funzioni di download file originale e scarti su singolo file.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="massive"><span class="font-bold" aria-labelledby="sr-fr"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions>
+  </mat-card>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" class="placeholder-card">
+  </mat-card-->
+
+</div>
+

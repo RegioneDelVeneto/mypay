@@ -1,0 +1,455 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 6-set-2018 10.42.23 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRptRt" table="mygov_rpt_rt">
+        <id name="mygovRptRtId" type="java.lang.Long">
+            <column name="mygov_rpt_rt_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_rpt_rt_mygov_rpt_rt_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <many-to-one name="mygov_carrello_rpt" class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovCarrelloRpt" fetch="select">
+            <column name="mygov_carrello_rpt_id" />
+        </many-to-one>
+        <property name="codAckRt" type="string">
+            <column name="cod_ack_rt" length="2" />
+        </property>
+        <property name="dtCreazioneRpt" type="timestamp">
+            <column name="dt_creazione_rpt" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModificaRpt" type="timestamp">
+            <column name="dt_ultima_modifica_rpt" length="29" not-null="true" />
+        </property>
+        <property name="dtCreazioneRt" type="timestamp">
+            <column name="dt_creazione_rt" length="29" />
+        </property>
+        <property name="dtUltimaModificaRt" type="timestamp">
+            <column name="dt_ultima_modifica_rt" length="29" />
+        </property>
+        <property name="deRptInviarptPassword" type="string">
+            <column name="de_rpt_inviarpt_password" length="15" />
+        </property>
+        <property name="codRptInviarptIdPsp" type="string">
+            <column name="cod_rpt_inviarpt_id_psp" length="35" />
+        </property>
+        <property name="codRptInviarptIdIntermediarioPsp" type="string">
+            <column name="cod_rpt_inviarpt_id_intermediario_psp" length="35" />
+        </property>
+        <property name="codRptInviarptIdCanale" type="string">
+            <column name="cod_rpt_inviarpt_id_canale" length="35" />
+        </property>
+        <property name="deRptInviarptTipoFirma" type="string">
+            <column name="de_rpt_inviarpt_tipo_firma" length="256" />
+        </property>
+        <property name="codRptInviarptIdIntermediarioPa" type="string">
+            <column name="cod_rpt_inviarpt_id_intermediario_pa" length="35" />
+        </property>
+        <property name="codRptInviarptIdStazioneIntermediarioPa" type="string">
+            <column name="cod_rpt_inviarpt_id_stazione_intermediario_pa" length="35" />
+        </property>
+        <property name="codRptInviarptIdDominio" type="string">
+            <column name="cod_rpt_inviarpt_id_dominio" length="35" />
+        </property>
+        <property name="codRptInviarptIdUnivocoVersamento" type="string">
+            <column name="cod_rpt_inviarpt_id_univoco_versamento" length="35" />
+        </property>
+        <property name="codRptInviarptCodiceContestoPagamento" type="string">
+            <column name="cod_rpt_inviarpt_codice_contesto_pagamento" length="35" />
+        </property>
+        <property name="deRptInviarptEsito" type="string">
+            <column name="de_rpt_inviarpt_esito" length="256" />
+        </property>
+        <property name="numRptInviarptRedirect" type="java.lang.Integer">
+            <column name="num_rpt_inviarpt_redirect" />
+        </property>
+        <property name="codRptInviarptUrl" type="string">
+            <column name="cod_rpt_inviarpt_url" length="512" />
+        </property>
+        <property name="codRptInviarptFaultCode" type="string">
+            <column name="cod_rpt_inviarpt_fault_code" length="256" />
+        </property>
+        <property name="codRptInviarptFaultString" type="string">
+            <column name="cod_rpt_inviarpt_fault_string" length="256" />
+        </property>
+        <property name="codRptInviarptId" type="string">
+            <column name="cod_rpt_inviarpt_id" length="256" />
+        </property>
+        <property name="deRptInviarptDescription" type="string">
+            <column name="de_rpt_inviarpt_description" length="1024" />
+        </property>
+        <property name="numRptInviarptSerial" type="java.lang.Integer">
+            <column name="num_rpt_inviarpt_serial" />
+        </property>
+        <property name="deRptVersioneOggetto" type="string">
+            <column name="de_rpt_versione_oggetto" length="16" not-null="true" />
+        </property>
+        <property name="codRptDomIdDominio" type="string">
+            <column name="cod_rpt_dom_id_dominio" length="35" not-null="true" />
+        </property>
+        <property name="codRptDomIdStazioneRichiedente" type="string">
+            <column name="cod_rpt_dom_id_stazione_richiedente" length="35" />
+        </property>
+        <property name="codRptIdMessaggioRichiesta" type="string">
+            <column name="cod_rpt_id_messaggio_richiesta" length="35" not-null="true" />
+        </property>
+        <property name="dtRptDataOraMessaggioRichiesta" type="timestamp">
+            <column name="dt_rpt_data_ora_messaggio_richiesta" length="29" not-null="true" />
+        </property>
+        <property name="codRptAutenticazioneSoggetto" type="string">
+            <column name="cod_rpt_autenticazione_soggetto" length="4" not-null="true" />
+        </property>
+        <property name="codRptSoggVersIdUnivVersTipoIdUnivoco" type="string">
+            <column name="cod_rpt_sogg_vers_id_univ_vers_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codRptSoggVersIdUnivVersCodiceIdUnivoco" type="string">
+            <column name="cod_rpt_sogg_vers_id_univ_vers_codice_id_univoco" length="35" />
+        </property>
+        <property name="deRptSoggVersAnagraficaVersante" type="string">
+            <column name="de_rpt_sogg_vers_anagrafica_versante" length="70" />
+        </property>
+        <property name="deRptSoggVersIndirizzoVersante" type="string">
+            <column name="de_rpt_sogg_vers_indirizzo_versante" length="70" />
+        </property>
+        <property name="deRptSoggVersCivicoVersante" type="string">
+            <column name="de_rpt_sogg_vers_civico_versante" length="16" />
+        </property>
+        <property name="codRptSoggVersCapVersante" type="string">
+            <column name="cod_rpt_sogg_vers_cap_versante" length="16" />
+        </property>
+        <property name="deRptSoggVersLocalitaVersante" type="string">
+            <column name="de_rpt_sogg_vers_localita_versante" length="35" />
+        </property>
+        <property name="deRptSoggVersProvinciaVersante" type="string">
+            <column name="de_rpt_sogg_vers_provincia_versante" length="35" />
+        </property>
+        <property name="codRptSoggVersNazioneVersante" type="string">
+            <column name="cod_rpt_sogg_vers_nazione_versante" length="2" />
+        </property>
+        <property name="deRptSoggVersEmailVersante" type="string">
+            <column name="de_rpt_sogg_vers_email_versante" length="256" />
+        </property>
+        <property name="codRptSoggPagIdUnivPagTipoIdUnivoco" type="string">
+            <column name="cod_rpt_sogg_pag_id_univ_pag_tipo_id_univoco" length="1" not-null="true" />
+        </property>
+        <property name="codRptSoggPagIdUnivPagCodiceIdUnivoco" type="string">
+            <column name="cod_rpt_sogg_pag_id_univ_pag_codice_id_univoco" length="35" not-null="true" />
+        </property>
+        <property name="deRptSoggPagAnagraficaPagatore" type="string">
+            <column name="de_rpt_sogg_pag_anagrafica_pagatore" length="70" not-null="true" />
+        </property>
+        <property name="deRptSoggPagIndirizzoPagatore" type="string">
+            <column name="de_rpt_sogg_pag_indirizzo_pagatore" length="70" />
+        </property>
+        <property name="deRptSoggPagCivicoPagatore" type="string">
+            <column name="de_rpt_sogg_pag_civico_pagatore" length="16" />
+        </property>
+        <property name="codRptSoggPagCapPagatore" type="string">
+            <column name="cod_rpt_sogg_pag_cap_pagatore" length="16" />
+        </property>
+        <property name="deRptSoggPagLocalitaPagatore" type="string">
+            <column name="de_rpt_sogg_pag_localita_pagatore" length="35" />
+        </property>
+        <property name="deRptSoggPagProvinciaPagatore" type="string">
+            <column name="de_rpt_sogg_pag_provincia_pagatore" length="35" />
+        </property>
+        <property name="codRptSoggPagNazionePagatore" type="string">
+            <column name="cod_rpt_sogg_pag_nazione_pagatore" length="2" />
+        </property>
+        <property name="deRptSoggPagEmailPagatore" type="string">
+            <column name="de_rpt_sogg_pag_email_pagatore" length="256" />
+        </property>
+        <property name="codRptEnteBenefIdUnivBenefTipoIdUnivoco" type="string">
+            <column name="cod_rpt_ente_benef_id_univ_benef_tipo_id_univoco" length="1" not-null="true" />
+        </property>
+        <property name="codRptEnteBenefIdUnivBenefCodiceIdUnivoco" type="string">
+            <column name="cod_rpt_ente_benef_id_univ_benef_codice_id_univoco" length="35" not-null="true" />
+        </property>
+        <property name="deRptEnteBenefDenominazioneBeneficiario" type="string">
+            <column name="de_rpt_ente_benef_denominazione_beneficiario" length="70" not-null="true" />
+        </property>
+        <property name="codRptEnteBenefCodiceUnitOperBeneficiario" type="string">
+            <column name="cod_rpt_ente_benef_codice_unit_oper_beneficiario" length="35" />
+        </property>
+        <property name="deRptEnteBenefDenomUnitOperBeneficiario" type="string">
+            <column name="de_rpt_ente_benef_denom_unit_oper_beneficiario" length="70" />
+        </property>
+        <property name="deRptEnteBenefIndirizzoBeneficiario" type="string">
+            <column name="de_rpt_ente_benef_indirizzo_beneficiario" length="70" />
+        </property>
+        <property name="deRptEnteBenefCivicoBeneficiario" type="string">
+            <column name="de_rpt_ente_benef_civico_beneficiario" length="16" />
+        </property>
+        <property name="codRptEnteBenefCapBeneficiario" type="string">
+            <column name="cod_rpt_ente_benef_cap_beneficiario" length="16" />
+        </property>
+        <property name="deRptEnteBenefLocalitaBeneficiario" type="string">
+            <column name="de_rpt_ente_benef_localita_beneficiario" length="35" />
+        </property>
+        <property name="deRptEnteBenefProvinciaBeneficiario" type="string">
+            <column name="de_rpt_ente_benef_provincia_beneficiario" length="35" />
+        </property>
+        <property name="codRptEnteBenefNazioneBeneficiario" type="string">
+            <column name="cod_rpt_ente_benef_nazione_beneficiario" length="2" />
+        </property>
+        <property name="dtRptDatiVersDataEsecuzionePagamento" type="date">
+            <column name="dt_rpt_dati_vers_data_esecuzione_pagamento" length="13" not-null="true" />
+        </property>
+        <property name="numRptDatiVersImportoTotaleDaVersare" type="big_decimal">
+            <column name="num_rpt_dati_vers_importo_totale_da_versare" precision="12" not-null="true" />
+        </property>
+        <property name="codRptDatiVersTipoVersamento" type="string">
+            <column name="cod_rpt_dati_vers_tipo_versamento" length="4" not-null="true" />
+        </property>
+        <property name="codRptDatiVersIdUnivocoVersamento" type="string">
+            <column name="cod_rpt_dati_vers_id_univoco_versamento" length="35" not-null="true" />
+        </property>
+        <property name="codRptDatiVersCodiceContestoPagamento" type="string">
+            <column name="cod_rpt_dati_vers_codice_contesto_pagamento" length="35" not-null="true" />
+        </property>
+        <property name="deRptDatiVersIbanAddebito" type="string">
+            <column name="de_rpt_dati_vers_iban_addebito" length="35" />
+        </property>
+        <property name="deRptDatiVersBicAddebito" type="string">
+            <column name="de_rpt_dati_vers_bic_addebito" length="11" />
+        </property>
+        <property name="codRptDatiVersFirmaRicevuta" type="string">
+            <column name="cod_rpt_dati_vers_firma_ricevuta" length="1" not-null="true" />
+        </property>
+        <property name="deRtInviartTipoFirma" type="string">
+            <column name="de_rt_inviart_tipo_firma" length="15" />
+        </property>
+        <property name="codRtInviartIdIntermediarioPa" type="string">
+            <column name="cod_rt_inviart_id_intermediario_pa" length="35" />
+        </property>
+        <property name="codRtInviartIdStazioneIntermediarioPa" type="string">
+            <column name="cod_rt_inviart_id_stazione_intermediario_pa" length="35" />
+        </property>
+        <property name="codRtInviartIdDominio" type="string">
+            <column name="cod_rt_inviart_id_dominio" length="35" />
+        </property>
+        <property name="codRtInviartIdUnivocoVersamento" type="string">
+            <column name="cod_rt_inviart_id_univoco_versamento" length="35" />
+        </property>
+        <property name="codRtInviartCodiceContestoPagamento" type="string">
+            <column name="cod_rt_inviart_codice_contesto_pagamento" length="35" />
+        </property>
+        <property name="codRtInviartEsito" type="string">
+            <column name="cod_rt_inviart_esito" length="256" />
+        </property>
+        <property name="codRtInviartFaultCode" type="string">
+            <column name="cod_rt_inviart_fault_code" length="256" />
+        </property>
+        <property name="codRtInviartFaultString" type="string">
+            <column name="cod_rt_inviart_fault_string" length="256" />
+        </property>
+        <property name="codRtInviartId" type="string">
+            <column name="cod_rt_inviart_id" length="256" />
+        </property>
+        <property name="deRtInviartDescription" type="string">
+            <column name="de_rt_inviart_description" length="1024" />
+        </property>
+        <property name="numRtInviartSerial" type="java.lang.Integer">
+            <column name="num_rt_inviart_serial" />
+        </property>
+        <property name="deRtVersioneOggetto" type="string">
+            <column name="de_rt_versione_oggetto" length="16" />
+        </property>
+        <property name="codRtDomIdDominio" type="string">
+            <column name="cod_rt_dom_id_dominio" length="35" />
+        </property>
+        <property name="codRtDomIdStazioneRichiedente" type="string">
+            <column name="cod_rt_dom_id_stazione_richiedente" length="35" />
+        </property>
+        <property name="codRtIdMessaggioRicevuta" type="string">
+            <column name="cod_rt_id_messaggio_ricevuta" length="35" />
+        </property>
+        <property name="dtRtDataOraMessaggioRicevuta" type="timestamp">
+            <column name="dt_rt_data_ora_messaggio_ricevuta" length="29" />
+        </property>
+        <property name="codRtRiferimentoMessaggioRichiesta" type="string">
+            <column name="cod_rt_riferimento_messaggio_richiesta" length="35" />
+        </property>
+        <property name="dtRtRiferimentoDataRichiesta" type="date">
+            <column name="dt_rt_riferimento_data_richiesta" length="13" />
+        </property>
+        <property name="codRtIstitAttesIdUnivAttesTipoIdUnivoco" type="string">
+            <column name="cod_rt_istit_attes_id_univ_attes_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codRtIstitAttesIdUnivAttesCodiceIdUnivoco" type="string">
+            <column name="cod_rt_istit_attes_id_univ_attes_codice_id_univoco" length="35" />
+        </property>
+        <property name="deRtIstitAttesDenominazioneAttestante" type="string">
+            <column name="de_rt_istit_attes_denominazione_attestante" length="70" />
+        </property>
+        <property name="codRtIstitAttesCodiceUnitOperAttestante" type="string">
+            <column name="cod_rt_istit_attes_codice_unit_oper_attestante" length="35" />
+        </property>
+        <property name="deRtIstitAttesDenomUnitOperAttestante" type="string">
+            <column name="de_rt_istit_attes_denom_unit_oper_attestante" length="70" />
+        </property>
+        <property name="deRtIstitAttesIndirizzoAttestante" type="string">
+            <column name="de_rt_istit_attes_indirizzo_attestante" length="70" />
+        </property>
+        <property name="deRtIstitAttesCivicoAttestante" type="string">
+            <column name="de_rt_istit_attes_civico_attestante" length="16" />
+        </property>
+        <property name="codRtIstitAttesCapAttestante" type="string">
+            <column name="cod_rt_istit_attes_cap_attestante" length="16" />
+        </property>
+        <property name="deRtIstitAttesLocalitaAttestante" type="string">
+            <column name="de_rt_istit_attes_localita_attestante" length="35" />
+        </property>
+        <property name="deRtIstitAttesProvinciaAttestante" type="string">
+            <column name="de_rt_istit_attes_provincia_attestante" length="35" />
+        </property>
+        <property name="codRtIstitAttesNazioneAttestante" type="string">
+            <column name="cod_rt_istit_attes_nazione_attestante" length="2" />
+        </property>
+        <property name="codRtEnteBenefIdUnivBenefTipoIdUnivoco" type="string">
+            <column name="cod_rt_ente_benef_id_univ_benef_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codRtEnteBenefIdUnivBenefCodiceIdUnivoco" type="string">
+            <column name="cod_rt_ente_benef_id_univ_benef_codice_id_univoco" length="35" />
+        </property>
+        <property name="deRtEnteBenefDenominazioneBeneficiario" type="string">
+            <column name="de_rt_ente_benef_denominazione_beneficiario" length="70" />
+        </property>
+        <property name="codRtEnteBenefCodiceUnitOperBeneficiario" type="string">
+            <column name="cod_rt_ente_benef_codice_unit_oper_beneficiario" length="35" />
+        </property>
+        <property name="deRtEnteBenefDenomUnitOperBeneficiario" type="string">
+            <column name="de_rt_ente_benef_denom_unit_oper_beneficiario" length="70" />
+        </property>
+        <property name="deRtEnteBenefIndirizzoBeneficiario" type="string">
+            <column name="de_rt_ente_benef_indirizzo_beneficiario" length="70" />
+        </property>
+        <property name="deRtEnteBenefCivicoBeneficiario" type="string">
+            <column name="de_rt_ente_benef_civico_beneficiario" length="16" />
+        </property>
+        <property name="codRtEnteBenefCapBeneficiario" type="string">
+            <column name="cod_rt_ente_benef_cap_beneficiario" length="16" />
+        </property>
+        <property name="deRtEnteBenefLocalitaBeneficiario" type="string">
+            <column name="de_rt_ente_benef_localita_beneficiario" length="35" />
+        </property>
+        <property name="deRtEnteBenefProvinciaBeneficiario" type="string">
+            <column name="de_rt_ente_benef_provincia_beneficiario" length="35" />
+        </property>
+        <property name="codRtEnteBenefNazioneBeneficiario" type="string">
+            <column name="cod_rt_ente_benef_nazione_beneficiario" length="2" />
+        </property>
+        <property name="codRtSoggVersIdUnivVersTipoIdUnivoco" type="string">
+            <column name="cod_rt_sogg_vers_id_univ_vers_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codRtSoggVersIdUnivVersCodiceIdUnivoco" type="string">
+            <column name="cod_rt_sogg_vers_id_univ_vers_codice_id_univoco" length="35" />
+        </property>
+        <property name="deRtSoggVersAnagraficaVersante" type="string">
+            <column name="de_rt_sogg_vers_anagrafica_versante" length="70" />
+        </property>
+        <property name="deRtSoggVersIndirizzoVersante" type="string">
+            <column name="de_rt_sogg_vers_indirizzo_versante" length="70" />
+        </property>
+        <property name="deRtSoggVersCivicoVersante" type="string">
+            <column name="de_rt_sogg_vers_civico_versante" length="16" />
+        </property>
+        <property name="codRtSoggVersCapVersante" type="string">
+            <column name="cod_rt_sogg_vers_cap_versante" length="16" />
+        </property>
+        <property name="deRtSoggVersLocalitaVersante" type="string">
+            <column name="de_rt_sogg_vers_localita_versante" length="35" />
+        </property>
+        <property name="deRtSoggVersProvinciaVersante" type="string">
+            <column name="de_rt_sogg_vers_provincia_versante" length="35" />
+        </property>
+        <property name="codRtSoggVersNazioneVersante" type="string">
+            <column name="cod_rt_sogg_vers_nazione_versante" length="2" />
+        </property>
+        <property name="deRtSoggVersEmailVersante" type="string">
+            <column name="de_rt_sogg_vers_email_versante" length="256" />
+        </property>
+        <property name="codRtSoggPagIdUnivPagTipoIdUnivoco" type="string">
+            <column name="cod_rt_sogg_pag_id_univ_pag_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codRtSoggPagIdUnivPagCodiceIdUnivoco" type="string">
+            <column name="cod_rt_sogg_pag_id_univ_pag_codice_id_univoco" length="35" />
+        </property>
+        <property name="deRtSoggPagAnagraficaPagatore" type="string">
+            <column name="de_rt_sogg_pag_anagrafica_pagatore" length="70" />
+        </property>
+        <property name="deRtSoggPagIndirizzoPagatore" type="string">
+            <column name="de_rt_sogg_pag_indirizzo_pagatore" length="70" />
+        </property>
+        <property name="deRtSoggPagCivicoPagatore" type="string">
+            <column name="de_rt_sogg_pag_civico_pagatore" length="16" />
+        </property>
+        <property name="codRtSoggPagCapPagatore" type="string">
+            <column name="cod_rt_sogg_pag_cap_pagatore" length="16" />
+        </property>
+        <property name="deRtSoggPagLocalitaPagatore" type="string">
+            <column name="de_rt_sogg_pag_localita_pagatore" length="35" />
+        </property>
+        <property name="deRtSoggPagProvinciaPagatore" type="string">
+            <column name="de_rt_sogg_pag_provincia_pagatore" length="35" />
+        </property>
+        <property name="codRtSoggPagNazionePagatore" type="string">
+            <column name="cod_rt_sogg_pag_nazione_pagatore" length="2" />
+        </property>
+        <property name="deRtSoggPagEmailPagatore" type="string">
+            <column name="de_rt_sogg_pag_email_pagatore" length="256" />
+        </property>
+        <property name="codRtDatiPagCodiceEsitoPagamento" type="string">
+            <column name="cod_rt_dati_pag_codice_esito_pagamento" length="1" />
+        </property>
+        <property name="numRtDatiPagImportoTotalePagato" type="big_decimal">
+            <column name="num_rt_dati_pag_importo_totale_pagato" precision="12" />
+        </property>
+        <property name="codRtDatiPagIdUnivocoVersamento" type="string">
+            <column name="cod_rt_dati_pag_id_univoco_versamento" length="35" />
+        </property>
+        <property name="codRtDatiPagCodiceContestoPagamento" type="string">
+            <column name="cod_rt_dati_pag_codice_contesto_pagamento" length="35" />
+        </property>
+        <property name="idSession" type="string">
+            <column name="id_session" length="36" />
+        </property>
+        <property name="mygovRpEId" type="long">
+            <column name="mygov_rp_e_id" not-null="true" />
+        </property>
+        <property name="blbRtPayload" type="binary">
+            <column name="blb_rt_payload" />
+        </property>
+        <property name="modelloPagamento" type="java.lang.Integer">
+            <column name="modello_pagamento" />
+        </property>
+        <property name="codRptInviarptOriginaltFaultCode" type="string">
+            <column name="cod_rpt_inviarpt_original_fault_code" length="256" />
+        </property>
+        <property name="deRptInviarptOriginaltFaultString" type="string">
+            <column name="de_rpt_inviarpt_original_fault_string" length="256" />
+        </property>
+        <property name="deRptInviarptOriginaltFaultDescription" type="string">
+            <column name="de_rpt_inviarpt_original_fault_description" length="1024" />
+        </property>
+        <property name="codRtInviartOriginaltFaultCode" type="string">
+            <column name="cod_rt_inviart_original_fault_code" length="256" />
+        </property>
+        <property name="deRtInviartOriginaltFaultString" type="string">
+            <column name="de_rt_inviart_original_fault_string" length="256" />
+        </property>
+        <property name="deRtInviartOriginaltFaultDescription" type="string">
+            <column name="de_rt_inviart_original_fault_description" length="1024" />
+        </property>
+        <set name="mygov_rpt_rt_dettaglio" inverse="true" lazy="true" table="mygov_rpt_rt_dettaglio" fetch="select">
+            <key>
+                <column name="mygov_rpt_rt_id" not-null="true" />
+            </key>
+            <one-to-many class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRptRtDettaglio" />
+        </set>
+    </class>
+</hibernate-mapping>

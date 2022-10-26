@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Jul 17, 2017 3:10:38 PM by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovFlussoRendSpc" table="mygov_flusso_rend_spc">
+        <id name="mygovFlussoRendSpcId" type="java.lang.Long">
+            <column name="mygov_flusso_rend_spc_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_flusso_rend_spc_mygov_flusso_rend_spc_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="codIpaEnte" type="string">
+            <column name="cod_ipa_ente" length="80" not-null="true" />
+        </property>
+        <property name="identificativoPsp" type="string">
+            <column name="identificativo_psp" length="35" not-null="true" />
+        </property>
+        <property name="codIdentificativoFlusso" type="string">
+            <column name="cod_identificativo_flusso" length="256" not-null="true" />
+        </property>
+        <property name="dtDataOraFlusso" type="timestamp">
+            <column name="dt_data_ora_flusso" length="29" not-null="true" />
+        </property>
+        <property name="deNomeFileScaricato" type="string">
+            <column name="de_nome_file_scaricato" length="256" />
+        </property>
+        <property name="numDimensioneFileScaricato" type="java.lang.Long">
+            <column name="num_dimensione_file_scaricato" />
+        </property>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" not-null="true" />
+        </property>
+        <property name="codStato" type="string">
+            <column name="cod_stato" length="15" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

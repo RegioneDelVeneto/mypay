@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mypay4-backend-cittadino-service
+spec:
+  type: ClusterIP
+  selector:
+    run: mypay4-backend-cittadino
+    app: mypay4
+  ports:
+  - name: http
+    port: 8081
+    targetPort: 8081
+  - name: https
+    port: 8443
+    targetPort: 8443

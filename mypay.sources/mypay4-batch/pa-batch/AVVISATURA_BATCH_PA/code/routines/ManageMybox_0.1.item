@@ -1,0 +1,155 @@
+package routines;
+
+import it.regioneveneto.mybox.client.MyBoxClient;
+import it.regioneveneto.mybox.domain.Errore;
+import it.regioneveneto.mybox.domain.IntestazioneRisposta;
+import it.regioneveneto.mybox.domain.MyBoxAuthorize;
+import it.regioneveneto.mybox.domain.MyBoxAuthorizeRisposta;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
+
+/**
+ * @author regione del veneto
+ * 
+ */
+public class ManageMybox {
+
+	Logger log = org.apache.log4j.Logger.getLogger(this.getClass());
+	
+	public static void main(String[] args) throws Exception {
+		ManageMybox mnageMybox = new ManageMybox();
+		String authorizationToken = mnageMybox.requestAutorizationToken("218f20c4-d8a5-40a7-8748-1d36f592f280", "a0694efe-d25d-43c8-9369-bfb27da187a9", "http://_HOST_MYBOX_/mybox/services/MyBox");
+		String url="http://_HOST_MYBOX_/mybox/rest/download.html?authorizationToken=" + authorizationToken + "&fileName=/AVVISATURA_DIGITALE/IN/80007580279_80015770235_20161128_03_AV_ACK.zip";
+		String filePath="D:/E45/DATA/AVVISATURA_DIGITALE/C_D530/AV_ACK_FROM_AGID//80007580279_80015770235_20161128_03_AV_ACK.zip";
+		
+		mnageMybox.retriveFile(url, filePath);
+	  }
+	
+	public void retriveFile(String urlString, String fileString) throws IOException{
+		log.info("Init retriveFile ");
+		log.info("Parametri: ");
+		log.info("urlString " + urlString);
+		log.info("fileString " + fileString);
+		
+		URL url = new URL(urlString);
+		File file = new File(fileString);
+		org.apache.commons.io.FileUtils.copyURLToFile(url, file);
+	}
+
+	public void downloadFile(String url, String filePath) throws Exception {
+		log.info("Init downloadFile ");
+		log.info("Parametri: ");
+		log.info("url " + url);
+		log.info("filePath " + filePath);
+		
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		HttpPost httppost = new HttpPost(url);
+		log.info("executing request " + httppost.getRequestLine());
+		CloseableHttpResponse response = httpclient.execute(httppost);
+	    HttpEntity entity = response.getEntity();
+	    EntityUtils.consume(entity);
+	    if (response.getStatusLine().getStatusCode() == 200){
+	    	log.info("Chiamata a mybox ha ritornato codice: " + response.getStatusLine().getStatusCode());
+			log.info("Chiamata a mybox ha ritornato descrizione: " + response.getStatusLine().getReasonPhrase());
+			InputStream instream = entity.getContent();
+			try {
+				BufferedInputStream bis = new BufferedInputStream(instream);
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(filePath)));
+				int inByte;
+				while ((inByte = bis.read()) != -1 ) {
+					bos.write(inByte);
+				}
+				bis.close();
+				bos.close();
+				log.info("File : " + filePath + " created!");
+			} finally {
+				instream.close();
+			}
+			httpclient.close();
+		} else {
+			log.error("Chiamata a mybox ha ritornato codice: " + response.getStatusLine().getStatusCode());
+			log.error("Chiamata a mybox ha ritornato descrizione: " + response.getStatusLine().getReasonPhrase());
+			throw new Exception("Errore :: Chiamata a mybox ha ritornato codice: " + response.getStatusLine().getStatusCode() + ",  descrizione: " + response.getStatusLine().getReasonPhrase());
+		}
+	}
+
+	public String requestAutorizationToken(String myboxClientKey, String myboxClientSecret, String myBoxPortEndpointURL) throws Exception {
+		
+		log.info("Init requestAutorizationToken ");
+		log.info("Parametri: ");
+		log.info("myboxClientKey " + myboxClientKey);
+		log.info("myboxClientSecret " + myboxClientSecret);
+		log.info("myBoxPortEndpointURL " + myBoxPortEndpointURL);
+		MyBoxAuthorize authorize = new MyBoxAuthorize();
+		authorize.setClientKey(myboxClientKey);
+		authorize.setClientSecret(myboxClientSecret);
+
+		MyBoxClient myBoxClient = new MyBoxClient();
+		myBoxClient.setMyBoxPortEndpointURL(myBoxPortEndpointURL);
+
+		MyBoxAuthorizeRisposta risposta = myBoxClient.myBoxAuthorize(authorize);
+
+		IntestazioneRisposta intestazioneRisposta = risposta.getIntestazioneRisposta();
+
+		List<Errore> errori = intestazioneRisposta.getErrori();
+		if (!errori.isEmpty()) {
+			throw new Exception("Errore :: Probabilmente l'ente non può contattare mybox");
+		} else {
+			log.info("Valore Token Risposta " + risposta.getTokenRisposta());
+			return risposta.getTokenRisposta();
+		}
+	}
+
+	public boolean uploadFile(String file, String url) throws Exception {
+		log.info("Init uploadFile ");
+		log.info("Parametri: ");
+		log.info("file " + file);
+		log.info("url " + url);
+		boolean result = false;
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		try {
+			HttpPost httppost = new HttpPost(url);
+			FileBody bin = new FileBody(new File(file));
+			HttpEntity reqEntity = MultipartEntityBuilder.create().addPart("bin", bin).build();
+			httppost.setEntity(reqEntity);
+			log.info("executing request " + httppost.getRequestLine());
+			CloseableHttpResponse response = httpclient.execute(httppost);
+			try {
+				log.info(response.getStatusLine());
+				HttpEntity resEntity = response.getEntity();
+				EntityUtils.consume(resEntity);
+				log.info("Chiamata a mybox ha ritornato codice: " + response.getStatusLine().getStatusCode());
+				log.info("Chiamata a mybox ha ritornato descrizione: " + response.getStatusLine().getReasonPhrase());
+				if (response.getStatusLine().getStatusCode() == 200){
+					result = true;
+				} else {
+					throw new Exception("Errore :: Chiamata a mybox ha ritornato codice: " + response.getStatusLine().getStatusCode() + ",  descrizione: " + response.getStatusLine().getReasonPhrase());
+				}
+			} finally {
+				response.close();
+			}
+		} finally {
+			httpclient.close();
+		}
+		return result;
+		
+	}
+
+}

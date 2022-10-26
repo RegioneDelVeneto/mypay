@@ -1,0 +1,169 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #template>
+
+  <!-- <mat-form-field appearance="{{'appearance'|global}}">
+    <mat-label>Ordina per</mat-label>
+    <mat-select [(value)]="sortColumnId">
+      <mat-option>Ordinamento predefinito</mat-option>
+      <mat-option *ngFor="let column of tableColumns" value="{{column.id}}">{{column.label}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-button-toggle-group #group="orderToggleGroup">
+    <mat-button-toggle value="asc" aria-label="Text align left">
+      <mat-icon>format_align_left</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="desc" aria-label="Text align center">
+      <mat-icon>format_align_center</mat-icon>
+    </mat-button-toggle>
+  </mat-button-toggle-group> -->
+
+
+  <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+    <mat-form-field *ngIf="showTable && showFilter" fxFlex fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}">
+      <mat-label>Filtro</mat-label>
+      <input matInput [(ngModel)]="tableDataSource.filter" placeholder="Inserire un testo">
+    </mat-form-field>
+  </div>
+
+  <table #tableElementRef *ngIf="showTable" fxFlex mat-table matTableResponsive matSort multiTemplateDataRows [dataSource]="tableDataSource"
+  role="table">
+    <ng-container *ngFor="let column of tableColumns" matColumnDef="{{column.id}}">
+      <th id="{{column.id}}" [ngClass]="column.additionalHtmlIdClasses" mat-header-cell *matHeaderCellDef mat-sort-header [disabled]="!column.sortable" [matTooltip]="column.tooltip">
+        <ng-container *ngIf="!column.hasIcon">
+          <mat-label role="button" [attr.aria-label]="column.ariaLabel">{{column.label}}</mat-label>
+        </ng-container>
+        <ng-container *ngIf="column.hasIcon">
+          <fa-icon role="button" [icon]="column.label" [attr.aria-label]="column.ariaLabel"></fa-icon>
+        </ng-container>
+      </th>
+      <tr>
+        <td mat-cell *matCellDef="let element">
+          <ng-container *ngIf="column.id!=='tableExpandColumn' && (!column.actions || column.enabledActions(tableId, parentRef, element).length == 0 || !column.checkbox)">
+            <mat-label *ngIf="column.type==='text' || getProp(element,column.id) === null"
+                       [ngClass]="{'clickable': isCellClickable(tableId, parentRef, element, column)}"
+                       (click)="cellClick(tableId, parentRef, element, column)">
+              {{getProp(element,column.id) | dynamicPipe: column.pipe:column.pipeArgs}}
+            </mat-label>
+            <img *ngIf="column.type==='img64' && getProp(element,column.id)" class="thumbnail-ente" src="{{'data:image/png;base64,'+getProp(element,column.id)}}" alt="Immagine Ente" aria-hidden="true">
+          </ng-container>
+          <ng-container *ngIf="column.actions && column.enabledActions(tableId, parentRef, element).length > 0 && !column.checkbox">
+            <div mat-button-row class="button-row" aria-label="Azioni disponibili">
+              <!-- <div class="float-button-container" [class.active]="showFloatingButtons(tableId, element)">
+                <fa-layers class="floating-buttons" *ngFor="let action of column.enabledActions(tableId, parentRef, element)" [fixedWidth]="true">
+                  <fa-icon
+                    [icon] = "action.icon"
+                    (click)= "action.click(tableId, element, parentRef, $event)"
+                    [matTooltip]="action.tooltip" ></fa-icon>
+                  <fa-layers-text *ngIf="action.overlayText" [content]="action.overlayText.text" [class]="action.overlayText.class" [style]="action.overlayText.style" [transform]="action.overlayText.transform"></fa-layers-text>
+                </fa-layers>
+              </div>
+              <fa-icon [icon]="iconEllipsisH" (click)="toggleFloat(element, $event)"></fa-icon> -->
+              <button mat-icon-button aria-label="Azioni disponibili" role="button"
+              [matMenuTriggerFor]="menu" (click)="openActionMenu(element, $event)">
+              <fa-icon [icon]="iconEllipsisH"></fa-icon></button>
+              <mat-menu #menu="matMenu" class="menu-detail-panel" xPosition="before">
+                <ng-template matMenuContent>
+                  <button mat-menu-item class="menu-detail-item"
+                    *ngFor="let action of column.enabledActions(tableId, parentRef, element)"
+                    (click)= "action.click(tableId, element, parentRef, $event)"
+                    [attr.aria-label]="action.tooltip"
+                    role="button" tabindex="0"
+                    >
+                    <!-- fa-icon [icon] = "action.icon"></fa-icon -->
+                    <span>{{action.tooltip}}</span>
+                  </button>
+                </ng-template>
+              </mat-menu>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="column.checkbox && (!column.actions || column.enabledActions(tableId, parentRef, element)?.length == 0)">
+            <mat-checkbox (change)="column.checkboxClick(element, parentRef, $event)"></mat-checkbox>
+          </ng-container>
+          <ng-container *ngIf="column.id==='tableExpandColumn'">
+            <button mat-icon-button *ngIf="hasDetail && !element[NO_DETAIL] && (onClickRowFun || element.details!=null)"
+            class="mypay4-table-expansion-indicator" role="button" [attr.aria-label]="(expandedElement==element?'Chiudi':'Apri')+' dettaglio riga'"
+            [matTooltip]="(expandedElement==element?'Chiudi':'Apri')+' dettaglio riga'" tabindex="0">
+            </button>
+          </ng-container>
+        </td>
+      </tr>
+      <tr *ngIf="showTotalFooter">
+        <ng-container *ngIf="column.id!=='tableExpandColumn' && column.totalLabel">
+          <td mat-footer-cell *matFooterCellDef>Totale</td>
+        </ng-container>
+        <ng-container *ngIf="column.id!=='tableExpandColumn' && !column.totalLabel">
+          <td mat-footer-cell *matFooterCellDef>{{getTotal(column.id) | dynamicPipe: column.pipe:column.pipeArgs }}</td>
+        </ng-container>
+        <ng-container *ngIf="column.id==='tableExpandColumn'">
+          <td mat-footer-cell *matFooterCellDef></td>
+        </ng-container>
+      </tr>
+    </ng-container>
+
+    <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+    <ng-container matColumnDef="expandedDetail">
+      <td mat-cell *matCellDef="let element" [attr.colspan]="tableColumns?.length || 1">
+        <div *ngIf="element.details!=null" class="mypay4-element-detail"
+            [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+
+            <table class="mat-table-details" mat-table [dataSource]="element.details | detailfilter:detailFilterInclude:detailFilterExclude">
+              <ng-container matColumnDef="key">
+                <th mat-header-cell *matHeaderCellDef> key </th>
+                <td mat-cell class="detail-row-key bold" *matCellDef="let detailElement"
+                    [ngClass]="{'underline': detailElement.key===SECTION_ID}">
+                    {{ detailElement.key === SECTION_ID ? detailElement.value : detailElement.key }}
+                </td>
+              </ng-container>
+              <ng-container *ngIf="!element.detailsInHTML" matColumnDef="value">
+                <th mat-header-cell *matHeaderCellDef> value </th>
+                <td mat-cell class="detail-row-value" *matCellDef="let detailElement">
+                  {{ detailElement.key === SECTION_ID ? '' : detailElement.value }}
+                </td>
+              </ng-container>
+              <ng-container *ngIf="element.detailsInHTML" matColumnDef="value">
+                <th mat-header-cell *matHeaderCellDef> value </th>
+                <td mat-cell class="detail-row-value" *matCellDef="let detailElement"
+                    [innerHTML]="detailElement.key === SECTION_ID ? null : detailElement.value"></td>
+              </ng-container>
+              <tr mat-row class="mypay4-nested-table-row" *matRowDef="let detailElement; columns: tableDatailColumnsName;" tabindex="0"></tr>
+            </table>
+
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="tableColumnsName"></tr>
+    <tr mat-row *matRowDef="let element; columns: tableColumnsName;"
+        class="mypay4-element-row mypay4-element-row-alternate-withdetail"
+        [ngClass]="{'cursor-pointer': hasDetail}"
+        [style]="rowStyle(element)"
+        [class.mypay4-expanded-row]="expandedElement === element"
+        (click)="onClickRow(element)"
+        [attr.aria-label]="rowDescription(element)"
+        tabindex="0"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="mypay4-detail-row"></tr>
+    <ng-container *ngIf="showTotalFooter">
+      <tr mat-footer-row *matFooterRowDef="tableColumnsName; sticky: true"></tr>
+    </ng-container>
+  </table>
+
+<mat-paginator fxFlex [style.display]="tableDataSource.data?.length>5 ? 'block' : 'none'" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+</ng-template>

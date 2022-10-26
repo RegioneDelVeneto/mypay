@@ -1,0 +1,110 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div
+    class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayout.gt-sm="row wrap"
+    fxLayoutAlign="start center"
+    fxLayoutGap="10px">
+
+  <div class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+  </div>
+
+  <mat-card  class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/flussi"><fa-icon [icon]="iconRandom" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/flussi" id="sr-gf">Gestione flussi</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/flussi"><span class="font-bold" aria-labelledby="sr-gf"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai caricare flussi di dovuti, cioè documenti che contengono le informazioni necessarie per
+        creare, modificare o annullare posizioni debitorie.
+        Potrai inoltre ricercare e scaricare in locale:
+        i flussi dei dovuti precedentemente caricati e i rispettivi avvisi di pagamento generati,
+        i flussi di rendicontazione generati dai PSP,
+        i flussi di quadratura generati dal Nodo Nazionale SPC PagoPA,
+        i flussi delle Ricevute Telematiche relative ai pagamenti effettuati.
+      </span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/flussi"><span class="font-bold" aria-labelledby="sr-gf"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/dovuti"><fa-icon [icon]="iconClone" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/dovuti" id="sr-gd">Gestione dovuti</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/dovuti"><span class="font-bold" aria-labelledby="sr-gd"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span><p>In questa sezione potrai effettuare la <b>ricerca</b> dei dovuti per poi visualizzarli, modificarli oppure annullarli.</p>
+      <p>Potrai inoltre effettuare l'<b>inserimento</b> puntuale di una nuova posizione debitoria da associare ad una tipologia di
+        dovuto gestita dall'Ente ed associarla ad una anagrafica di persona fisica o giuridica.</p></span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/dovuti"><span class="font-bold" aria-labelledby="sr-gd"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <div *ngIf="isUserAdmin" class="flex-row-break"></div>
+
+  <!-- <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar><fa-icon [icon]="iconArchive" size="2x"></fa-icon></div>
+      <mat-card-title>Gestione revoche</mat-card-title>
+      <mat-card-subtitle>Ricerca e conferma richieste di revoche</mat-card-subtitle>
+    </mat-card-header>
+    <div fxFlex></div>
+    <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/revoche"><span class="font-bold">Vai &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions>
+  </mat-card> -->
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/admin"><fa-icon [icon]="iconTools" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/admin" id="sr-bo">Back office</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/admin"><span class="font-bold" aria-labelledby="sr-bo"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>In questa sezione potrai amministrare Enti, Utenti e Tipi Dovuto.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/admin"><span class="font-bold" aria-labelledby="sr-bo"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card *ngIf="isUserAdmin" class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" class="placeholder-card">
+  </mat-card>
+
+</div>

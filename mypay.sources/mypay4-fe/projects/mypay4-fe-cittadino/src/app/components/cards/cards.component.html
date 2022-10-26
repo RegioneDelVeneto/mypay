@@ -1,0 +1,150 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div
+    class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayout.gt-sm="row wrap"
+    fxLayoutAlign="start center"
+    fxLayoutGap="10px"
+    >
+
+  <div class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+  </div>
+
+  <mat-card #cardDebiti class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true" role="presentation" alt=""><a tabindex="-1" class="no-decoration" routerLink="/debiti"><fa-icon [icon]="iconCashRegister" size="2x"></fa-icon><span class="sr-only">Posizioni aperte</span></a></div>
+      <mat-card-title style="width: calc( 100% - 7em )" role="heading" aria-level="1"><a tabindex="0" class="no-decoration" routerLink="/debiti">Posizioni aperte</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/debiti" title="Visualizza tutti i dovuti"><span class="font-bold"><u>Visualizza tutti i dovuti</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+      <mat-card-subtitle role="heading" aria-level="2"><a tabindex="-1" class="no-decoration" routerLink="/debiti">Visualizza
+          l'elenco dei tuoi dovuti ancora da pagare e procedi al loro pagamento</a></mat-card-subtitle>
+    </mat-card-header>
+    <div *ngIf="listDebiti && listDebiti.length===0">
+      <div class="info-no-data-found">
+        <p class="mat-body-2 text-blue">INFORMAZIONI</p>
+        <p>Non è stata trovata nessuna posizione debitoria aperta</p>
+      </div>
+    </div>
+    <mat-list fxFlex fxLayout="column">
+      <mat-list-item fxFlex *ngFor="let debito of listDebiti">
+        <div class="mt-2"
+        fxFlex
+        fxLayout="row"
+        fxLayoutAlign="start center"
+        fxLayoutGap="10px">
+          <div fxFlex="4em" class="myp4-center reduced-line-height">
+            <div>{{debito.dataScadenzaDay}}</div>
+            <div class="reduced-font-size">{{debito.dataScadenzaMonth | uppercase}}</div>
+            <div class="reduced-font-size">{{debito.dataScadenzaYear}}</div>
+          </div>
+          <div fxFlex>
+            <div class="font-bold font-accent">{{debito.deEnte}}</div>
+            <div>{{debito.deTipoDovuto}}</div>
+          </div>
+          <span fxFlex="4em" class="myp4-singleline">{{debito.importo | currency}}</span>
+        </div>
+      </mat-list-item>
+    </mat-list>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/debiti"><span class="font-bold"><u>Visualizza tutti i dovuti</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card #cardPagati class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"  role="presentation" alt=""><a tabindex="-1" class="no-decoration" routerLink="/pagati"><fa-icon [icon]="iconCreditCard" size="2x"></fa-icon><span class="sr-only">Storico transazioni</span></a></div>
+      <mat-card-title style="width: calc( 100% - 8em )" role="heading" aria-level="1"><a tabindex="0" class="no-decoration" routerLink="/pagati">Storico transazioni</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/pagati" title="Visualizza tutti i pagamenti"><span class="font-bold"><u>Visualizza tutti i pagamenti</u>&nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+      <mat-card-subtitle role="heading" aria-level="2"><a tabindex="-1" class="no-decoration" routerLink="/pagati">Visualizza l'elenco dei pagamenti effettuati e di quelli non completati con successo</a></mat-card-subtitle>
+    </mat-card-header>
+    <div *ngIf="listPagati && listPagati.length===0">
+      <div class="info-no-data-found">
+        <p class="mat-body-2 text-blue">INFORMAZIONI</p>
+        <p>Non è stato trovato nessun pagamento</p>
+      </div>
+    </div>
+    <mat-list fxFlex fxLayout="column">
+      <mat-list-item fxFlex *ngFor="let pagato of listPagati">
+        <div class="mt-2"
+        fxFlex
+        fxLayout="row"
+        fxLayoutAlign="start center"
+        fxLayoutGap="10px">
+          <div fxFlex="4em" class="myp4-center reduced-line-height">
+            <div>{{pagato.dataPagamentoDay}}</div>
+            <div class="reduced-font-size">{{pagato.dataPagamentoMonth | uppercase}}</div>
+            <div class="reduced-font-size">{{pagato.dataPagamentoYear}}</div>
+          </div>
+          <div fxFlex>
+            <div class="font-bold font-accent">{{pagato.enteDeNome}}</div>
+            <div>{{pagato.deTipoDovuto}}</div>
+          </div>
+          <span fxFlex="4em" class="myp4-singleline">{{pagato.importo | currency}}</span>
+        </div>
+      </mat-list-item>
+    </mat-list>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/pagati"><span class="font-bold"><u>Visualizza tutti i pagamenti</u>&nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true" role="presentation" alt=""><a tabindex="-1" class="no-decoration" routerLink="/avvisi"><fa-icon [icon]="iconFileInvoice" size="2x"></fa-icon><span class="sr-only">Avvisi di pagamento</span></a></div>
+      <mat-card-title style="width: calc( 100% - 5em )" role="heading" aria-level="1"><a tabindex="0" class="no-decoration" routerLink="/avvisi">Avvisi di pagamento</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/avvisi" title="Cerca avviso"><span class="font-bold"><u>Cerca avviso</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+      <mat-card-subtitle role="heading" aria-level="2"><a tabindex="-1" class="no-decoration" routerLink="/avvisi">Se hai
+          ricevuto un avviso di pagamento compila i campi richiesti con i dati che trovi nell'avviso e procedi al
+          pagamento.</a></mat-card-subtitle>
+    </mat-card-header>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/avvisi"><span class="font-bold"><u>Cerca avviso</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" aria-label="Altre tipologie di pagamento card">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true" role="presentation" alt=""><a tabindex="-1" class="no-decoration" routerLink="/spontaneo"><fa-icon [icon]="iconTags" size="2x"></fa-icon><span class="sr-only">Altre tipologie di pagamento</span></a></div>
+      <mat-card-title style="width: calc( 100% - 8em )" role="heading" aria-level="1"><a tabindex="0" class="no-decoration" routerLink="/spontaneo">Altre tipologie di pagamento</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/spontaneo" title="Ricerca altri pagamenti"><mat-label class="font-bold"><u>Ricerca altri pagamenti</u> &nbsp;</mat-label><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+      <mat-card-subtitle role="heading" aria-level="2"><a tabindex="-1" class="no-decoration" routerLink="/spontaneo">Se non
+          disponi di un avviso di pagamento e desideri effettuare un pagamento spontaneo, scegli un ente e il tipo di
+          pagamento da effettuare, compila i campi richiesti e procedi con il pagamento</a></mat-card-subtitle>
+      </mat-card-header>
+    <div fxFlex aria-hidden="true"></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto" aria-label="Azioni">
+      <a mat-button routerLink="/spontaneo"><mat-label class="font-bold"><u>Ricerca altri pagamenti</u> &nbsp;</mat-label><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+</div>

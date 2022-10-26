@@ -1,0 +1,332 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 18-mar-2019 11.26.04 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRrEr" table="mygov_rr_er">
+        <id name="mygovRrErId" type="java.lang.Long">
+            <column name="mygov_rr_er_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_rr_er_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" not-null="true" />
+        </property>
+        <property name="deRrVersioneOggetto" type="string">
+            <column name="de_rr_versione_oggetto" length="16" not-null="true" />
+        </property>
+        <property name="codIdUnivocoVersamento" type="string">
+            <column name="cod_id_univoco_versamento" length="35" not-null="true" />
+        </property>
+        <property name="codCodiceContestoPagamento" type="string">
+            <column name="cod_codice_contesto_pagamento" length="35" not-null="true" />
+        </property>
+        <property name="codRrDomIdDominio" type="string">
+            <column name="cod_rr_dom_id_dominio" length="35" not-null="true" />
+        </property>
+        <property name="codRrDomIdStazioneRichiedente" type="string">
+            <column name="cod_rr_dom_id_stazione_richiedente" length="35" />
+        </property>
+        <property name="codRrIdMessaggioRevoca" type="string">
+            <column name="cod_rr_id_messaggio_revoca" length="35" not-null="true" />
+        </property>
+        <property name="dtRrDataOraMessaggioRevoca" type="timestamp">
+            <column name="dt_rr_data_ora_messaggio_revoca" length="29" not-null="true" />
+        </property>
+        <property name="deRrIstitAttDenominazioneMittente" type="string">
+            <column name="de_rr_istit_att_denominazione_mittente" length="70" not-null="true" />
+        </property>
+        <property name="codRrIstitAttUnitOperMittente" type="string">
+            <column name="cod_rr_istit_att_unit_oper_mittente" length="35" />
+        </property>
+        <property name="deRrIstitAttDenomUnitOperMittente" type="string">
+            <column name="de_rr_istit_att_denom_unit_oper_mittente" length="70" />
+        </property>
+        <property name="deRrIstitAttIndirizzoMittente" type="string">
+            <column name="de_rr_istit_att_indirizzo_mittente" length="70" />
+        </property>
+        <property name="deRrIstitAttCivicoMittente" type="string">
+            <column name="de_rr_istit_att_civico_mittente" length="16" />
+        </property>
+        <property name="codRrIstitAttCapMittente" type="string">
+            <column name="cod_rr_istit_att_cap_mittente" length="16" />
+        </property>
+        <property name="deRrIstitAttLocalitaMittente" type="string">
+            <column name="de_rr_istit_att_localita_mittente" length="35" />
+        </property>
+        <property name="deRrIstitAttProvinciaMittente" type="string">
+            <column name="de_rr_istit_att_provincia_mittente" length="35" />
+        </property>
+        <property name="codRrIstitAttNazioneMittente" type="string">
+            <column name="cod_rr_istit_att_nazione_mittente" length="2" />
+        </property>
+        <property name="codRrIstitAttIdUnivMittTipoIdUnivoco" type="string">
+            <column name="cod_rr_istit_att_id_univ_mitt_tipo_id_univoco" length="1" not-null="true" />
+        </property>
+        <property name="codRrIstitAttIdUnivMittCodiceIdUnivoco" type="string">
+            <column name="cod_rr_istit_att_id_univ_mitt_codice_id_univoco" length="35" not-null="true" />
+        </property>
+        <property name="codRrSoggVersIdUnivVersTipoIdUnivoco" type="string">
+            <column name="cod_rr_sogg_vers_id_univ_vers_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codRrSoggVersIdUnivVersCodiceIdUnivoco" type="string">
+            <column name="cod_rr_sogg_vers_id_univ_vers_codice_id_univoco" length="35" />
+        </property>
+        <property name="codRrSoggVersAnagraficaVersante" type="string">
+            <column name="cod_rr_sogg_vers_anagrafica_versante" length="70" />
+        </property>
+        <property name="deRrSoggVersIndirizzoVersante" type="string">
+            <column name="de_rr_sogg_vers_indirizzo_versante" length="70" />
+        </property>
+        <property name="deRrSoggVersCivicoVersante" type="string">
+            <column name="de_rr_sogg_vers_civico_versante" length="16" />
+        </property>
+        <property name="codRrSoggVersCapVersante" type="string">
+            <column name="cod_rr_sogg_vers_cap_versante" length="16" />
+        </property>
+        <property name="deRrSoggVersLocalitaVersante" type="string">
+            <column name="de_rr_sogg_vers_localita_versante" length="35" />
+        </property>
+        <property name="deRrSoggVersProvinciaVersante" type="string">
+            <column name="de_rr_sogg_vers_provincia_versante" length="35" />
+        </property>
+        <property name="codRrSoggVersNazioneVersante" type="string">
+            <column name="cod_rr_sogg_vers_nazione_versante" length="2" />
+        </property>
+        <property name="deRrSoggVersEmailVersante" type="string">
+            <column name="de_rr_sogg_vers_email_versante" length="256" />
+        </property>
+        <property name="codRrSoggPagIdUnivPagTipoIdUnivoco" type="string">
+            <column name="cod_rr_sogg_pag_id_univ_pag_tipo_id_univoco" length="1" not-null="true" />
+        </property>
+        <property name="codRrSoggPagIdUnivPagCodiceIdUnivoco" type="string">
+            <column name="cod_rr_sogg_pag_id_univ_pag_codice_id_univoco" length="35" not-null="true" />
+        </property>
+        <property name="codRrSoggPagAnagraficaPagatore" type="string">
+            <column name="cod_rr_sogg_pag_anagrafica_pagatore" length="70" not-null="true" />
+        </property>
+        <property name="deRrSoggPagIndirizzoPagatore" type="string">
+            <column name="de_rr_sogg_pag_indirizzo_pagatore" length="70" />
+        </property>
+        <property name="deRrSoggPagCivicoPagatore" type="string">
+            <column name="de_rr_sogg_pag_civico_pagatore" length="16" />
+        </property>
+        <property name="codRrSoggPagCapPagatore" type="string">
+            <column name="cod_rr_sogg_pag_cap_pagatore" length="16" />
+        </property>
+        <property name="deRrSoggPagLocalitaPagatore" type="string">
+            <column name="de_rr_sogg_pag_localita_pagatore" length="35" />
+        </property>
+        <property name="deRrSoggPagProvinciaPagatore" type="string">
+            <column name="de_rr_sogg_pag_provincia_pagatore" length="35" />
+        </property>
+        <property name="codRrSoggPagNazionePagatore" type="string">
+            <column name="cod_rr_sogg_pag_nazione_pagatore" length="2" />
+        </property>
+        <property name="deRrSoggPagEmailPagatore" type="string">
+            <column name="de_rr_sogg_pag_email_pagatore" length="256" />
+        </property>
+        <property name="numRrDatiRevImportoTotaleRevocato" type="big_decimal">
+            <column name="num_rr_dati_rev_importo_totale_revocato" precision="12" not-null="true" />
+        </property>
+        <property name="codRrDatiRevIdUnivocoVersamento" type="string">
+            <column name="cod_rr_dati_rev_id_univoco_versamento" length="35" not-null="true" />
+        </property>
+        <property name="codRrDatiRevCodiceContestoPagamento" type="string">
+            <column name="cod_rr_dati_rev_codice_contesto_pagamento" length="35" not-null="true" />
+        </property>
+        <property name="codRrDatiRevTipoRevoca" type="string">
+            <column name="cod_rr_dati_rev_tipo_revoca" length="1" />
+        </property>
+        <property name="codRrPaEsito" type="string">
+            <column name="cod_rr_pa_esito" length="2" />
+        </property>
+        <property name="codRrPaFaultId" type="string">
+            <column name="cod_rr_pa_fault_id" length="256" />
+        </property>
+        <property name="codRrPaFaultCode" type="string">
+            <column name="cod_rr_pa_fault_code" length="256" />
+        </property>
+        <property name="codRrPaFaultString" type="string">
+            <column name="cod_rr_pa_fault_string" length="256" />
+        </property>
+        <property name="codRrPaFaultDescription" type="string">
+            <column name="cod_rr_pa_fault_description" length="1024" />
+        </property>
+        <property name="codRrPaFaultSerial" type="java.lang.Integer">
+            <column name="cod_rr_pa_fault_serial" />
+        </property>
+        <property name="codRrPaOriginalFaultCode" type="string">
+            <column name="cod_rr_pa_original_fault_code" length="256" />
+        </property>
+        <property name="codRrPaOriginalFaultString" type="string">
+            <column name="cod_rr_pa_original_fault_string" length="256" />
+        </property>
+        <property name="codRrPaOriginalFaultDescription" type="string">
+            <column name="cod_rr_pa_original_fault_description" length="1024" />
+        </property>
+        <property name="deErVersioneOggetto" type="string">
+            <column name="de_er_versione_oggetto" length="16" />
+        </property>
+        <property name="codErDomIdDominio" type="string">
+            <column name="cod_er_dom_id_dominio" length="35" />
+        </property>
+        <property name="codErDomIdStazioneRichiedente" type="string">
+            <column name="cod_er_dom_id_stazione_richiedente" length="35" />
+        </property>
+        <property name="codErIdMessaggioEsito" type="string">
+            <column name="cod_er_id_messaggio_esito" length="35" />
+        </property>
+        <property name="dtErDataOraMessaggioEsito" type="timestamp">
+            <column name="dt_er_data_ora_messaggio_esito" length="29" />
+        </property>
+        <property name="codErRiferimentoMessaggioRevoca" type="string">
+            <column name="cod_er_riferimento_messaggio_revoca" length="35" />
+        </property>
+        <property name="dtErRiferimentoDataRevoca" type="timestamp">
+            <column name="dt_er_riferimento_data_revoca" length="29" />
+        </property>
+        <property name="deErIstitAttDenominazioneMittente" type="string">
+            <column name="de_er_istit_att_denominazione_mittente" length="70" />
+        </property>
+        <property name="codErIstitAttUnitOperMittente" type="string">
+            <column name="cod_er_istit_att_unit_oper_mittente" length="35" />
+        </property>
+        <property name="deErIstitAttDenomUnitOperMittente" type="string">
+            <column name="de_er_istit_att_denom_unit_oper_mittente" length="70" />
+        </property>
+        <property name="deErIstitAttIndirizzoMittente" type="string">
+            <column name="de_er_istit_att_indirizzo_mittente" length="70" />
+        </property>
+        <property name="deErIstitAttCivicoMittente" type="string">
+            <column name="de_er_istit_att_civico_mittente" length="16" />
+        </property>
+        <property name="codErIstitAttCapMittente" type="string">
+            <column name="cod_er_istit_att_cap_mittente" length="16" />
+        </property>
+        <property name="deErIstitAttLocalitaMittente" type="string">
+            <column name="de_er_istit_att_localita_mittente" length="35" />
+        </property>
+        <property name="deErIstitAttProvinciaMittente" type="string">
+            <column name="de_er_istit_att_provincia_mittente" length="35" />
+        </property>
+        <property name="codErIstitAttNazioneMittente" type="string">
+            <column name="cod_er_istit_att_nazione_mittente" length="2" />
+        </property>
+        <property name="codErIstitAttIdUnivMittTipoIdUnivoco" type="string">
+            <column name="cod_er_istit_att_id_univ_mitt_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codErIstitAttIdUnivMittCodiceIdUnivoco" type="string">
+            <column name="cod_er_istit_att_id_univ_mitt_codice_id_univoco" length="35" />
+        </property>
+        <property name="codErSoggVersIdUnivVersTipoIdUnivoco" type="string">
+            <column name="cod_er_sogg_vers_id_univ_vers_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codErSoggVersIdUnivVersCodiceIdUnivoco" type="string">
+            <column name="cod_er_sogg_vers_id_univ_vers_codice_id_univoco" length="35" />
+        </property>
+        <property name="codErSoggVersAnagraficaVersante" type="string">
+            <column name="cod_er_sogg_vers_anagrafica_versante" length="70" />
+        </property>
+        <property name="deErSoggVersIndirizzoVersante" type="string">
+            <column name="de_er_sogg_vers_indirizzo_versante" length="70" />
+        </property>
+        <property name="deErSoggVersCivicoVersante" type="string">
+            <column name="de_er_sogg_vers_civico_versante" length="16" />
+        </property>
+        <property name="codErSoggVersCapVersante" type="string">
+            <column name="cod_er_sogg_vers_cap_versante" length="16" />
+        </property>
+        <property name="deErSoggVersLocalitaVersante" type="string">
+            <column name="de_er_sogg_vers_localita_versante" length="35" />
+        </property>
+        <property name="deErSoggVersProvinciaVersante" type="string">
+            <column name="de_er_sogg_vers_provincia_versante" length="35" />
+        </property>
+        <property name="codErSoggVersNazioneVersante" type="string">
+            <column name="cod_er_sogg_vers_nazione_versante" length="2" />
+        </property>
+        <property name="deErSoggVersEmailVersante" type="string">
+            <column name="de_er_sogg_vers_email_versante" length="256" />
+        </property>
+        <property name="codErSoggPagIdUnivPagTipoIdUnivoco" type="string">
+            <column name="cod_er_sogg_pag_id_univ_pag_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codErSoggPagIdUnivPagCodiceIdUnivoco" type="string">
+            <column name="cod_er_sogg_pag_id_univ_pag_codice_id_univoco" length="35" />
+        </property>
+        <property name="codErSoggPagAnagraficaPagatore" type="string">
+            <column name="cod_er_sogg_pag_anagrafica_pagatore" length="70" />
+        </property>
+        <property name="deErSoggPagIndirizzoPagatore" type="string">
+            <column name="de_er_sogg_pag_indirizzo_pagatore" length="70" />
+        </property>
+        <property name="deErSoggPagCivicoPagatore" type="string">
+            <column name="de_er_sogg_pag_civico_pagatore" length="16" />
+        </property>
+        <property name="codErSoggPagCapPagatore" type="string">
+            <column name="cod_er_sogg_pag_cap_pagatore" length="16" />
+        </property>
+        <property name="deErSoggPagLocalitaPagatore" type="string">
+            <column name="de_er_sogg_pag_localita_pagatore" length="35" />
+        </property>
+        <property name="deErSoggPagProvinciaPagatore" type="string">
+            <column name="de_er_sogg_pag_provincia_pagatore" length="35" />
+        </property>
+        <property name="codErSoggPagNazionePagatore" type="string">
+            <column name="cod_er_sogg_pag_nazione_pagatore" length="2" />
+        </property>
+        <property name="deErSoggPagEmailPagatore" type="string">
+            <column name="de_er_sogg_pag_email_pagatore" length="256" />
+        </property>
+        <property name="numErDatiRevImportoTotaleRevocato" type="big_decimal">
+            <column name="num_er_dati_rev_importo_totale_revocato" precision="12" />
+        </property>
+        <property name="codErDatiRevIdUnivocoVersamento" type="string">
+            <column name="cod_er_dati_rev_id_univoco_versamento" length="35" />
+        </property>
+        <property name="codErDatiRevCodiceContestoPagamento" type="string">
+            <column name="cod_er_dati_rev_codice_contesto_pagamento" length="35" />
+        </property>
+        <property name="codErNodoEsito" type="string">
+            <column name="cod_er_nodo_esito" length="2" />
+        </property>
+        <property name="codErNodoFaultId" type="string">
+            <column name="cod_er_nodo_fault_id" length="256" />
+        </property>
+        <property name="codErNodoFaultCode" type="string">
+            <column name="cod_er_nodo_fault_code" length="256" />
+        </property>
+        <property name="codErNodoFaultString" type="string">
+            <column name="cod_er_nodo_fault_string" length="256" />
+        </property>
+        <property name="codErNodoFaultDescription" type="string">
+            <column name="cod_er_nodo_fault_description" length="1024" />
+        </property>
+        <property name="codErNodoFaultSerial" type="java.lang.Integer">
+            <column name="cod_er_nodo_fault_serial" />
+        </property>
+        <property name="codErNodoOriginalFaultCode" type="string">
+            <column name="cod_er_nodo_original_fault_code" length="256" />
+        </property>
+        <property name="codErNodoOriginalFaultString" type="string">
+            <column name="cod_er_nodo_original_fault_string" length="256" />
+        </property>
+        <property name="codErNodoOriginalFaultDescription" type="string">
+            <column name="cod_er_nodo_original_fault_description" length="1024" />
+        </property>
+        <set name="mygov_rr_er_dettaglio" inverse="true" lazy="true" table="mygov_rr_er_dettaglio" fetch="select">
+            <key>
+                <column name="mygov_rr_er_id" not-null="true" />
+            </key>
+            <one-to-many class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRrErDettaglio" />
+        </set>
+    </class>
+</hibernate-mapping>

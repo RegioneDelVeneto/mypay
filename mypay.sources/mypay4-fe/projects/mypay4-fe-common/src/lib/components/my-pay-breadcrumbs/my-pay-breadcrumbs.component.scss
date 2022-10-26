@@ -1,0 +1,95 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+.enabled-link:hover {
+  cursor: pointer;
+}
+
+.disabled-link:hover {
+  cursor: default;
+}
+
+$normal: #f2f2f2;
+$accent: #e6e6e6;
+$em-size: 1em;
+
+ol {
+  display: table;
+  overflow: hidden;
+  //white-space:nowrap;
+}
+ol li {
+  display: inline-block;
+  margin-top: 1em;
+  margin-right: -1.3em;
+  line-height: 1.5em;
+  padding: 0.5em 1.8em;
+  background: linear-gradient(70deg, transparent $em-size, $normal $em-size, $normal 50%, transparent 50%) top left
+      no-repeat,
+    linear-gradient(-110deg, transparent $em-size, $normal $em-size, $normal 55%, transparent 55%) top no-repeat,
+    linear-gradient(-70deg, transparent $em-size, $normal $em-size, $normal 50%, transparent 50%) bottom left no-repeat,
+    linear-gradient(110deg, transparent $em-size, $normal $em-size, $normal 55%, transparent 55%) bottom no-repeat;
+  background-size: 100% 51.5%;
+}
+ol li:hover {
+  background: linear-gradient(70deg, transparent $em-size, $accent $em-size, $accent 50%, transparent 50%) top left
+      no-repeat,
+    linear-gradient(-110deg, transparent $em-size, $accent $em-size, $accent 55%, transparent 55%) top no-repeat,
+    linear-gradient(-70deg, transparent $em-size, $accent $em-size, $accent 50%, transparent 50%) bottom left no-repeat,
+    linear-gradient(110deg, transparent $em-size, $accent $em-size, $accent 55%, transparent 55%) bottom no-repeat;
+  background-size: 100% 51.5%;
+}
+ol li.last, ol li.last:hover {
+  background: linear-gradient(70deg, transparent $em-size, $accent $em-size, $accent 50%, transparent 50%) top left
+      no-repeat,
+    linear-gradient(-110deg, $accent $em-size, $accent 55%, transparent 55%) top no-repeat,
+    linear-gradient(-70deg, $accent $em-size, $accent 50%, transparent 50%) bottom left no-repeat,
+    linear-gradient(110deg, transparent $em-size, $accent $em-size, $accent 55%, transparent 55%) bottom no-repeat;
+  background-size: 100% 51.5%;
+}
+ol li.firstlast, ol li.firstlast:hover {
+  padding-left: 0.8em;
+  background: linear-gradient(70deg, $accent $em-size, $accent 50%, transparent 50%) top left no-repeat,
+    linear-gradient(-110deg, transparent $em-size, $accent $em-size, $accent 55%, transparent 55%) top no-repeat,
+    linear-gradient(-70deg, transparent $em-size, $accent $em-size, $accent 50%, transparent 50%) bottom left no-repeat,
+    linear-gradient(110deg, $accent $em-size, $accent 55%, transparent 55%) bottom no-repeat;
+  background-size: 100% 51.5%;
+}
+ol li.first {
+  padding-left: 0.8em;
+  background: linear-gradient(70deg, $normal $em-size, $normal 50%, transparent 50%) top left no-repeat,
+    linear-gradient(-110deg, transparent $em-size, $normal $em-size, $normal 55%, transparent 55%) top no-repeat,
+    linear-gradient(-70deg, transparent $em-size, $normal $em-size, $normal 50%, transparent 50%) bottom left no-repeat,
+    linear-gradient(110deg, $normal $em-size, $normal 55%, transparent 55%) bottom no-repeat;
+  background-size: 100% 51.5%;
+}
+ol li.first:hover {
+  padding-left: 0.8em;
+  background: linear-gradient(70deg, $accent $em-size, $accent 50%, transparent 50%) top left no-repeat,
+    linear-gradient(-110deg, transparent $em-size, $accent $em-size, $accent 55%, transparent 55%) top no-repeat,
+    linear-gradient(-70deg, transparent $em-size, $accent $em-size, $accent 50%, transparent 50%) bottom left no-repeat,
+    linear-gradient(110deg, $accent $em-size, $accent 55%, transparent 55%) bottom no-repeat;
+  background-size: 100% 51.5%;
+}
+
+// ol li.current a, ol li:hover a {
+// color:white;
+// }
+a {
+  text-decoration: none;
+  transition: 0.2s;
+}

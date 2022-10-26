@@ -1,0 +1,34 @@
+package routines;
+
+public enum TipoVersamento {
+	BONIFICO_BANCARIO_TESORERIA("BBT"), 
+	BOLLETTINO_POSTALE("BP"), 
+	ADDEBITO_DIRETTO("AD"), 
+	CARTA_PAGAMENTO("CP"), 
+	PAGAMENTO_PRESSO_PSP("PO"), 
+	TUTTI("ALL");
+	
+	private String value;
+
+	private TipoVersamento(String value) {
+		this.value = value;
+	}
+	
+	public static String getRandomTipoVersamento(){// DOLO AD e BBT
+		return TipoVersamento.values()[Numeric.random(0, 4)].getValue();
+	}
+
+	/**
+	 * @return the value
+	 */
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(String value) {
+		this.value = value;
+	}
+}

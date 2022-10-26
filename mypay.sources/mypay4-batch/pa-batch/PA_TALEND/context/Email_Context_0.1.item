@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType xmi:id="_aYdhAPm4Eequku7963-Lrg" confirmationNeeded="false" name="Default">
+    <contextParameter xmi:id="_aYdhAfm4Eequku7963-Lrg" comment="" name="email_indirizzo_gestore" prompt="email_indirizzo_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhAvm4Eequku7963-Lrg" comment="" name="email_smptHost_gestore" prompt="email_smptHost_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhA_m4Eequku7963-Lrg" comment="" name="email_smptPort_gestore" prompt="email_smptPort_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhBPm4Eequku7963-Lrg" comment="" name="email_usr_gestore" prompt="email_usr_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhBfm4Eequku7963-Lrg" comment="" name="email_psw_gestore" prompt="email_psw_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhBvm4Eequku7963-Lrg" comment="" name="email_amministratore" prompt="email_amministratore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhB_m4Eequku7963-Lrg" comment="" name="email_sendername" prompt="email_sendername?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhCPm4Eequku7963-Lrg" comment="" name="email_ssl_support" prompt="email_ssl_support?" promptNeeded="false" type="id_Boolean" value="null"/>
+    <contextParameter xmi:id="_aYdhCfm4Eequku7963-Lrg" comment="" name="email_flag_attiva" prompt="email_flag_attiva?" promptNeeded="false" type="id_Boolean" value="null"/>
+    <contextParameter xmi:id="_aYdhCvm4Eequku7963-Lrg" comment="" name="email_ambiente" prompt="email_ambiente?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType xmi:id="_aYdhC_m4Eequku7963-Lrg" confirmationNeeded="false" name="locale">
+    <contextParameter xmi:id="_aYdhDPm4Eequku7963-Lrg" comment="" name="email_indirizzo_gestore" prompt="email_indirizzo_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhDfm4Eequku7963-Lrg" comment="" name="email_smptHost_gestore" prompt="email_smptHost_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhDvm4Eequku7963-Lrg" comment="" name="email_smptPort_gestore" prompt="email_smptPort_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhD_m4Eequku7963-Lrg" comment="" name="email_usr_gestore" prompt="email_usr_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhEPm4Eequku7963-Lrg" comment="" name="email_psw_gestore" prompt="email_psw_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhEfm4Eequku7963-Lrg" comment="" name="email_amministratore" prompt="email_amministratore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhEvm4Eequku7963-Lrg" comment="" name="email_sendername" prompt="email_sendername?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aYdhE_m4Eequku7963-Lrg" comment="" name="email_ssl_support" prompt="email_ssl_support?" promptNeeded="false" type="id_Boolean" value="null"/>
+    <contextParameter xmi:id="_aYdhFPm4Eequku7963-Lrg" comment="" name="email_flag_attiva" prompt="email_flag_attiva?" promptNeeded="false" type="id_Boolean" value="null"/>
+    <contextParameter xmi:id="_aYdhFfm4Eequku7963-Lrg" comment="" name="email_ambiente" prompt="email_ambiente?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

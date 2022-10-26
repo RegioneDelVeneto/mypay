@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" confirmationNeeded="false" name="Default">
+  <contextParameter comment="" name="socks_proxy_activate" prompt="socks_proxy_activate?" promptNeeded="false" type="id_Boolean" value="null"/>
+  <contextParameter comment="" name="socks_proxy_host" prompt="socks_proxy_host?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="socks_proxy_port" prompt="socks_proxy_port?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="socks_proxy_user" prompt="socks_proxy_user?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="socks_proxy_password" prompt="socks_proxy_password?" promptNeeded="false" type="id_String" value="null"/>
+</talendfile:ContextType>

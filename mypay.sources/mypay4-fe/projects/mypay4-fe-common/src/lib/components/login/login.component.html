@@ -1,0 +1,60 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div id="Login" role="region" aria-label="Login" aria-labelledby="Login">
+<mat-toolbar color="primary">
+  <h1>Login</h1>
+  <span class="flex-spacer"></span>
+  <button mat-button mat-dialog-close><fa-icon [icon]="iconTimes" size="lg"></fa-icon><span class="sr-only">Chiudi</span></button>
+</mat-toolbar>
+
+<!--p>{{ user | json }}</p-->
+<form novalidate #loginForm="ngForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="container"
+    fxLayout="column"
+    fxLayoutGap="15px"
+    style="overflow-y: hidden;">
+      <div fxFlex toastContainer></div>
+      <div class="flex-row-break"></div>
+      <mat-form-field fxFlex appearance="{{'appearance'|global}}">
+        <mat-label>ID utente</mat-label>
+        <input matInput type="text" [(ngModel)]="user.username" name="username" #username="ngModel" required>
+        <mat-error *ngIf="username.errors?.required">"ID utente" è obbligatorio</mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex appearance="{{'appearance'|global}}">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" [(ngModel)]="user.password" name="password" #password="ngModel" required>
+        <mat-error *ngIf="password.errors?.required">"Password" è obbligatoria</mat-error>
+      </mat-form-field>
+      <div class="flex-row-break"></div>
+      <mat-checkbox style="padding-left: 8px" color="primary" fxFlex [(ngModel)]="user.remember" name="remember">Ricordami</mat-checkbox>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <div class="container"
+    fxLayout="row wrap"
+    fxLayoutAlign="start center"
+    fxLayoutGap="15px">
+      <button fxFlex mat-flat-button color="primary" mat-dialog-close>Annulla</button>
+      <button fxFlex mat-flat-button color="accent" type="submit" [disabled]="loginForm.form.invalid">Accedi</button>
+    </div>
+  </mat-dialog-actions>
+</form>
+</div>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:TalendMetadata="http://www.talend.org/metadata/connection/2010">
+  <TalendMetadata:GenericSchemaConnection xmi:id="_y3CfsP2dEeqL-OMNux7SIQ" comment="connectionComment" label="connectionLabel" dataPackage="_y3Cfsf2dEeqL-OMNux7SIQ"/>
+  <TalendMetadata:GenericPackage xmi:id="_y3Cfsf2dEeqL-OMNux7SIQ" dataManager="_y3CfsP2dEeqL-OMNux7SIQ">
+    <ownedElement xsi:type="TalendMetadata:MetadataTable" xmi:id="_y3Cfsv2dEeqL-OMNux7SIQ" label="metadata">
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfs_2dEeqL-OMNux7SIQ" name="IUD" id="2" label="IUD" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CftP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cftf2dEeqL-OMNux7SIQ" name="codIuv" id="83389" label="codIuv" length="100" precision="-1" sourceType="" talendType="id_String">
+        <initialValue xmi:id="_y3Cftv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cft_2dEeqL-OMNux7SIQ" name="tipoIdentificativoUnivoco" id="3" label="tipoIdentificativoUnivoco" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CfuP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfuf2dEeqL-OMNux7SIQ" name="codiceIdentificativoUnivoco" id="4" label="codiceIdentificativoUnivoco" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cfuv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfu_2dEeqL-OMNux7SIQ" name="anagraficaPagatore" id="5" label="anagraficaPagatore" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CfvP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfvf2dEeqL-OMNux7SIQ" name="indirizzoPagatore" id="6" label="indirizzoPagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cfvv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfv_2dEeqL-OMNux7SIQ" name="civicoPagatore" id="7" label="civicoPagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CfwP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfwf2dEeqL-OMNux7SIQ" name="capPagatore" id="8" label="capPagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cfwv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfw_2dEeqL-OMNux7SIQ" name="localitaPagatore" id="9" label="localitaPagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CfxP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfxf2dEeqL-OMNux7SIQ" name="provinciaPagatore" id="10" label="provinciaPagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cfxv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfx_2dEeqL-OMNux7SIQ" name="nazionePagatore" id="11" label="nazionePagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CfyP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfyf2dEeqL-OMNux7SIQ" name="emailPagatore" id="12" label="emailPagatore" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cfyv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfy_2dEeqL-OMNux7SIQ" name="dataEsecuzionePagamento" id="13" label="dataEsecuzionePagamento" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3CfzP2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfzf2dEeqL-OMNux7SIQ" name="importoDovuto" id="14" label="importoDovuto" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cfzv2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cfz_2dEeqL-OMNux7SIQ" name="commissioneCaricoPa" id="83390" label="commissioneCaricoPa" length="100" precision="-1" sourceType="" talendType="id_String">
+        <initialValue xmi:id="_y3Cf0P2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cf0f2dEeqL-OMNux7SIQ" name="tipoDovuto" id="83391" label="tipoDovuto" length="100" precision="-1" sourceType="" talendType="id_String">
+        <initialValue xmi:id="_y3Cf0v2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cf0_2dEeqL-OMNux7SIQ" name="tipoVersamento" id="15" label="tipoVersamento" length="100" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cf1P2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cf1f2dEeqL-OMNux7SIQ" name="causaleVersamento" id="16" label="causaleVersamento" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cf1v2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cf1_2dEeqL-OMNux7SIQ" name="datiSpecificiRiscossione" id="17" label="datiSpecificiRiscossione" length="100" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;">
+        <initialValue xmi:id="_y3Cf2P2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cf2f2dEeqL-OMNux7SIQ" name="bilancio" id="83392" label="bilancio" length="100" precision="-1" sourceType="" talendType="id_String">
+        <initialValue xmi:id="_y3Cf2v2dEeqL-OMNux7SIQ"/>
+      </feature>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_y3Cf2_2dEeqL-OMNux7SIQ" name="azione" id="83393" label="azione" length="100" precision="-1" sourceType="" talendType="id_String">
+        <initialValue xmi:id="_y3Cf3P2dEeqL-OMNux7SIQ"/>
+      </feature>
+    </ownedElement>
+  </TalendMetadata:GenericPackage>
+</xmi:XMI>

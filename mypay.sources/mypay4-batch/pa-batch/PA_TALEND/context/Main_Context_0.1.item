@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType xmi:id="_aZcYcPm4Eequku7963-Lrg" confirmationNeeded="false" name="Default">
+    <contextParameter xmi:id="_aZcYcfm4Eequku7963-Lrg" comment="" name="directory_root_elaborazione" prompt="directory_root_elaborazione?" promptNeeded="false" type="id_Directory" value="null"/>
+    <contextParameter xmi:id="_aZcYcvm4Eequku7963-Lrg" comment="" name="directory_root_enti" prompt="directory_root_enti?" promptNeeded="false" type="id_Directory" value="null"/>
+    <contextParameter xmi:id="_aZcYc_m4Eequku7963-Lrg" comment="" name="export_url" prompt="export_url?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYdPm4Eequku7963-Lrg" comment="" name="versione_oggetto" prompt="versione_oggetto?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYdfm4Eequku7963-Lrg" comment="" name="commit_freq" prompt="commit_freq?" promptNeeded="false" type="id_Long" value="null"/>
+    <contextParameter xmi:id="_aZcYdvm4Eequku7963-Lrg" comment="" name="secondi_trigger_batch" prompt="secondi_trigger_batch?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_aZcYd_m4Eequku7963-Lrg" comment="" name="directory_talend" prompt="directory_talend?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYePm4Eequku7963-Lrg" comment="" name="numero_minuti_avviso" prompt="numero_minuti_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_aZcYefm4Eequku7963-Lrg" comment="" name="ambiente" prompt="ambiente?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYevm4Eequku7963-Lrg" comment="" name="numero_ore_avviso" prompt="numero_ore_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_aZcYe_m4Eequku7963-Lrg" comment="" name="pagamentiTelematiciRPPortEndpointURL" prompt="pagamentiTelematiciRPPortEndpointURL?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYfPm4Eequku7963-Lrg" comment="" name="logoDefault" prompt="logoDefault?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType xmi:id="_aZcYffm4Eequku7963-Lrg" confirmationNeeded="false" name="locale">
+    <contextParameter xmi:id="_aZcYfvm4Eequku7963-Lrg" comment="" name="directory_root_elaborazione" prompt="directory_root_elaborazione?" promptNeeded="false" type="id_Directory" value="null"/>
+    <contextParameter xmi:id="_aZcYf_m4Eequku7963-Lrg" comment="" name="directory_root_enti" prompt="directory_root_enti?" promptNeeded="false" type="id_Directory" value="null"/>
+    <contextParameter xmi:id="_aZcYgPm4Eequku7963-Lrg" comment="" name="export_url" prompt="export_url?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYgfm4Eequku7963-Lrg" comment="" name="versione_oggetto" prompt="versione_oggetto?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYgvm4Eequku7963-Lrg" comment="" name="commit_freq" prompt="commit_freq?" promptNeeded="false" type="id_Long" value="null"/>
+    <contextParameter xmi:id="_aZcYg_m4Eequku7963-Lrg" comment="" name="secondi_trigger_batch" prompt="secondi_trigger_batch?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_aZcYhPm4Eequku7963-Lrg" comment="" name="directory_talend" prompt="directory_talend?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYhfm4Eequku7963-Lrg" comment="" name="numero_minuti_avviso" prompt="numero_minuti_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_aZcYhvm4Eequku7963-Lrg" comment="" name="ambiente" prompt="ambiente?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYh_m4Eequku7963-Lrg" comment="" name="numero_ore_avviso" prompt="numero_ore_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter xmi:id="_aZcYiPm4Eequku7963-Lrg" comment="" name="pagamentiTelematiciRPPortEndpointURL" prompt="pagamentiTelematiciRPPortEndpointURL?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aZcYifm4Eequku7963-Lrg" comment="" name="logoDefault" prompt="logoDefault?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

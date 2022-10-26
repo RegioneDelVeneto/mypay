@@ -1,0 +1,51 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="10px">
+
+  <div class="w80">
+
+    <h2 class="mat-h2 text-center">Logo Ente</h2>
+
+    <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="0px">
+      <img *ngIf="imgSrcLogoEnte" src="{{'data:image/png;base64,'+imgSrcLogoEnte}}" alt="Immagine Ente" aria-hidden="true"/>
+    </div>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+      <mat-form-field fxFlex appearance="{{'appearance'|global}}" floatLabel="always">
+        <mat-label>File</mat-label>
+        <input matInput readonly [(ngModel)]="fileLabel"
+            placeholder="Selezionare un file PNG (dimensioni massime 250x250 pixel)">
+      </mat-form-field>
+    </div>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start start" fxLayoutGap="0px" class="mat-button-bar">
+      <div id="fileinput-form">
+        <form novalidate #fileForm>
+          <input #fileInput class="file-buttons" id="fileinput" [disabled]="formData!=null || !enabled" (change)="selectFileOnChange($event.target.files)" type="file" aria-labelledby="filebutton"/>
+        </form>
+      </div>
+      <button fxFlex="100%" fxFlex.gt-sm="23%" class="file-buttons" type="button" mat-flat-button [disabled]="formData!=null || !enabled" id="filebutton" (click)="onResetFile()" color="accent">Seleziona file</button>
+      <button fxFlex="100%" fxFlex.gt-sm="13%" class="file-buttons" type="button" mat-flat-button [disabled]="formData==null || !enabled" (click)="selectFileOnChange(null)" color="primary">Annulla</button>
+      <div fxFlex></div>
+      <button fxFlex="100%" fxFlex.gt-sm="13%" class="file-buttons" type="button" mat-flat-button [disabled]="formData==null || !enabled" (clickConfirmed)="saveLogo()" color="accent"
+          app-confirm="Confermi di voler modificare il logo?">Modifica Logo</button>
+    </div>
+  </div>
+</div>

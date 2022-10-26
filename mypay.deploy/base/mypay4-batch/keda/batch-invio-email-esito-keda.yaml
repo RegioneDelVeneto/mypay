@@ -1,0 +1,18 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: mypay4-batch-invio-email-esito-keda
+spec:
+  scaleTargetRef:
+    name: mypay4-batch-invio-email-esito
+    envSourceContainerName: mypay4-batch-invio-email-esito
+  pollingInterval: 30  # Optional. Default: 30 seconds
+  cooldownPeriod: 300 # Optional. Default: 300 seconds
+  minReplicaCount: 1   # Optional. Default: 0
+  maxReplicaCount: 1 # Optional. Default: 100
+  triggers:
+  - type: postgresql
+    metadata:
+      connectionFromEnv: MYPAY4_KEDA_URL
+      query: "select count(1) from mygov_carrello this_  where this_.flg_notifica_esito=false and this_.cod_e_dati_pag_codice_esito_pagamento is not null  and ( this_.de_e_sogg_pag_email_pagatore is not null  or this_.de_e_sogg_vers_email_versante is not null  or this_.tipo_carrello='AVVISO_ANONIMO' or this_.tipo_carrello='SPONTANEO_ANONIMO' )  and not this_.cod_e_id_messaggio_ricevuta like '###%'"
+      targetQueryValue: "1"

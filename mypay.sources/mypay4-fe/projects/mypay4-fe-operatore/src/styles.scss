@@ -1,0 +1,60 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+/* You can add global styles to this file, and also import other style files */
+@import '../../mypay4-fe-common/src/lib/styles/styles.scss';
+
+@import 'variables';
+
+.mat-divider {
+  border-top-color: $primary-lighter !important;
+}
+
+// table, alternate row color
+tr.mypay4-element-row-alternate-withdetail:nth-child(4n+1){
+  background-color: #f7648321;
+}
+tr.mypay4-element-row-alternate:nth-child(2n+1){
+  background-color: #f7648321;
+}
+.mypay-search-form {
+  //background-color: $primary-lightest;
+  margin-bottom: 30px;
+}
+*:focus, a:focus, button:focus {
+  outline: 2px solid #EB6600;
+}
+
+.mypay-search-card {
+  background-color: $primary-lightest !important;
+  margin-bottom: 15px;
+  min-width: 100%;
+}
+
+.mypay-search-chips {
+  background-color: $primary-lightest !important;
+}
+
+.mypay-search-chips-content {
+  margin-bottom: 15px;
+}
+
+.mypay-search-chips-actions {
+  margin-left: -8px;
+  margin-right: -8px;
+  padding: 8px 0;
+}

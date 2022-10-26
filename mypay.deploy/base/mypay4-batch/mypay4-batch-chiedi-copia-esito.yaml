@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    k8tz.io/injected: "true"
+    k8tz.io/timezone: Europe/Rome
+  name: mypay4-batch-chiedi-copia-esito
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mypay4
+      job: batch
+      run: mypay4-batch-chiedi-copia-esito
+  template:
+    metadata:
+      annotations:
+        k8tz.io/injected: "true"
+        k8tz.io/timezone: Europe/Rome
+        kubectl.kubernetes.io/default-container: mypay4-batch-chiedi-copia-esito
+      labels:
+        app: mypay4
+        job: batch
+        run: mypay4-batch-chiedi-copia-esito
+    spec:
+      containers:
+      - env:
+        - name: FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX
+          value: mypay4_batch_chiedi_copia_esito_operatore.access
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: e45-fluent-config-secret
+        image: _REGISTRY_ENTE_/common/mypay4-fluentd:latest
+        imagePullPolicy: Always
+        name: fluentd-agent
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 1Gi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /mypay4/logs
+          name: access-logs
+        - mountPath: /fluentd/etc
+          name: mypay4-be-fluent-config
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      - args:
+        - -c
+        - java -cp /mypay4/mypay4-be.jar $(JAVA_OPTS) -Dloader.main=it.regioneveneto.mygov.payment.mypay4.scheduled.chiedicopiaesito.ChiediCopiaEsitoTaskApplication
+          org.springframework.boot.loader.PropertiesLauncher
+        command:
+        - /bin/bash
+        env:
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: artemis-user-creds-secret
+        - secretRef:
+            name: mypay4-user-creds-secret
+        - secretRef:
+            name: fesp-user-creds-secret
+        - secretRef:
+            name: mydictionary-user-creds-secret
+        - secretRef:
+            name: myprofile-user-creds-secret
+        - configMapRef:
+            name: mypay4-batch-javaopts-config
+        - configMapRef:
+            name: mypay4-be-config
+        - configMapRef:
+            name: mypay4-be-operatore-config
+        - configMapRef:
+            name: mypay4-batch-chiedi-copia-esito-config
+        image: _REGISTRY_ENTE_/mypay4/mypay4-be:latest
+        imagePullPolicy: Always
+        name: mypay4-batch-chiedi-copia-esito
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 250Mi
+        volumeMounts:
+        - mountPath: /mypay4/logs
+          name: access-logs
+        - mountPath: /E45
+          name: conf
+        - mountPath: /secret
+          name: certs
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      hostAliases: null
+      imagePullSecrets:
+      - name: registry-_ENTE_-secret
+      securityContext:
+        fsGroup: 9001
+        runAsGroup: 9001
+        runAsUser: 9001
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - name: conf
+        persistentVolumeClaim:
+          claimName: mypay4-claim
+      - emptyDir: {}
+        name: access-logs
+      - configMap:
+          name: mypay4-be-fluent-config
+        name: mypay4-be-fluent-config
+      - name: certs
+        secret:
+          secretName: mypay4-certs
+      - hostPath:
+          path: /usr/share/zoneinfo
+        name: k8tz

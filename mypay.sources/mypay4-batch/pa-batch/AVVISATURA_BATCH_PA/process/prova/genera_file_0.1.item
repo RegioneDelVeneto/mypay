@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ProcessType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.talend.org/mapper" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" defaultContext="Default">
+  <context confirmationNeeded="false" name="Default"/>
+  <parameters>
+    <elementParameter field="TEXT" name="SCREEN_OFFSET_X" value="0"/>
+    <elementParameter field="TEXT" name="SCREEN_OFFSET_Y" value="0"/>
+    <elementParameter field="TEXT" name="REPOSITORY_CONNECTION_ID" value=""/>
+    <elementParameter field="CHECK" name="IMPLICITCONTEXT_USE_PROJECT_SETTINGS" value="true"/>
+    <elementParameter field="CHECK" name="STATANDLOG_USE_PROJECT_SETTINGS" value="true"/>
+    <elementParameter field="CHECK" name="MULTI_THREAD_EXECATION" value="false"/>
+    <elementParameter field="CHECK" name="IMPLICIT_TCONTEXTLOAD" value="false"/>
+    <elementParameter field="RADIO" name="FROM_FILE_FLAG_IMPLICIT_CONTEXT" value="false"/>
+    <elementParameter field="RADIO" name="FROM_DATABASE_FLAG_IMPLICIT_CONTEXT" value="false"/>
+    <elementParameter field="FILE" name="IMPLICIT_TCONTEXTLOAD_FILE" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="FIELDSEPARATOR" value="&quot;&quot;"/>
+    <elementParameter field="TECHNICAL" name="PROPERTY_TYPE_IMPLICIT_CONTEXT:PROPERTY_TYPE" value=""/>
+    <elementParameter field="TECHNICAL" name="PROPERTY_TYPE_IMPLICIT_CONTEXT:REPOSITORY_PROPERTY_TYPE" value=""/>
+    <elementParameter field="CLOSED_LIST" name="DB_TYPE_IMPLICIT_CONTEXT" value=""/>
+    <elementParameter field="CLOSED_LIST" name="DB_VERSION_IMPLICIT_CONTEXT" value=""/>
+    <elementParameter field="TEXT" name="URL_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TABLE" name="DRIVER_JAR_IMPLICIT_CONTEXT"/>
+    <elementParameter field="TEXT" name="DRIVER_CLASS_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="HOST_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="PORT_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="DBNAME_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="LOCAL_SERVICE_NAME_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="PROPERTIES_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="SCHEMA_DB_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="USER_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="PASSWORD" name="PASS_IMPLICIT_CONTEXT" value="0RMsyjmybrE="/>
+    <elementParameter field="FILE" name="DBFILE_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="DBTABLE" name="DBTABLE_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="QUERY_CONDITION_IMPLICIT_CONTEXT" value="&quot;&quot;"/>
+    <elementParameter field="CLOSED_LIST" name="LOAD_NEW_VARIABLE" value="Warning"/>
+    <elementParameter field="CLOSED_LIST" name="NOT_LOAD_OLD_VARIABLE" value="Warning"/>
+    <elementParameter field="CHECK" name="PRINT_OPERATIONS" value="false"/>
+    <elementParameter field="CHECK" name="DISABLE_ERROR" value="false"/>
+    <elementParameter field="CHECK" name="DISABLE_WARNINGS" value="false"/>
+    <elementParameter field="CHECK" name="DISABLE_INFO" value="false"/>
+    <elementParameter field="CHECK" name="ON_STATCATCHER_FLAG" value="false"/>
+    <elementParameter field="CHECK" name="ON_LOGCATCHER_FLAG" value="false"/>
+    <elementParameter field="CHECK" name="ON_METERCATCHER_FLAG" value="false"/>
+    <elementParameter field="CHECK" name="ON_CONSOLE_FLAG" value="false"/>
+    <elementParameter field="CHECK" name="ON_FILES_FLAG" value="false"/>
+    <elementParameter field="DIRECTORY" name="FILE_PATH" value="&quot;D:/Workspaces-TALEND/E45-MyPortal-Pay@Web/trunk/.metadata&quot;"/>
+    <elementParameter field="TEXT" name="FILENAME_STATS" value="&quot;stats_file.txt&quot;"/>
+    <elementParameter field="TEXT" name="FILENAME_LOGS" value="&quot;logs_file.txt&quot;"/>
+    <elementParameter field="TEXT" name="FILENAME_METTER" value="&quot;meter_file.txt&quot;"/>
+    <elementParameter field="ENCODING_TYPE" name="ENCODING" value="ISO-8859-15"/>
+    <elementParameter field="TECHNICAL" name="ENCODING:ENCODING_TYPE" value="ISO-8859-15"/>
+    <elementParameter field="CHECK" name="ON_DATABASE_FLAG" value="false"/>
+    <elementParameter field="CLOSED_LIST" name="DB_TYPE" value="tJDBCOutput"/>
+    <elementParameter field="CLOSED_LIST" name="DB_VERSION" value="ORACLE_11"/>
+    <elementParameter field="TEXT" name="URL" value="&quot;&quot;"/>
+    <elementParameter field="TABLE" name="DRIVER_JAR"/>
+    <elementParameter field="TEXT" name="DRIVER_CLASS" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="HOST" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="PORT" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="DATASOURCE" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="DBNAME" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="LOCAL_SERVICE_NAME" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="PROPERTIES" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="SCHEMA_DB" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="USER" value="&quot;&quot;"/>
+    <elementParameter field="PASSWORD" name="PASS" value="0RMsyjmybrE="/>
+    <elementParameter field="FILE" name="DBFILE" value="&quot;&quot;"/>
+    <elementParameter field="DBTABLE" name="TABLE_STATS" value="&quot;&quot;"/>
+    <elementParameter field="DBTABLE" name="TABLE_LOGS" value="&quot;&quot;"/>
+    <elementParameter field="DBTABLE" name="TABLE_METER" value="&quot;&quot;"/>
+    <elementParameter field="CHECK" name="CATCH_RUNTIME_ERRORS" value="true"/>
+    <elementParameter field="CHECK" name="CATCH_USER_ERRORS" value="true"/>
+    <elementParameter field="CHECK" name="CATCH_USER_WARNING" value="true"/>
+    <elementParameter field="CHECK" name="CATCH_REALTIME_STATS" value="false"/>
+    <elementParameter field="TEXT" name="HEADERFOOTER_HEADERID" value=""/>
+    <elementParameter field="CHECK" name="HEADER_ENABLED" value="false"/>
+    <elementParameter field="TEXT" name="HEADER_LIBRARY" value=""/>
+    <elementParameter field="TEXT" name="HEADER_CODE" value=""/>
+    <elementParameter field="TEXT" name="HEADER_IMPORT" value=""/>
+    <elementParameter field="TEXT" name="HEADERFOOTER_FOOTERID" value=""/>
+    <elementParameter field="CHECK" name="FOOTER_ENABLED" value="false"/>
+    <elementParameter field="TEXT" name="FOOTER_LIBRARY" value=""/>
+    <elementParameter field="TEXT" name="FOOTER_CODE" value=""/>
+    <elementParameter field="TEXT" name="FOOTER_IMPORT" value=""/>
+    <routinesParameter id="_EGb9oHpWEeaVB8rfUUdl7w" name="DataOperation"/>
+    <routinesParameter id="_EHDosHpWEeaVB8rfUUdl7w" name="Mathematical"/>
+    <routinesParameter id="_EHaOAHpWEeaVB8rfUUdl7w" name="Numeric"/>
+    <routinesParameter id="_EHjX8HpWEeaVB8rfUUdl7w" name="Relational"/>
+    <routinesParameter id="_EHr60HpWEeaVB8rfUUdl7w" name="StringHandling"/>
+    <routinesParameter id="_EH4IEHpWEeaVB8rfUUdl7w" name="TalendDataGenerator"/>
+    <routinesParameter id="_EIB5EHpWEeaVB8rfUUdl7w" name="TalendDate"/>
+    <routinesParameter id="_EINfQHpWEeaVB8rfUUdl7w" name="TalendString"/>
+    <routinesParameter id="_P69iMH5UEeaZ_JNpAEym7g" name="Import"/>
+    <routinesParameter id="_3zlxMHvwEeawu-fsQttyXg" name="ManageMybox"/>
+    <routinesParameter id="_Xcz1QHp-EeaZbfj2W8h01Q" name="Utility"/>
+  </parameters>
+  <node componentName="tPostgresqlInput" componentVersion="0.102" offsetLabelX="0" offsetLabelY="0" posX="224" posY="128">
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="tPostgresqlInput_1"/>
+    <elementParameter field="CHECK" name="ACTIVATE" value="false"/>
+    <elementParameter field="DIRECTORY" name="JAVA_LIBRARY_PATH" value="C:\Portable\TalendIde\TOS_DI_V5.6.0_MODIFICATO\configuration\lib\java"/>
+    <elementParameter field="TECHNICAL" name="PROPERTY:PROPERTY_TYPE" value="REPOSITORY"/>
+    <elementParameter field="TECHNICAL" name="PROPERTY:REPOSITORY_PROPERTY_TYPE" value="_6LB24Hp1EeaZbfj2W8h01Q"/>
+    <elementParameter field="CHECK" name="USE_EXISTING_CONNECTION" value="false"/>
+    <elementParameter field="COMPONENT_LIST" name="CONNECTION" value=""/>
+    <elementParameter field="CLOSED_LIST" name="DB_VERSION" value="PRIOR_TO_V9"/>
+    <elementParameter field="TEXT" name="HOST" value="&quot;192.168.46.126&quot;"/>
+    <elementParameter field="TEXT" name="TYPE" value="POSTGRESQL"/>
+    <elementParameter field="TEXT" name="PORT" value="&quot;5432&quot;"/>
+    <elementParameter field="TEXT" name="DBNAME" value="&quot;USERE45_1_V5_2_x&quot;"/>
+    <elementParameter field="TEXT" name="SCHEMA_DB" value="&quot;public&quot;"/>
+    <elementParameter field="TEXT" name="USER" value="&quot;USERE45_1O&quot;"/>
+    <elementParameter field="PASSWORD" name="PASS" value="HtLakyei9cwF+G9e4O2mxA=="/>
+    <elementParameter field="DBTABLE" name="TABLE" value="&quot;mygov_avviso_digitale&quot;"/>
+    <elementParameter field="QUERYSTORE_TYPE" name="QUERYSTORE" value="&quot;&quot;"/>
+    <elementParameter field="TECHNICAL" name="QUERYSTORE:REPOSITORY_QUERYSTORE_TYPE" value=""/>
+    <elementParameter field="TECHNICAL" name="QUERYSTORE:QUERYSTORE_TYPE" value="BUILT_IN"/>
+    <elementParameter field="GUESS_SCHEMA" name="GUESS_SCHEMA" value="&quot;&quot;"/>
+    <elementParameter field="MEMO_SQL" name="QUERY" value="&quot;SELECT &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;mygov_avviso_digitale_id\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;version\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_ad_id_dominio\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;de_ad_anag_beneficiario\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_ad_id_messaggio_richiesta\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_ad_cod_avviso\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;de_ad_sog_pag_anag_pagatore\&quot;,   &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_ad_sog_pag_id_univ_pag_tipo_id_univ\&quot;,  &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_ad_sog_pag_id_univ_pag_cod_id_univ\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;dt_ad_data_scadenza_pagamento\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;dt_ad_data_scadenza_avviso\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;num_ad_importo_avviso\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;de_ad_email_soggetto\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;de_ad_cellulare_soggetto\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;de_ad_desc_pagamento\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;de_ad_url_avviso\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_id_flusso_av\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;cod_id_flusso_e\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;mygov_anagrafica_stato_id\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;num_ad_tentativi_invio\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;dt_creazione\&quot;, &#xD;&#xA;  \&quot;mygov_avviso_digitale\&quot;.\&quot;dt_ultima_modifica\&quot;&#xD;&#xA;FROM \&quot;mygov_avviso_digitale\&quot;&#xD;&#xA;WHERE \&quot;mygov_avviso_digitale\&quot;.\&quot;mygov_anagrafica_stato_id\&quot; = 55&quot;"/>
+    <elementParameter field="MAPPING_TYPE" name="MAPPING" value="postgres_id"/>
+    <elementParameter field="ENCODING_TYPE" name="ENCODING" value="&quot;ISO-8859-15&quot;"/>
+    <elementParameter field="TECHNICAL" name="ENCODING:ENCODING_TYPE" value="ISO-8859-15"/>
+    <elementParameter field="CHECK" name="USE_CURSOR" value="false"/>
+    <elementParameter field="TEXT" name="CURSOR_SIZE" value="1000"/>
+    <elementParameter field="CHECK" name="TRIM_ALL_COLUMN" value="false"/>
+    <elementParameter field="TABLE" name="TRIM_COLUMN">
+      <elementValue elementRef="SCHEMA_COLUMN" value="mygov_avviso_digitale_id"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="version"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_ad_id_dominio"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="de_ad_anag_beneficiario"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_ad_id_messaggio_richiesta"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_ad_cod_avviso"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="de_ad_sog_pag_anag_pagatore"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_ad_sog_pag_id_univ_pag_tipo_id_univ"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_ad_sog_pag_id_univ_pag_cod_id_univ"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="dt_ad_data_scadenza_pagamento"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="dt_ad_data_scadenza_avviso"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="num_ad_importo_avviso"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="de_ad_email_soggetto"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="de_ad_cellulare_soggetto"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="de_ad_desc_pagamento"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="de_ad_url_avviso"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_id_flusso_av"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="cod_id_flusso_e"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="mygov_anagrafica_stato_id"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="num_ad_tentativi_invio"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="dt_creazione"/>
+      <elementValue elementRef="TRIM" value="false"/>
+      <elementValue elementRef="SCHEMA_COLUMN" value="dt_ultima_modifica"/>
+      <elementValue elementRef="TRIM" value="false"/>
+    </elementParameter>
+    <elementParameter field="TEXT" name="LABEL" value="__TABLE__"/>
+    <elementParameter field="TEXT" name="CONNECTION_FORMAT" value="row"/>
+    <metadata connector="FLOW" label="mygov_avviso_digitale" name="tPostgresqlInput_1">
+      <column comment="" key="true" length="19" name="mygov_avviso_digitale_id" nullable="false" pattern="" precision="0" sourceType="INT8" type="id_Long" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="10" name="version" nullable="false" pattern="" precision="0" sourceType="INT4" type="id_Integer" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="35" name="cod_ad_id_dominio" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="35" name="de_ad_anag_beneficiario" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="20" name="cod_ad_id_messaggio_richiesta" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="18" name="cod_ad_cod_avviso" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="70" name="de_ad_sog_pag_anag_pagatore" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="1" name="cod_ad_sog_pag_id_univ_pag_tipo_id_univ" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="35" name="cod_ad_sog_pag_id_univ_pag_cod_id_univ" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="13" name="dt_ad_data_scadenza_pagamento" nullable="false" pattern="&quot;dd-MM-yyyy&quot;" precision="0" sourceType="DATE" type="id_Date" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="13" name="dt_ad_data_scadenza_avviso" nullable="false" pattern="&quot;dd-MM-yyyy&quot;" precision="0" sourceType="DATE" type="id_Date" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="12" name="num_ad_importo_avviso" nullable="false" pattern="" precision="2" sourceType="NUMERIC" type="id_BigDecimal" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="256" name="de_ad_email_soggetto" nullable="true" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="35" name="de_ad_cellulare_soggetto" nullable="true" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="140" name="de_ad_desc_pagamento" nullable="false" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="140" name="de_ad_url_avviso" nullable="true" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="70" name="cod_id_flusso_av" nullable="true" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="70" name="cod_id_flusso_e" nullable="true" pattern="" precision="0" sourceType="VARCHAR" type="id_String" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="19" name="mygov_anagrafica_stato_id" nullable="false" pattern="" precision="0" sourceType="INT8" type="id_Long" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" defaultValue="1" key="false" length="10" name="num_ad_tentativi_invio" nullable="true" pattern="" precision="0" sourceType="INT4" type="id_Integer" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="29" name="dt_creazione" nullable="false" pattern="&quot;dd-MM-yyyy&quot;" precision="6" sourceType="TIMESTAMP" type="id_Date" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+      <column comment="" key="false" length="29" name="dt_ultima_modifica" nullable="false" pattern="&quot;dd-MM-yyyy&quot;" precision="6" sourceType="TIMESTAMP" type="id_Date" usefulColumn="true">
+        <additionalField key="Comment" value=""/>
+      </column>
+    </metadata>
+  </node>
+  <node componentName="tMap" componentVersion="2.1" offsetLabelX="0" offsetLabelY="0" posX="448" posY="128">
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="tMap_1"/>
+    <elementParameter field="CHECK" name="ACTIVATE" value="false"/>
+    <elementParameter field="DIRECTORY" name="JAVA_LIBRARY_PATH" value="C:\Portable\TalendIde\TOS_DI_V5.6.0_MODIFICATO\configuration\lib\java"/>
+    <elementParameter field="EXTERNAL" name="MAP" value=""/>
+    <elementParameter field="CLOSED_LIST" name="LINK_STYLE" value="AUTO"/>
+    <elementParameter field="DIRECTORY" name="TEMPORARY_DATA_DIRECTORY" value=""/>
+    <elementParameter field="IMAGE" name="PREVIEW" value="_JG3qwLYkEea1E9waE5NX-Q-tMap_1-PREVIEW.bmp"/>
+    <elementParameter field="CHECK" name="DIE_ON_ERROR" value="true"/>
+    <elementParameter field="CHECK" name="LKUP_PARALLELIZE" value="false"/>
+    <elementParameter field="TEXT" name="ROWS_BUFFER_SIZE" value="2000000"/>
+    <elementParameter field="CHECK" name="CHANGE_HASH_AND_EQUALS_FOR_BIGDECIMAL" value="false"/>
+    <elementParameter field="TEXT" name="CONNECTION_FORMAT" value="row"/>
+    <metadata connector="FLOW" label="metadata" name="out">
+      <column comment="" key="false" length="0" name="versioneOggetto" nullable="true" originalDbColumnName="sac:versioneOggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="identificativoDominio" nullable="true" originalDbColumnName="sac:identificativoDominio" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="anagraficaBeneficiario" nullable="true" originalDbColumnName="sac:anagraficaBeneficiario" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="identificativoMessaggioRichiesta" nullable="true" originalDbColumnName="sac:identificativoMessaggioRichiesta" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="codiceAvviso" nullable="true" originalDbColumnName="sac:codiceAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="anagraficaPagatore" nullable="true" originalDbColumnName="sac:anagraficaPagatore" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="tipoIdentificativoUnivoco" nullable="true" originalDbColumnName="sac:tipoIdentificativoUnivoco" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="codiceIdentificativoUnivoco" nullable="true" originalDbColumnName="sac:codiceIdentificativoUnivoco" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="dataScadenzaPagamento" nullable="true" originalDbColumnName="sac:dataScadenzaPagamento" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="dataScadenzaAvviso" nullable="true" originalDbColumnName="sac:dataScadenzaAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="importoAvviso" nullable="true" originalDbColumnName="sac:importoAvviso" pattern="" precision="0" type="id_BigDecimal" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="eMailSoggetto" nullable="true" originalDbColumnName="sac:eMailSoggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="cellulareSoggetto" nullable="true" originalDbColumnName="sac:cellulareSoggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="descrizionePagamento" nullable="true" originalDbColumnName="sac:descrizionePagamento" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="urlAvviso" nullable="true" originalDbColumnName="sac:urlAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+    </metadata>
+    <nodeData xsi:type="MapperData">
+      <uiProperties shellMaximized="true"/>
+      <varTables sizeState="INTERMEDIATE" name="Var" minimized="true"/>
+      <outputTables sizeState="INTERMEDIATE" name="out">
+        <mapperTableEntries name="versioneOggetto" expression="&quot;1.0&quot;" type="id_String" nullable="true"/>
+        <mapperTableEntries name="identificativoDominio" expression="row1.cod_ad_id_dominio " type="id_String" nullable="true"/>
+        <mapperTableEntries name="anagraficaBeneficiario" expression="row1.de_ad_anag_beneficiario " type="id_String" nullable="true"/>
+        <mapperTableEntries name="identificativoMessaggioRichiesta" expression="row1.cod_ad_id_messaggio_richiesta " type="id_String" nullable="true"/>
+        <mapperTableEntries name="codiceAvviso" expression="row1.cod_ad_cod_avviso " type="id_String" nullable="true"/>
+        <mapperTableEntries name="anagraficaPagatore" expression="row1.de_ad_sog_pag_anag_pagatore " type="id_String" nullable="true"/>
+        <mapperTableEntries name="tipoIdentificativoUnivoco" expression="row1.cod_ad_sog_pag_id_univ_pag_tipo_id_univ " type="id_String" nullable="true"/>
+        <mapperTableEntries name="codiceIdentificativoUnivoco" expression="row1.cod_ad_sog_pag_id_univ_pag_cod_id_univ " type="id_String" nullable="true"/>
+        <mapperTableEntries name="dataScadenzaPagamento" expression="TalendDate.formatDate(&quot;yyyy-MM-dd&quot;, row1.dt_ad_data_scadenza_pagamento) " type="id_String" nullable="true"/>
+        <mapperTableEntries name="dataScadenzaAvviso" expression="TalendDate.formatDate(&quot;yyyy-MM-dd&quot;, row1.dt_ad_data_scadenza_avviso) " type="id_String" nullable="true"/>
+        <mapperTableEntries name="importoAvviso" expression="row1.num_ad_importo_avviso " type="id_BigDecimal" nullable="true"/>
+        <mapperTableEntries name="eMailSoggetto" expression="row1.de_ad_email_soggetto " type="id_String" nullable="true"/>
+        <mapperTableEntries name="cellulareSoggetto" expression="row1.de_ad_cellulare_soggetto " type="id_String" nullable="true"/>
+        <mapperTableEntries name="descrizionePagamento" expression="row1.de_ad_desc_pagamento " type="id_String" nullable="true"/>
+        <mapperTableEntries name="urlAvviso" expression="row1.de_ad_url_avviso " type="id_String" nullable="true"/>
+      </outputTables>
+    </nodeData>
+  </node>
+  <node componentName="tJavaRow" componentVersion="0.101" offsetLabelX="0" offsetLabelY="0" posX="608" posY="128">
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="tJavaRow_1"/>
+    <elementParameter field="CHECK" name="ACTIVATE" value="false"/>
+    <elementParameter field="DIRECTORY" name="JAVA_LIBRARY_PATH" value="C:\Portable\TalendIde\TOS_DI_V5.6.0_MODIFICATO\configuration\lib\java"/>
+    <elementParameter field="MEMO_JAVA" name="CODE" value="//Code generated according to input schema and output schema&#xD;&#xA;output_row.versioneOggetto = input_row.versioneOggetto;&#xD;&#xA;output_row.identificativoDominio = input_row.identificativoDominio;&#xD;&#xA;output_row.anagraficaBeneficiario = input_row.anagraficaBeneficiario;&#xD;&#xA;output_row.identificativoMessaggioRichiesta = input_row.identificativoMessaggioRichiesta;&#xD;&#xA;output_row.codiceAvviso = input_row.codiceAvviso;&#xD;&#xA;output_row.anagraficaPagatore = input_row.anagraficaPagatore;&#xD;&#xA;output_row.tipoIdentificativoUnivoco = input_row.tipoIdentificativoUnivoco;&#xD;&#xA;output_row.codiceIdentificativoUnivoco = input_row.codiceIdentificativoUnivoco;&#xD;&#xA;output_row.dataScadenzaPagamento = input_row.dataScadenzaPagamento;&#xD;&#xA;output_row.dataScadenzaAvviso = input_row.dataScadenzaAvviso;&#xD;&#xA;&#xD;&#xA;output_row.eMailSoggetto = input_row.eMailSoggetto;&#xD;&#xA;output_row.cellulareSoggetto = input_row.cellulareSoggetto;&#xD;&#xA;output_row.descrizionePagamento = input_row.descrizionePagamento;&#xD;&#xA;output_row.urlAvviso = input_row.urlAvviso;&#xA;&#xA;&#xA;BigDecimal bd = input_row.importoAvviso;&#xA;bd = bd.setScale(2, BigDecimal.ROUND_DOWN);&#xA;DecimalFormat df = new DecimalFormat();&#xA;df.setMaximumFractionDigits(2);&#xA;df.setMinimumFractionDigits(2);&#xA;df.setGroupingUsed(false);&#xA;DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();&#xA;dfs.setDecimalSeparator('.');&#xA;df.setDecimalFormatSymbols(dfs);&#xA;output_row.importoAvviso = df.format(bd);&#xD;&#xA;"/>
+    <elementParameter field="MEMO_IMPORT" name="IMPORT" value="import java.text.*;"/>
+    <elementParameter field="TEXT" name="CONNECTION_FORMAT" value="row"/>
+    <metadata connector="FLOW" label="metadata" name="tJavaRow_1">
+      <column comment="" key="false" length="0" name="versioneOggetto" nullable="true" originalDbColumnName="sac:versioneOggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="identificativoDominio" nullable="true" originalDbColumnName="sac:identificativoDominio" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="anagraficaBeneficiario" nullable="true" originalDbColumnName="sac:anagraficaBeneficiario" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="identificativoMessaggioRichiesta" nullable="true" originalDbColumnName="sac:identificativoMessaggioRichiesta" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="codiceAvviso" nullable="true" originalDbColumnName="sac:codiceAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="anagraficaPagatore" nullable="true" originalDbColumnName="sac:anagraficaPagatore" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="tipoIdentificativoUnivoco" nullable="true" originalDbColumnName="sac:tipoIdentificativoUnivoco" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="codiceIdentificativoUnivoco" nullable="true" originalDbColumnName="sac:codiceIdentificativoUnivoco" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="dataScadenzaPagamento" nullable="true" originalDbColumnName="sac:dataScadenzaPagamento" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="dataScadenzaAvviso" nullable="true" originalDbColumnName="sac:dataScadenzaAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="importoAvviso" nullable="true" originalDbColumnName="sac:importoAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="eMailSoggetto" nullable="true" originalDbColumnName="sac:eMailSoggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="cellulareSoggetto" nullable="true" originalDbColumnName="sac:cellulareSoggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="descrizionePagamento" nullable="true" originalDbColumnName="sac:descrizionePagamento" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="urlAvviso" nullable="true" originalDbColumnName="sac:urlAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+    </metadata>
+  </node>
+  <node componentName="tAdvancedFileOutputXML" componentVersion="0.102" offsetLabelX="0" offsetLabelY="0" posX="768" posY="128">
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="tAdvancedFileOutputXML_1"/>
+    <elementParameter field="CHECK" name="ACTIVATE" value="false"/>
+    <elementParameter field="DIRECTORY" name="JAVA_LIBRARY_PATH" value="C:\Portable\TalendIde\TOS_DI_V5.6.0_MODIFICATO\configuration\lib\java"/>
+    <elementParameter field="CHECK" name="USESTREAM" value="false"/>
+    <elementParameter field="TEXT" name="STREAMNAME" value="outputStream"/>
+    <elementParameter field="FILE" name="FILENAME" value="&quot;_USER_REPO_&quot;"/>
+    <elementParameter field="TABLE" name="ROOT">
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali"/>
+      <elementValue elementRef="COLUMN" value=""/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="main"/>
+      <elementValue elementRef="ORDER" value="1"/>
+      <elementValue elementRef="PATH" value="sac"/>
+      <elementValue elementRef="COLUMN" value=""/>
+      <elementValue elementRef="VALUE" value="http://ws.pagamenti.telematici.gov/"/>
+      <elementValue elementRef="ATTRIBUTE" value="ns"/>
+      <elementValue elementRef="ORDER" value="1"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:versioneOggetto"/>
+      <elementValue elementRef="COLUMN" value="versioneOggetto"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="2"/>
+    </elementParameter>
+    <elementParameter field="TABLE" name="GROUP"/>
+    <elementParameter field="TABLE" name="LOOP">
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale"/>
+      <elementValue elementRef="COLUMN" value=""/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="main"/>
+      <elementValue elementRef="ORDER" value="3"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:identificativoDominio"/>
+      <elementValue elementRef="COLUMN" value="identificativoDominio"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="4"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:anagraficaBeneficiario"/>
+      <elementValue elementRef="COLUMN" value="anagraficaBeneficiario"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="5"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:identificativoMessaggioRichiesta"/>
+      <elementValue elementRef="COLUMN" value="identificativoMessaggioRichiesta"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="6"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:codiceAvviso"/>
+      <elementValue elementRef="COLUMN" value="codiceAvviso"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="7"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:soggettoPagatore"/>
+      <elementValue elementRef="COLUMN" value=""/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="8"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:soggettoPagatore/sac:anagraficaPagatore"/>
+      <elementValue elementRef="COLUMN" value="anagraficaPagatore"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="9"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:soggettoPagatore/sac:identificativoUnivocoPagatore"/>
+      <elementValue elementRef="COLUMN" value=""/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="10"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:soggettoPagatore/sac:identificativoUnivocoPagatore/sac:tipoIdentificativoUnivoco"/>
+      <elementValue elementRef="COLUMN" value="tipoIdentificativoUnivoco"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="11"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:soggettoPagatore/sac:identificativoUnivocoPagatore/sac:codiceIdentificativoUnivoco"/>
+      <elementValue elementRef="COLUMN" value="codiceIdentificativoUnivoco"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="12"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:dataScadenzaPagamento"/>
+      <elementValue elementRef="COLUMN" value="dataScadenzaPagamento"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="13"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:dataScadenzaAvviso"/>
+      <elementValue elementRef="COLUMN" value="dataScadenzaAvviso"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="14"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:importoAvviso"/>
+      <elementValue elementRef="COLUMN" value="importoAvviso"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="15"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:eMailSoggetto"/>
+      <elementValue elementRef="COLUMN" value="eMailSoggetto"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="16"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:cellulareSoggetto"/>
+      <elementValue elementRef="COLUMN" value="cellulareSoggetto"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="17"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:descrizionePagamento"/>
+      <elementValue elementRef="COLUMN" value="descrizionePagamento"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="18"/>
+      <elementValue elementRef="PATH" value="/sac:listaAvvisiDigitali/sac:avvisoDigitale/sac:urlAvviso"/>
+      <elementValue elementRef="COLUMN" value="urlAvviso"/>
+      <elementValue elementRef="VALUE" value=""/>
+      <elementValue elementRef="ATTRIBUTE" value="branch"/>
+      <elementValue elementRef="ORDER" value="19"/>
+    </elementParameter>
+    <elementParameter field="EXTERNAL" name="MAP" value=""/>
+    <elementParameter field="CHECK" name="MERGE" value="false"/>
+    <elementParameter field="CHECK" name="PRETTY_COMPACT" value="false"/>
+    <elementParameter field="CHECK" name="FILE_VALID" value="false"/>
+    <elementParameter field="RADIO" name="DTD_VALID" value="true"/>
+    <elementParameter field="TEXT" name="DTD_NAME" value="&quot;Root&quot;"/>
+    <elementParameter field="TEXT" name="DTD_SYSTEMID" value="&quot;Talend.dtd&quot;"/>
+    <elementParameter field="RADIO" name="XSL_VALID" value="false"/>
+    <elementParameter field="TEXT" name="XSL_TYPE" value="&quot;text/xsl&quot;"/>
+    <elementParameter field="TEXT" name="XSL_HREF" value="&quot;Talend.xsl&quot;"/>
+    <elementParameter field="CHECK" name="SPLIT" value="false"/>
+    <elementParameter field="TEXT" name="SPLIT_EVERY" value="1000"/>
+    <elementParameter field="CHECK" name="TRIM" value="false"/>
+    <elementParameter field="CHECK" name="CREATE" value="true"/>
+    <elementParameter field="CHECK" name="CREATE_EMPTY_ELEMENT" value="false"/>
+    <elementParameter field="CHECK" name="ADD_EMPTY_ATTRIBUTE" value="false"/>
+    <elementParameter field="CHECK" name="ADD_UNMAPPED_ATTRIBUTE" value="false"/>
+    <elementParameter field="CHECK" name="ADD_DOCUMENT_AS_NODE" value="false"/>
+    <elementParameter field="CHECK" name="OUTPUT_AS_XSD" value="false"/>
+    <elementParameter field="CHECK" name="ADVANCED_SEPARATOR" value="true"/>
+    <elementParameter field="TEXT" name="THOUSANDS_SEPARATOR" value="&quot;&quot;"/>
+    <elementParameter field="TEXT" name="DECIMAL_SEPARATOR" value="&quot;.&quot;"/>
+    <elementParameter field="CLOSED_LIST" name="GENERATION_MODE" value="Null"/>
+    <elementParameter field="ENCODING_TYPE" name="ENCODING" value="&quot;UTF-8&quot;"/>
+    <elementParameter field="TECHNICAL" name="ENCODING:ENCODING_TYPE" value="UTF-8"/>
+    <elementParameter field="CHECK" name="DELETE_EMPTYFILE" value="false"/>
+    <elementParameter field="TEXT" name="SCHEMA_OPT_NUM" value="100"/>
+    <elementParameter field="TEXT" name="XMLNODE_OPT_NUM" value="100"/>
+    <elementParameter field="TEXT" name="LABEL" value="avviso_digitale_out"/>
+    <elementParameter field="TEXT" name="CONNECTION_FORMAT" value="row"/>
+    <metadata connector="FLOW" label="metadata" name="tAdvancedFileOutputXML_1">
+      <column comment="" key="false" length="0" name="versioneOggetto" nullable="true" originalDbColumnName="sac:versioneOggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="identificativoDominio" nullable="true" originalDbColumnName="sac:identificativoDominio" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="anagraficaBeneficiario" nullable="true" originalDbColumnName="sac:anagraficaBeneficiario" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="identificativoMessaggioRichiesta" nullable="true" originalDbColumnName="sac:identificativoMessaggioRichiesta" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="codiceAvviso" nullable="true" originalDbColumnName="sac:codiceAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="anagraficaPagatore" nullable="true" originalDbColumnName="sac:anagraficaPagatore" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="tipoIdentificativoUnivoco" nullable="true" originalDbColumnName="sac:tipoIdentificativoUnivoco" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="codiceIdentificativoUnivoco" nullable="true" originalDbColumnName="sac:codiceIdentificativoUnivoco" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="dataScadenzaPagamento" nullable="true" originalDbColumnName="sac:dataScadenzaPagamento" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="dataScadenzaAvviso" nullable="true" originalDbColumnName="sac:dataScadenzaAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="importoAvviso" nullable="true" originalDbColumnName="sac:importoAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="eMailSoggetto" nullable="true" originalDbColumnName="sac:eMailSoggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="cellulareSoggetto" nullable="true" originalDbColumnName="sac:cellulareSoggetto" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="descrizionePagamento" nullable="true" originalDbColumnName="sac:descrizionePagamento" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+      <column comment="" key="false" length="0" name="urlAvviso" nullable="true" originalDbColumnName="sac:urlAvviso" pattern="" precision="0" type="id_String" usefulColumn="true"/>
+    </metadata>
+  </node>
+  <connection connectorName="FLOW" label="out" lineStyle="0" metaname="out" offsetLabelX="0" offsetLabelY="0" source="tMap_1" target="tJavaRow_1">
+    <elementParameter field="TABLE" name="TRACES_CONNECTION_FILTER">
+      <elementValue elementRef="TRACE_COLUMN" value="versioneOggetto"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="identificativoDominio"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="anagraficaBeneficiario"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="identificativoMessaggioRichiesta"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="codiceAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="anagraficaPagatore"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="tipoIdentificativoUnivoco"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="codiceIdentificativoUnivoco"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="dataScadenzaPagamento"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="dataScadenzaAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="importoAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="eMailSoggetto"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="cellulareSoggetto"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="descrizionePagamento"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="urlAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+    </elementParameter>
+    <elementParameter field="CHECK" name="ACTIVATE" value="false"/>
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="out"/>
+  </connection>
+  <connection connectorName="FLOW" label="row2" lineStyle="0" metaname="tJavaRow_1" offsetLabelX="0" offsetLabelY="0" source="tJavaRow_1" target="tAdvancedFileOutputXML_1">
+    <elementParameter field="TABLE" name="TRACES_CONNECTION_FILTER">
+      <elementValue elementRef="TRACE_COLUMN" value="versioneOggetto"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="identificativoDominio"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="anagraficaBeneficiario"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="identificativoMessaggioRichiesta"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="codiceAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="anagraficaPagatore"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="tipoIdentificativoUnivoco"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="codiceIdentificativoUnivoco"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="dataScadenzaPagamento"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="dataScadenzaAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="importoAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="eMailSoggetto"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="cellulareSoggetto"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="descrizionePagamento"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+      <elementValue elementRef="TRACE_COLUMN" value="urlAvviso"/>
+      <elementValue elementRef="TRACE_COLUMN_CHECKED" value="true"/>
+      <elementValue elementRef="TRACE_COLUMN_CONDITION" value=""/>
+    </elementParameter>
+    <elementParameter field="CHECK" name="ACTIVATE" value="false"/>
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="row2"/>
+  </connection>
+  <subjob>
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="tPostgresqlInput_1"/>
+    <elementParameter field="COLOR" name="SUBJOB_TITLE_COLOR" value="160;190;240"/>
+    <elementParameter field="COLOR" name="SUBJOB_COLOR" value="220;220;250"/>
+  </subjob>
+  <subjob>
+    <elementParameter field="TEXT" name="UNIQUE_NAME" value="tMap_1"/>
+    <elementParameter field="COLOR" name="SUBJOB_TITLE_COLOR" value="160;190;240"/>
+    <elementParameter field="COLOR" name="SUBJOB_COLOR" value="220;220;250"/>
+  </subjob>
+</talendfile:ProcessType>

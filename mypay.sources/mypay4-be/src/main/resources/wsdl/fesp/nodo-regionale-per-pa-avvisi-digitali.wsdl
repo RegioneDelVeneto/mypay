@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<!-- Questo WSDL rappresenta l'interfaccia esposta dal p2g per l'invio di un avviso di pagamento. -->
+<wsdl:definitions xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+                  xmlns:sac="http://ws.pagamenti.telematici.gov/"
+                  xmlns:fesp="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:tns="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PagamentiTelematiciAvvisiDigitali/"
+                  targetNamespace="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PagamentiTelematiciAvvisiDigitali/">
+
+    <wsdl:types>
+        <xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/">
+
+            <xsd:import namespace="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/" schemaLocation="avvisi-digitali-1.0.xsd"/>
+
+            <xsd:complexType name="ctNodoSILInviaAvvisoDigitale">
+                <xsd:sequence>
+                    <xsd:element name="avvisoDigitaleWS" type="fesp:ctAvvisoDigitale"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="ctNodoSILInviaAvvisoDigitaleRisposta">
+                <xsd:complexContent>
+                    <xsd:extension base="sac:ctRisposta">
+                        <xsd:sequence>
+                            <xsd:element name="esitoOperazione" type="sac:stEsitoOperazione"/>
+                            <xsd:element name="esitoAvvisoDigitaleWS" type="fesp:ctEsitoAvvisoDigitale" minOccurs="0" maxOccurs="1"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+
+            <!-- Wrapper Elements -->
+	        <xsd:element name="intestazionePPT">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identificativoIntermediarioPA" type="sac:stText35"/>
+                        <xsd:element name="identificativoStazioneIntermediarioPA" type="sac:stText35"/>
+                        <xsd:element name="identificativoDominio" type="sac:stText35"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="nodoSILInviaAvvisoDigitale" type="fesp:ctNodoSILInviaAvvisoDigitale"/>
+            <xsd:element name="nodoSILInviaAvvisoDigitaleRisposta" type="fesp:ctNodoSILInviaAvvisoDigitaleRisposta"/>
+
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="nodoSILInviaAvvisoDigitale">
+        <wsdl:part name="header" element="sac:intestazionePPT"/>
+        <wsdl:part name="bodyrichiesta" element="sac:nodoSILInviaAvvisoDigitale"/>
+    </wsdl:message>
+    <wsdl:message name="nodoSILInviaAvvisoDigitaleRisposta">
+        <wsdl:part name="bodyrisposta" element="sac:nodoSILInviaAvvisoDigitaleRisposta"/>
+    </wsdl:message>
+
+    <wsdl:portType name="PagamentiTelematiciAvvisiDigitali">
+        <wsdl:operation name="nodoSILInviaAvvisoDigitale">
+            <wsdl:input message="tns:nodoSILInviaAvvisoDigitale"
+                        wsam:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILInviaAvvisoDigitale"/>
+            <wsdl:output message="tns:nodoSILInviaAvvisoDigitaleRisposta"
+                         wsam:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILInviaAvvisoDigitaleRisposta"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="PagamentiTelematiciAvvisiDigitaliBinding" type="tns:PagamentiTelematiciAvvisiDigitali">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="nodoSILInviaAvvisoDigitale">
+            <soap:operation soapAction="nodoSILInviaAvvisoDigitale"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="PagamentiTelematiciAvvisiDigitaliService">
+        <wsdl:port name="PPTPort" binding="tns:PagamentiTelematiciAvvisiDigitaliBinding">
+            <soap:address location="/ws/fesp/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

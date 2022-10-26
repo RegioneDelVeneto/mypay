@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:TalendMetadata="http://www.talend.org/metadata/connection/2010" xmlns:orgomg.cwm.resource.record="http:///orgomg/cwm/resource/record.ecore">
+  <TalendMetadata:DelimitedFileConnection xmi:id="_9yapkAYsEeKwRO7hF2zXnw" name="FlussoInput" dataPackage="_9yapkQYsEeKwRO7hF2zXnw" Server="Localhost 127.0.0.1" FilePath="C:/TalendDemoFiles/StorePortalePagamenti/repository/C_D530-campiCorretti-1_0.csv.csv" Format="WINDOWS" Encoding="US-ASCII" FieldSeparatorValue="&quot;;&quot;" RowSeparatorValue="&quot;\n&quot;" UseHeader="true" HeaderValue="1" FirstLineCaption="true" EscapeType="CSV" EscapeChar="&quot;\\&quot;" TextEnclosure="&quot;'&quot;" CsvOption="true"/>
+  <orgomg.cwm.resource.record:RecordFile xmi:id="_9yapkQYsEeKwRO7hF2zXnw" name="default" dataManager="_9yapkAYsEeKwRO7hF2zXnw">
+    <ownedElement xsi:type="TalendMetadata:MetadataTable" xmi:id="_9yapkgYsEeKwRO7hF2zXnw" id="_jpUZwAYsEeKwRO7hF2zXnw" label="metadata">
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapkwYsEeKwRO7hF2zXnw" label="IUD" length="12" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yaplAYsEeKwRO7hF2zXnw" label="tipoIdentificativoUnivoco" length="3" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yaplQYsEeKwRO7hF2zXnw" label="codiceIdentificativoUnivoco" length="8" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yaplgYsEeKwRO7hF2zXnw" label="anagraficaPagatore" length="12" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yaplwYsEeKwRO7hF2zXnw" label="indirizzoPagatore" length="27" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapmAYsEeKwRO7hF2zXnw" label="civicoPagatore" length="7" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapmQYsEeKwRO7hF2zXnw" label="capPagatore" length="7" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapmgYsEeKwRO7hF2zXnw" label="localitaPagatore" length="16" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapmwYsEeKwRO7hF2zXnw" label="provinciaPagatore" length="16" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapnAYsEeKwRO7hF2zXnw" label="nazionePagatore" length="4" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapnQYsEeKwRO7hF2zXnw" label="emailPagatore" length="17" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapngYsEeKwRO7hF2zXnw" label="dataScadenzaPagamento" length="12" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapnwYsEeKwRO7hF2zXnw" label="importoDovuto" length="10" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapoAYsEeKwRO7hF2zXnw" label="tipoVersamento" length="17" talendType="id_String" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapoQYsEeKwRO7hF2zXnw" label="causaleVersamento" length="27" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+      <feature xsi:type="TalendMetadata:MetadataColumn" xmi:id="_9yapogYsEeKwRO7hF2zXnw" label="datiSpecificiRiscossione" length="22" talendType="id_String" nullable="false" pattern="&quot;dd-MM-yyyy&quot;"/>
+    </ownedElement>
+  </orgomg.cwm.resource.record:RecordFile>
+</xmi:XMI>

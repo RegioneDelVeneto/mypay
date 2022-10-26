@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Questo WSDL rappresenta l'interfaccia esposta dal p2g per l'invio di un avviso di pagamento. -->
+<wsdl:definitions xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+                  xmlns:sac="http://_URL_ENTE_/pagamenti/nodoregionalefesp/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:tns="http://_URL_ENTE_/pagamenti/nodoregionalefesp/PagamentiTelematiciAvvisiDigitali"
+                  targetNamespace="http://_URL_ENTE_/pagamenti/nodoregionalefesp/PagamentiTelematiciAvvisiDigitali">
+
+    <wsdl:types>
+        <xsd:schema version="1.0" targetNamespace="http://_URL_ENTE_/pagamenti/nodoregionalefesp/">
+
+            <xsd:include schemaLocation="avvisi-digitali-1.0.xsd"/>
+
+            <xsd:complexType name="ctNodoSILInviaAvvisoDigitale">
+                <xsd:sequence>
+                    <xsd:element name="avvisoDigitaleWS" type="sac:ctAvvisoDigitale"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <xsd:complexType name="ctNodoSILInviaAvvisoDigitaleRisposta">
+                <xsd:complexContent>
+                    <xsd:extension base="sac:ctRisposta">
+                        <xsd:sequence>
+                            <xsd:element name="esitoOperazione" type="sac:stEsitoOperazione"/>
+                            <xsd:element name="esitoAvvisoDigitaleWS" type="sac:ctEsitoAvvisoDigitale" minOccurs="0" maxOccurs="1"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+
+            <!-- Wrapper Elements -->
+            <xsd:element name="intestazionePPT" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identificativoIntermediarioPA" type="sac:stText35"/>
+                        <xsd:element name="identificativoStazioneIntermediarioPA" type="sac:stText35"/>
+                        <xsd:element name="identificativoDominio" type="sac:stText35"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="nodoSILInviaAvvisoDigitale" type="sac:ctNodoSILInviaAvvisoDigitale"/>
+            <xsd:element name="nodoSILInviaAvvisoDigitaleRisposta" type="sac:ctNodoSILInviaAvvisoDigitaleRisposta"/>
+
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="nodoSILInviaAvvisoDigitale">
+        <wsdl:part name="header" element="sac:intestazionePPT"/>
+        <wsdl:part name="bodyrichiesta" element="sac:nodoSILInviaAvvisoDigitale"/>
+    </wsdl:message>
+    <wsdl:message name="nodoSILInviaAvvisoDigitaleRisposta">
+        <wsdl:part name="bodyrisposta" element="sac:nodoSILInviaAvvisoDigitaleRisposta"/>
+    </wsdl:message>
+
+    <wsdl:portType name="PagamentiTelematiciAvvisiDigitali">
+        <wsdl:operation name="nodoSILInviaAvvisoDigitale">
+            <wsdl:input message="tns:nodoSILInviaAvvisoDigitale"
+                        wsam:Action="http://_URL_ENTE_/pagamenti/nodoregionalefesp/PPT/nodoSILInviaAvvisoDigitale"/>
+            <wsdl:output message="tns:nodoSILInviaAvvisoDigitaleRisposta"
+                         wsam:Action="http://_URL_ENTE_/pagamenti/nodoregionalefesp/PPT/nodoSILInviaAvvisoDigitaleRisposta"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="PagamentiTelematiciAvvisiDigitaliBinding" type="tns:PagamentiTelematiciAvvisiDigitali">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="nodoSILInviaAvvisoDigitale">
+            <soap:operation soapAction="nodoSILInviaAvvisoDigitale"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="PagamentiTelematiciAvvisiDigitaliService">
+        <wsdl:port name="PPTPort" binding="tns:PagamentiTelematiciAvvisiDigitaliBinding">
+            <soap:address location="http://_URL_ENTE_/pagamenti/nodoregionalefesp/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

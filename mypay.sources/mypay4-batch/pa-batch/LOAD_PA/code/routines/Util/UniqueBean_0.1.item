@@ -1,0 +1,75 @@
+package routines;
+
+
+public class UniqueBean {
+
+	private String constraint_name;
+	private String table_name;
+	private String def_constraint;
+	
+	public UniqueBean() {
+		super();
+	}
+	
+	public UniqueBean(String constraint_name, String table_name, String def_constraint) {
+		this.constraint_name = constraint_name;
+		this.table_name = table_name;
+		this.def_constraint = def_constraint;
+	}
+	
+	public String addConstraint(){
+		return "ALTER TABLE " + 
+			this.table_name + 
+			" ADD CONSTRAINT " + 
+			this.constraint_name + 
+			" " + 
+			this.def_constraint + 
+			";";
+	}
+	
+	public String dropConstraint(){
+		return "ALTER TABLE " + 
+			this.table_name + 
+			" DROP CONSTRAINT " + 
+			this.constraint_name + 
+			" CASCADE;";
+	}
+	
+	/**
+	 * @return the constraint_name
+	 */
+	public String getConstraint_name() {
+		return constraint_name;
+	}
+	/**
+	 * @param constraint_name the constraint_name to set
+	 */
+	public void setConstraint_name(String constraint_name) {
+		this.constraint_name = constraint_name;
+	}
+	/**
+	 * @return the table_name
+	 */
+	public String getTable_name() {
+		return table_name;
+	}
+	/**
+	 * @param table_name the table_name to set
+	 */
+	public void setTable_name(String table_name) {
+		this.table_name = table_name;
+	}
+	/**
+	 * @return the def_constraint
+	 */
+	public String getDef_constraint() {
+		return def_constraint;
+	}
+	/**
+	 * @param def_constraint the def_constraint to set
+	 */
+	public void setDef_constraint(String def_constraint) {
+		this.def_constraint = def_constraint;
+	}
+	
+}

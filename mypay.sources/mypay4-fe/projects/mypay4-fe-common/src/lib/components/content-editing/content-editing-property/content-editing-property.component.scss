@@ -1,0 +1,167 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+input.ng-valid:not(form)  {
+  border-left: 5px solid #42A948;
+}
+input.ng-invalid:not(form)  {
+  border-left: 5px solid #a94442;
+}
+*/
+.my-dynamo-alert{
+  margin-right:7px;
+  margin-left:7px;
+  margin-top:7px;
+}
+
+
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    /*border-bottom: 1px dotted black;*/ /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    max-width: 170px;
+    min-width: 120px;
+    width: auto;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.tooltip .tooltiptext.left {
+    top: -5px;
+    right: 135%;
+}
+
+.tooltip .tooltiptext.right {
+    top: -5px;
+    left: 135%;
+}
+
+.tooltip .tooltiptext.top {
+    /*width: 120px;*/
+    bottom: 100%;
+    left: 50%;
+    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+}
+.tooltip .tooltiptext.bottom {
+    /*width: 120px;*/
+    top: 100%;
+    left: 50%;
+    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+}
+
+.tooltip .top-arrow.tooltiptext::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;  /* At the top of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+.tooltip .left-arrow.tooltiptext::after {
+    content: " ";
+    position: absolute;
+    top: 12px;
+    right: 100%; /* To the left of the tooltip */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent black transparent transparent;
+}
+
+.tooltip .right-arrow.tooltiptext::after {
+    content: " ";
+    position: absolute;
+    top: 12px;
+    left: 100%; /* To the right of the tooltip */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent black;
+}
+
+.tooltip .tooltiptext.fade {
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.tooltip:hover .tooltiptext.fade {
+    opacity: 1;
+}
+
+div.box {
+    display: inline-block;
+    width: 96%;
+    border: 1px solid #ddd;
+    border-radius: .5em;
+    margin: .5em;
+}
+
+div.box.half {
+    width: 40%;
+    margin: 2% 3%;
+    background-color: #f7f7f7;
+    border-radius: 0.2em;
+    border: none;
+    padding: 1%;
+    box-shadow: 1px 1px #ddd;
+}
+
+::ng-deep .mat-form-field-outline {
+    background-color: #fff; // overwrite the background-color in ".box .half"
+}
+
+mat-tab-group {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.label-no-display {
+    display: none;
+}
+
+.multifield-warn {
+    color: #db0000;
+}
+
+::ng-deep .mat-datepicker-toggle .mat-icon-button {
+  display: inherit !important;
+}
+
+::ng-deep .mat-tab-label {
+  opacity: 0.8 !important;
+}

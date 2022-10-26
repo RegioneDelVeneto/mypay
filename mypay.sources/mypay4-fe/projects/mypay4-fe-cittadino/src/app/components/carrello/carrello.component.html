@@ -1,0 +1,500 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpPageIntestatario>
+  <div>
+    <p>ATTENZIONE: Se hai ricevuto un avviso e sono presenti dati anagrafici non corretti, ma non modificabili, contatta
+      l'ente creditore per aggiornare tali informazioni.</p>
+  </div>
+</ng-template>
+
+
+<div class="container">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+    </div>
+
+    <ng-template #footer1>
+      <div
+        fxFlex
+        fxLayout="column"
+        fxLayout.gt-sm="row wrap"
+        fxLayoutAlign="start"
+        fxLayoutGap="10px">
+      <mat-card fxFlex="1 1 0" fxLayout="column" class="mat-elevation-z0">
+        <div fxFlex>Scegli come pagare gli importi presenti nel carrello, puoi procedere al pagamento online oppure stampare
+          l'avviso cartaceo e recarti in uno sportello abilitato alla riscossione. La stampa dell'avviso non preclude la
+          possibilità di effettuare successivamente il pagamento online.</div>
+      </mat-card>
+      <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+      <mat-card fxFlex="1 1 0" fxLayout="column" class="mat-elevation-z0">
+        <mat-card-header fxFlex="0 1 auto">
+          <mat-card-title>Avviso cartaceo</mat-card-title>
+        </mat-card-header>
+        <div fxFlex>La stampa dell’avviso di pagamento può essere effettuata dal pulsante azioni, cliccando sui tre puntini a fianco del pagamento.<br>
+          Per scaricare l’avviso è necessario che l’indirizzo mail sia verificato.<br>
+          Se sei autenticato (cioè hai fatto il login con SPID o CIE) il tuo indirizzo mail è già verificato.<br>
+          Se non sei autenticato, riceverai una mail con un codice e ti sarà richiesto di inserire il codice per verificare il tuo indirizzo mail.<br>
+          In seguito potrai salvare il pdf dell'avviso, completo di Codice Avviso e QR-code necessari per il pagamento, stamparlo e procedere al pagamento con le seguenti modalità:
+          <ul>
+            <li>recandoti fisicamente presso lo sportello di un Prestatore di Servizi di Pagamento (Banche, Poste e altri operatori) abilitato all'incasso;</li>
+            <li>tramite home banking (Servizio CBILL) se la tua banca fa parte del Consorzio CBI.</li>
+          </ul>
+        </div>
+      </mat-card>
+      <mat-card fxFlex="1 1 0" fxLayout="column" class="mat-elevation-z0">
+        <mat-card-header fxFlex="0 1 auto">
+          <mat-card-title>Pagamento online</mat-card-title>
+        </mat-card-header>
+        <div fxFlex>
+          <p>Potrai scegliere una delle modalità di pagamento online previste dal sistema pagoPA® (carta di credito, home
+            banking e altre) e identificare un istituto finanziario con il quale perfezionare il pagamento.</p>
+          <p>Potrai effettuare il pagamento tramite carta di credito/debito o carte prepagate con uno qualsiasi dei PSP abilitati.
+            In tal caso non è necessario che tu sia correntista di tali PSP.</p>
+          <p>Il sistema pagoPA® ti richiederà di compilare l'anagrafica del soggetto intestatario e facoltativamente l'anagrafica
+            del soggetto versante. Successivamente sarai reindirizzato sul portale della banca scelta per effettuare il pagamento.
+          </p>
+        </div>
+      </mat-card>
+    </div>
+    </ng-template>
+
+    <ng-template #footer2>
+      <div fxFlex fxLayout="column" fxLayout.gt-sm="row wrap" fxLayoutAlign="start" fxLayoutGap="10px">
+        <mat-card fxFlex="1 1 0" fxLayout="column" class="mat-elevation-z0">
+          <div fxFlex>Attenzione: cliccando sul pulsante "Procedi al pagamento" sarai reindirizzato al sistema pagoPA® e
+            portai
+            scegliere il metodo di pagamento e il Prestatore di Servizi di Pagamento.</div>
+        </mat-card>
+        <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+        <mat-card fxFlex="1 1 0" fxLayout="column" class="mat-elevation-z0">
+          <div fxFlex>
+            <p>Potrai scegliere una delle modalità di pagamento online previste dal sistema pagoPA® (carta di credito, home
+              banking e altre) e identificare un istituto finanziario con il quale perfezionare il pagamento.</p>
+            <p> Potrai effettuare il pagamento tramite carta di credito/debito o carte prepagate con uno qualsiasi dei PSP
+              abilitati.
+              In tal caso non è necessario che tu sia correntista di tali PSP.</p>
+            <p>Il sistema pagoPA® ti richiederà di compilare l'anagrafica del soggetto intestatario e facoltativamente
+              l'anagrafica
+              del soggetto versante. Successivamente sarai reindirizzato sul portale della banca scelta per effettuare il
+              pagamento.</p>
+          </div>
+        </mat-card>
+      </div>
+    </ng-template>
+
+    <ng-template #step1 let-stepper="stepper">
+      <p class="mat-h3">
+        <ng-container>In questa pagina si possono gestire i dovuti da pagare inseriti
+          all'interno del carrello e tramite il menu <b>Azioni</b>, cliccando sui tre puntini, si avranno a disposizione le
+          funzionalità per stampare l'avviso di pagamento o eliminare il dovuto dal carrello.</ng-container>
+      </p>
+      <form [formGroup]="formGroup">
+        <mat-card class="mat-elevation-z0">
+          <mat-card-header *ngIf="logged">
+            <div mat-card-avatar><fa-icon [icon]="iconMoneyBillWave" size="2x"></fa-icon></div>
+            <mat-card-title>Dati del versante: {{ versante.anagrafica | titlecase}}</mat-card-title>
+            <mat-card-subtitle>
+              <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                <span fxFlex="100%" fxFlex.gt-xs="16em">Codice fiscale: {{ versante.codiceIdentificativoUnivoco }}</span>
+                <span fxFlex="100%" fxFlex.gt-xs="18em">Email: {{ versante.email }}</span>
+              </div>
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-header *ngIf="!logged">
+            <div mat-card-avatar><fa-icon [icon]="iconMoneyBillWave" size="2x"></fa-icon></div>
+            <mat-card-title>Dati del versante</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="!logged" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+                <mat-label>Anagrafica</mat-label>
+                <input matInput required formControlName="versante_anagrafica" placeholder="Inserire nome e cognome">
+                <mat-error *ngIf="formErrors['versante_anagrafica']">{{ formErrors.versante_anagrafica }}</mat-error>
+              </mat-form-field>
+              <div fxFlex="100%" fxFlex.gt-sm="10em" fxLayout="column" class="tipo-persona-group">
+                <span fxFlex class="mat-caption">Tipo persona</span>
+                <div fxFlex>
+                <mat-button-toggle-group (change)="onChangeTipoPersona($event)" formControlName="versante_tipoSoggetto">
+                  <mat-button-toggle value="F">Fisica</mat-button-toggle>
+                  <mat-button-toggle value="G">Giuridica</mat-button-toggle>
+                </mat-button-toggle-group></div>
+              </div>
+              <div fxFlex="100%" fxFlex.gt-sm="15em" fxLayout="column">
+                <mat-form-field appearance="{{'appearance'|global}}">
+                  <mat-label>{{codiceIdentificativoUnivocoLabel}}</mat-label>
+                  <input matInput required formControlName="versante_codiceIdentificativoUnivoco" placeholder="Inserire {{codiceIdentificativoUnivocoLabel}}">
+                  <mat-error *ngIf="formErrors['versante_codiceIdentificativoUnivoco']">{{ formErrors.versante_codiceIdentificativoUnivoco }}</mat-error>
+                </mat-form-field>
+              </div>
+              <mat-checkbox fxFlex="100%" fxFlex.gt-sm="18em" class="pl-4" formControlName="versante_cfAnonimo"
+              (change)="versanteCfAnonimoOnChange($event.checked)">Non ho codice fiscale / partita IVA</mat-checkbox>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+                <mat-label>Email</mat-label>
+                <input matInput required formControlName="versante_email" placeholder="Inserire email">
+                <mat-error *ngIf="formErrors['versante_email']">{{ formErrors.versante_email }}</mat-error>
+              </mat-form-field>
+            </div>
+            <mat-accordion>
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    Dati aggiuntivi
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    Clicca per aggiungere i dati aggiuntivi del versante
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                  <mat-label id="sr-ind" class="sr-only">Indirizzo</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Indirizzo</mat-label>
+                    <input aria-labelledby="sr-ind" matInput formControlName="versante_indirizzo">
+                    <mat-error *ngIf="formErrors['versante_indirizzo']">{{ formErrors.versante_indirizzo }}</mat-error>
+                  </mat-form-field>
+                  <mat-label id="sr-nciv" class="sr-only">Numero Civico</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Numero civico</mat-label>
+                    <input aria-labelledby="sr-nciv" matInput formControlName="versante_civico">
+                    <mat-error *ngIf="formErrors['versante_civico']">{{ formErrors.versante_civico }}</mat-error>
+                  </mat-form-field>
+                  <mat-label id="sr-CAP" class="sr-only">CAP</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">CAP</mat-label>
+                    <input aria-labelledby="sr-CAP" matInput formControlName="versante_cap">
+                    <mat-error *ngIf="formErrors['versante_cap']">{{ formErrors.versante_cap }}</mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                  <mat-label id="sr-naz" class="sr-only">Nazione</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Nazione</mat-label>
+                    <mat-select aria-labelledby="sr-naz" formControlName="versante_nazione" (selectionChange)="nazioneOnChange('versante', $event.value)">
+                      <mat-option *ngFor="let nazione of nazioni" [value]="nazione.nazioneId">
+                        {{nazione.nomeNazione}}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="formErrors['versante_nazione']">{{ formErrors.versante_nazione }}</mat-error>
+                  </mat-form-field>
+                  <mat-label id="sr-prov" class="sr-only">Provincia</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Provincia</mat-label>
+                    <mat-select aria-labelledby="sr-prov" formControlName="versante_provincia" (selectionChange)="provinciaOnChange('versante', $event.value)">
+                      <mat-option *ngFor="let provincia of province" [value]="provincia.provinciaId">
+                        {{provincia.provincia}}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="formErrors['versante_provincia']">{{ formErrors.versante_provincia }}</mat-error>
+                  </mat-form-field>
+                  <mat-label id="sr-loc" class="sr-only">Località</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Località</mat-label>
+                    <mat-select  aria-labelledby="sr-loc"formControlName="versante_comune" (selectionChange)="comuneOnChange('versante', $event.value)">
+                      <mat-option *ngFor="let comune of comuni('versante')" [value]="comune.comuneId">
+                        {{comune.comune}}
+                      </mat-option>
+                      <mat-error *ngIf="formErrors['versante_comune']">{{ formErrors.versante_comune }}</mat-error>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="mat-elevation-z0" *ngFor="let intestatario of itemCarrelloByIntestatari">
+          <mat-card-header>
+            <div mat-card-avatar><fa-icon [icon]="iconAddressCard" size="2x"></fa-icon></div>
+            <mat-card-title>Dovuti intestati a: {{ intestatario.info.anagrafica | titlecase}}</mat-card-title>
+            <my-pay-help-field [template]="helpPageIntestatario"></my-pay-help-field>
+            <mat-card-subtitle>
+              <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                <span fxFlex="100%" fxFlex.gt-xs="16em">Codice fiscale: {{ intestatario.info.codiceIdentificativoUnivoco }}</span>
+                <span fxFlex="100%" fxFlex.gt-xs="18em">Email: {{ intestatario.info.email }}</span>
+              </div>
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div fxLayout="row wrap" fxLayoutGap="0px" class="white">
+              <my-pay-table-cittadino *ngIf="stepper.selectedIndex===0" [tableData]="intestatario.content" [tableColumns]="tableColumnsStep1" [parentRef]="this" [hasDetail]="true">
+              </my-pay-table-cittadino>
+            </div>
+            <mat-accordion>
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    Dati aggiuntivi
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    Clicca per aggiungere i dati aggiuntivi dell'intestatario
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                  <mat-label id="sr-ind2" class="sr-only">Indirizzo</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Indirizzo</mat-label>
+                    <input aria-labelledby="sr-ind2" matInput formControlName="{{intestatario.id+'_indirizzo'}}">
+                  </mat-form-field>
+                  <mat-label id="sr-nciv2" class="sr-only">Numero Civico</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Numero civico</mat-label>
+                    <input aria-labelledby="sr-nciv2" matInput formControlName="{{intestatario.id+'_civico'}}">
+                  </mat-form-field>
+                  <mat-label id="sr-CAP2" class="sr-only">CAP</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">CAP</mat-label>
+                    <input aria-labelledby="sr-CAP2" matInput formControlName="{{intestatario.id+'_cap'}}">
+                  </mat-form-field>
+                </div>
+                <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                  <mat-label id="sr-naz2" class="sr-only">Nazione</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Nazione</mat-label>
+                    <mat-select aria-labelledby="sr-naz2" formControlName="{{intestatario.id+'_nazione'}}" (selectionChange)="nazioneOnChange(intestatario.id, $event.value)">
+                      <mat-option *ngFor="let nazione of nazioni" [value]="nazione.nazioneId">
+                        {{nazione.nomeNazione}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-label id="sr-prov2" class="sr-only">Provincia</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label>Provincia</mat-label>
+                    <mat-select aria-labelledby="sr-prov2" formControlName="{{intestatario.id+'_provincia'}}" (selectionChange)="provinciaOnChange(intestatario.id, $event.value)">
+                      <mat-option *ngFor="let provincia of province" [value]="provincia.provinciaId">
+                        {{provincia.provincia}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-label id="sr-loc2" class="sr-only">Località</mat-label>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label>Località</mat-label>
+                    <mat-select aria-labelledby="sr-loc2" formControlName="{{intestatario.id+'_comune'}}" (selectionChange)="comuneOnChange(intestatario.id, $event.value)">
+                      <mat-option *ngFor="let comune of comuni(intestatario.id)" [value]="comune.comuneId">
+                        {{comune.comune}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="mat-elevation-z0">
+          <mat-card-header>
+            <mat-card-title><span>Importo totale del pagamento: {{ importoTotale | currency:'EUR'}}</span></mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div></div>
+          </mat-card-content>
+          <mat-card-actions>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+              <button fxFlex.lt-md="100%" type="button" mat-flat-button color="primary"
+                app-confirm="Confermi di voler svuotare il carrello?" (clickConfirmed)="emptyCarrello()">Abbandona e svuota carrello</button>
+              <div fxFlex></div>
+              <button fxFlex.lt-md="100%" (click)="externalDownloadAvviso()" mat-flat-button color="accent">Stampa avviso pagamento</button>
+              <button fxFlex.lt-md="100%" [disabled]="formGroup.invalid" (click)="onDataInsert(stepper)" mat-flat-button color="accent">Avanti</button>
+            </div>
+          </mat-card-actions>
+          <mat-card-footer>
+            <ng-container *ngTemplateOutlet="footer1"></ng-container>
+          </mat-card-footer>
+        </mat-card>
+      </form>
+    </ng-template>
+
+    <ng-template #step2 let-stepper="stepper">
+      <form [formGroup]="formGroupMailValidation">
+        <mat-card-content>
+          <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="5px" class="mx-2 mb-3">
+            <p fxFlex>Poiché non sei autenticato, è necessario validare il tuo indirizzo mail per procedere e scaricare l'avviso. </p>
+            <p fxFlex>&nbsp;</p>
+            <p fxFlex>Ti è stata inviata una email all'indirizzo indicato nel form precedente: '{{validationEmail}}'.</p>
+            <p fxFlex>Inserisci il codice di verifica presente nella mail.</p>
+            <p fxFlex>Il codice è valido per 60 MINUTI. Trascorso questo tempo sarà necessario effettuare un'altra richiesta.</p>
+            <p *ngIf="validPin" fxFlex style="border: 1px solid blue">Il codice di verifica è: {{validPin}}</p>
+          </div>
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+            <mat-form-field fxFlex="100%" fxFlex.gt-sm="15em" appearance="{{'appearance'|global}}">
+              <mat-label>Codice verifica</mat-label>
+              <input matInput required formControlName="verificationCode" placeholder="Inserire il codice di verifica">
+              <mat-error *ngIf="true || formErrors['verificationCode']">{{ formErrors.verificationCode }}</mat-error>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+            <button fxFlex.lt-md="100%" type="button" mat-flat-button color="primary"
+              app-confirm="Confermi di voler svuotare il carrello?" (clickConfirmed)="emptyCarrello()">Abbandona e svuota carrello</button>
+            <div fxFlex></div>
+            <button fxFlex.lt-md="100%" (click)="onMailValidationBack(stepper)"  mat-flat-button color="accent">Indietro</button>
+            <button fxFlex.lt-md="100%" [disabled]="formGroupMailValidation.invalid" (click)="onMailValidation(stepper)" mat-flat-button color="accent">
+              {{ spontaneoToDownloadAvviso ? 'Scarica avviso' : 'Avanti'}}
+            </button>
+          </div>
+        </mat-card-actions>
+      </form>
+    </ng-template>
+
+    <ng-template #step3 let-stepper="stepper">
+      <mat-card class="mat-elevation-z0">
+        <mat-card-header>
+          <div mat-card-avatar><fa-icon [icon]="iconMoneyBillWave" size="2x"></fa-icon></div>
+          <mat-card-title>Dati del versante: {{ versante.anagrafica | titlecase}}</mat-card-title>
+          <mat-card-subtitle>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <span fxFlex="100%" fxFlex.gt-xs="16em">Codice fiscale: {{ versante.codiceIdentificativoUnivoco }}</span>
+              <span fxFlex="100%" fxFlex.gt-xs="18em">Email: {{ versante.email }}</span>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <span fxFlex="100%" fxFlex.gt-xs="100%">
+                <span class="label_indirizzo">Indirizzo: {{ formGroup.get('versante_indirizzo').value || '-' }}</span>
+                <span class="label_indirizzo">Civico: {{ formGroup.get('versante_civico').value || '-' }}</span>
+                <span class="label_indirizzo">Cap: {{ formGroup.get('versante_cap').value || '-' }}</span>
+              </span>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <span fxFlex="100%" fxFlex.gt-xs="100%">
+                <span class="label_indirizzo">Nazione: {{ getDescNazione('versante') || '-' }}</span>
+                <span class="label_indirizzo">Provincia: {{ getDescProvincia('versante') || '-' }}</span>
+                <span class="label_indirizzo">Località: {{ getDescLocalita('versante') || '-' }}</span>
+              </span>
+            </div>
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="mat-elevation-z0" *ngFor="let intestatario of itemCarrelloByIntestatari">
+        <mat-card-header>
+          <div mat-card-avatar><fa-icon [icon]="iconAddressCard" size="2x"></fa-icon></div>
+          <mat-card-title>Dovuti intestati a: {{ intestatario.info.anagrafica | titlecase}}</mat-card-title>
+          <my-pay-help-field [template]="helpPageIntestatario"></my-pay-help-field>
+          <mat-card-subtitle>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <span fxFlex="100%" fxFlex.gt-xs="16em">Codice fiscale: {{ intestatario.info.codiceIdentificativoUnivoco }}</span>
+              <span fxFlex="100%" fxFlex.gt-xs="18em">Email: {{ intestatario.info.email }}</span>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <span fxFlex="100%" fxFlex.gt-xs="100%">
+                <span class="label_indirizzo">Indirizzo: {{ formGroup.get(intestatario.id+'_indirizzo').value || '-' }}</span>
+                <span class="label_indirizzo">Civico: {{ formGroup.get(intestatario.id+'_civico').value || '-' }}</span>
+                <span class="label_indirizzo">Cap: {{ formGroup.get(intestatario.id+'_cap').value || '-' }}</span>
+              </span>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <span fxFlex="100%" fxFlex.gt-xs="100%">
+                <span class="label_indirizzo">Nazione: {{ getDescNazione(intestatario.id) || '-' }}</span>
+                <span class="label_indirizzo">Provincia: {{ getDescProvincia(intestatario.id) || '-' }}</span>
+                <span class="label_indirizzo">Località: {{ getDescLocalita(intestatario.id) || '-' }}</span>
+              </span>
+            </div>
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div fxLayout="row wrap" fxLayoutGap="0px" class="white">
+            <my-pay-table-cittadino *ngIf="stepper.selectedIndex===(logged?1:2)" [tableData]="intestatario.content" [tableColumns]="tableColumnsStep2" [parentRef]="this" [hasDetail]="true">
+            </my-pay-table-cittadino>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="mat-elevation-z0">
+        <mat-card-header>
+          <mat-card-title><span>Importo totale del pagamento: {{ importoTotale | currency:'EUR'}}</span></mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div></div>
+        </mat-card-content>
+        <mat-card-actions>
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+            <button fxFlex.lt-md="100%" type="button" mat-flat-button color="primary"
+              app-confirm="Confermi di voler svuotare il carrello?" (clickConfirmed)="emptyCarrello()">Abbandona e svuota carrello</button>
+            <div fxFlex></div>
+            <button fxFlex.lt-md="100%" mat-flat-button (click)="onBackToDataInsert(stepper)" color="accent">Indietro</button>
+            <button fxFlex.lt-md="100%" (click)="checkout()" mat-flat-button color="accent">Procedi con il pagamento online</button>
+          </div>
+        </mat-card-actions>
+        <mat-card-footer>
+          <ng-container *ngTemplateOutlet="footer2"></ng-container>
+        </mat-card-footer>
+      </mat-card>
+    </ng-template>
+
+    <ng-template #step4 let-stepper="stepper">
+      <h2 class="mat-h2 text-center">Stai per essere rediretto alla pagina del pagamento..</h2>
+      <p class="text-center">Clicca <a [href]="paymentUrl">qui</a> se non vieni rediretto automaticamente entro pochi secondi.</p>
+      <!--div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+        <div fxFlex></div>
+        <button fxFlex.lt-md="100%" matStepperPrevious mat-flat-button color="accent">Indietro</button>
+      </div-->
+    </ng-template>
+
+    <div *ngIf="!empty" class="w100 mypay-search-form">
+
+      <ng-template [ngIf]="smallScreen" [ngIfElse]="bigScreen">
+        <mat-vertical-stepper (selectionChange)="onStepChange($event)" linear="true" #stepper>
+          <mat-step  label="Inserimento dati" [stepControl]="formGroup" [editable]="this.stepsInfo.dataInsert.editable" [completed]="this.stepsInfo.dataInsert.completed">
+            <ng-container *ngTemplateOutlet="step1; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <mat-step *ngIf="!logged" label="Validazione mail" [editable]="this.stepsInfo.mailVerify.editable" [completed]="this.stepsInfo.mailVerify.completed">
+            <ng-container *ngTemplateOutlet="step2; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <mat-step label="Riepilogo" [editable]="this.stepsInfo.dataRecap.editable" [completed]="this.stepsInfo.dataRecap.completed">
+            <ng-container *ngTemplateOutlet="step3; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <mat-step label="Pagamento" [editable]="this.stepsInfo.pay.editable" [comstep2pleted]="this.stepsInfo.pay.completed">
+            <ng-container *ngTemplateOutlet="step4; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <!-- Icon overrides. -->
+          <ng-template *ngFor="let type of ['number','done','edit']" [matStepperIcon]="type" let-index="index">
+            <fa-icon [icon]="stepsInfo.icons[index]"></fa-icon>
+          </ng-template>
+        </mat-vertical-stepper>
+      </ng-template>
+
+      <ng-template #bigScreen>
+        <mat-horizontal-stepper (selectionChange)="onStepChange($event)" linear="true" #stepper>
+          <mat-step label="Inserimento dati" [stepControl]="formGroup" [editable]="this.stepsInfo.dataInsert.editable" [completed]="this.stepsInfo.dataInsert.completed">
+            <ng-container *ngTemplateOutlet="step1; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <mat-step *ngIf="!logged" label="Validazione mail" [editable]="this.stepsInfo.mailVerify.editable" [completed]="this.stepsInfo.mailVerify.completed">
+            <ng-container *ngTemplateOutlet="step2; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <mat-step label="Riepilogo" [editable]="this.stepsInfo.dataRecap.editable" [completed]="this.stepsInfo.dataRecap.completed">
+            <ng-container *ngTemplateOutlet="step3; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <mat-step label="Pagamento" [editable]="this.stepsInfo.pay.editable" [completed]="this.stepsInfo.pay.completed">
+            <ng-container *ngTemplateOutlet="step4; context: {stepper:stepper}"></ng-container>
+          </mat-step>
+          <!-- Icon overrides. -->
+          <ng-template *ngFor="let type of ['number','done','edit']" [matStepperIcon]="type" let-index="index">
+            <fa-icon [icon]="stepsInfo.icons[index]"></fa-icon>
+          </ng-template>
+        </mat-horizontal-stepper>
+      </ng-template>
+
+    </div>
+
+    <div *ngIf="empty">
+      <h2 class="mat-h2">Il carrello è vuoto</h2>
+    </div>
+
+  </div>
+</div>

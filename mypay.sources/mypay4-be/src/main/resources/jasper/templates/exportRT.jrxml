@@ -1,0 +1,1539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2019-05-21T17:45:08 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4" pageWidth="595" pageHeight="842" columnWidth="539" leftMargin="28" rightMargin="28" topMargin="28" bottomMargin="16" uuid="708f0fd7-6c1f-42e1-86d2-f87e76d7f7d2">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.unit." value="mm"/>
+	<import value="java.text.*"/>
+	<style name="alternateStyle" backcolor="#E8F2FE" fontName="Arial">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue() % 2 == 0)]]></conditionExpression>
+			<style backcolor="#FFFFFF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="idUnivocoVersamento" class="java.lang.String"/>
+	<parameter name="codiceContestoPagamento" class="java.lang.String"/>
+	<parameter name="dominio" class="java.lang.String"/>
+	<parameter name="stazioneRichiedente" class="java.lang.String"/>
+	<parameter name="esito" class="java.lang.String"/>
+	<parameter name="idMessaggioRicevuta" class="java.lang.String"/>
+	<parameter name="dataOraMessaggioRicevuta" class="java.lang.String"/>
+	<parameter name="importoTotalePagato" class="java.lang.String"/>
+	<parameter name="riferimentoMessaggioRichiesta" class="java.lang.String"/>
+	<parameter name="dataOraMessaggioRichiesta" class="java.lang.String"/>
+	<parameter name="istitAttIdUnivAttTipoIdUnivoco" class="java.lang.Character"/>
+	<parameter name="istitAttIdUnivAttCodiceIdUnivoco" class="java.lang.String"/>
+	<parameter name="istitAttCodiceUnitOperAttestante" class="java.lang.String"/>
+	<parameter name="istitAttCapAttestante" class="java.lang.String"/>
+	<parameter name="istitAttNazioneAttestante" class="java.lang.String"/>
+	<parameter name="enteBenefIdUnivBenefTipoIdUnivoco" class="java.lang.Character"/>
+	<parameter name="enteBenefIdUnivBenefCodiceIdUnivoco" class="java.lang.String"/>
+	<parameter name="enteBenefCodiceUnitOperBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefCapBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefNazioneBeneficiario" class="java.lang.String"/>
+	<parameter name="soggVersIdUnivVersTipoIdUnivoco" class="java.lang.Character"/>
+	<parameter name="soggVersIdUnivVersCodiceIdUnivoco" class="java.lang.String"/>
+	<parameter name="soggVersAnagraficaVersante" class="java.lang.String"/>
+	<parameter name="soggVersCapVersante" class="java.lang.String"/>
+	<parameter name="soggVersNazioneVersante" class="java.lang.String"/>
+	<parameter name="soggPagIdUnivPagTipoIdUnivoco" class="java.lang.Character"/>
+	<parameter name="soggPagIdUnivPagCodiceIdUnivoco" class="java.lang.String"/>
+	<parameter name="soggPagAnagraficaPagatore" class="java.lang.String"/>
+	<parameter name="soggPagCapPagatore" class="java.lang.String"/>
+	<parameter name="soggPagNazionePagatore" class="java.lang.String"/>
+	<parameter name="dataRichiestaStampa" class="java.lang.String"/>
+	<parameter name="istitAttDemoninazioneAttestante" class="java.lang.String"/>
+	<parameter name="istitAttCivicoAttestante" class="java.lang.String"/>
+	<parameter name="istitAttDenominazioneAttestante" class="java.lang.String"/>
+	<parameter name="istitAttDenomUnitOperAttestante" class="java.lang.String"/>
+	<parameter name="istitAttIndirizzoAttestante" class="java.lang.String"/>
+	<parameter name="istitAttLocalitaAttestante" class="java.lang.String"/>
+	<parameter name="istitAttProvinciaAttestante" class="java.lang.String"/>
+	<parameter name="enteBenefDenominazioneBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefProvinciaBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefLocalitaBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefIndirizzoBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefCivicoBeneficiario" class="java.lang.String"/>
+	<parameter name="enteBenefDenomUnitOperBeneficiario" class="java.lang.String"/>
+	<parameter name="soggVersEmailVersante" class="java.lang.String"/>
+	<parameter name="soggVersProvinciaVersante" class="java.lang.String"/>
+	<parameter name="soggVersLocalitaVersante" class="java.lang.String"/>
+	<parameter name="soggVersIndirizzoVersante" class="java.lang.String"/>
+	<parameter name="soggVersCivicoVersante" class="java.lang.String"/>
+	<parameter name="soggPagEmailPagatore" class="java.lang.String"/>
+	<parameter name="soggPagProvinciaPagatore" class="java.lang.String"/>
+	<parameter name="soggPagLocalitaPagatore" class="java.lang.String"/>
+	<parameter name="soggPagIndirizzoPagatore" class="java.lang.String"/>
+	<parameter name="soggPagCivicoPagatore" class="java.lang.String"/>
+	<parameter name="dovutiPagati" class="java.util.Collection"/>
+	<parameter name="pagolapa_img" class="java.lang.String"/>
+	<parameter name="collaudo_img" class="java.lang.String"/>
+	<parameter name="ente_img" class="java.lang.String"/>
+	<parameter name="prodEnvironment" class="java.lang.String"/>
+	<field name="IUD" class="java.lang.String"/>
+	<field name="CAUSALE_VERSAMENTO" class="java.lang.String"/>
+	<field name="IMPORTO_PAGATO" class="java.lang.String"/>
+	<field name="DATA_PAGAMENTO" class="java.lang.String"/>
+	<field name="IDENTIFICATIVO_UNIV_RISCOSSIONE" class="java.lang.String"/>
+	<field name="IBAN_ACCREDITO" class="java.lang.String"/>
+	<field name="BIC_ACCREDITO" class="java.lang.String"/>
+	<field name="DATI_SPECIFICI_RISCOSSIONE" class="java.lang.String"/>
+	<field name="IBAN_APPOGGIO" class="java.lang.String"/>
+	<field name="BIC_APPOGGIO" class="java.lang.String"/>
+	<field name="COMMISSIONI_APPLICATE_PSP" class="java.lang.String"/>
+	<field name="TIPO_DOVUTO" class="java.lang.String"/>
+	<background>
+		<band height="798" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{prodEnvironment}.equals("false")]]></printWhenExpression>
+			<image hAlign="Center" vAlign="Middle">
+				<reportElement x="0" y="0" width="539" height="798" uuid="a7219498-f9f8-4ac4-bdcb-3d564518fd27">
+					<printWhenExpression><![CDATA[$P{prodEnvironment}.equals("false")]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$P{collaudo_img}]]></imageExpression>
+			</image>
+		</band>
+	</background>
+	<title>
+		<band height="475" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="mm"/>
+			<staticText>
+				<reportElement x="60" y="3" width="418" height="35" forecolor="#006699" uuid="53f5c835-8eb3-41d9-b710-13e45fb0f1a3">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[RICEVUTA TELEMATICA PAGAMENTO]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="60" y="35" width="418" height="15" forecolor="#000000" uuid="7f963911-0996-4eed-a381-d249e2ce05ac"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Stampata in data: "+$P{dataRichiestaStampa}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="75" width="96" height="12" forecolor="#006699" uuid="0eb1effc-bcc8-4151-8aeb-fd7e07ac9754"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[IMPORTO TOTALE PAGATO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="98" y="75" width="153" height="12" uuid="9798f5f7-01f8-4bab-b6e5-b1e956be810d">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["€ "+$P{importoTotalePagato}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="87" width="96" height="12" forecolor="#006699" uuid="91b8df20-8064-4635-9d49-61d3780b1886">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODICE CONTESTO PAGAMENTO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="98" y="87" width="153" height="12" uuid="3941cf33-8e9f-4989-b222-64197858abb2">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{codiceContestoPagamento}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="99" width="96" height="12" forecolor="#006699" uuid="7aa2147e-28e8-4a68-951c-eebab30f4ead"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ID UNIVOCO VERSAMENTO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="98" y="99" width="171" height="12" uuid="662f982d-18b4-4520-b9b8-6ff144c42d48">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{idUnivocoVersamento}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="111" width="96" height="12" forecolor="#006699" uuid="aaed63fb-d963-41a4-a909-27d307545866"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DOMINIO ENTE:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="98" y="111" width="153" height="12" uuid="4daf221d-8491-4b37-8fcd-e0523546c3c7">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dominio}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="123" width="96" height="12" forecolor="#006699" uuid="a7ebdbaf-0fee-4031-93ec-ec127b881a03"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[RIFERIMENTO RICHIESTA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="98" y="123" width="171" height="12" uuid="036ccf83-d2db-4713-a249-ec3b7b0bc4cb">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{riferimentoMessaggioRichiesta}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="287" y="75" width="99" height="12" forecolor="#006699" uuid="667474c9-2d13-49f4-ba05-34a781f886a9">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ESITO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="389" y="75" width="149" height="12" uuid="467f3d5c-96a5-4a97-8988-f498e696f641">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{esito}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="287" y="87" width="99" height="12" forecolor="#006699" uuid="af62d959-d9ba-4ef8-9198-2cb35a51d97f">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DATA RICHIESTA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="389" y="87" width="149" height="12" uuid="831c585a-eb84-486a-b166-e0ade934a2f7">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dataOraMessaggioRichiesta}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="296" width="252" height="12" backcolor="#D5E7EF" uuid="524ac58f-4b03-4512-aaae-20b5b9e20da4">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="2">
+					<bottomPen lineWidth="0.6" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[ISTITUTO ATTESTANTE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="309" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="333142ab-deaa-4c25-9250-713c2dbc5fe9"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[DENOMINAZIONE:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="309" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="c559fb84-8051-4c9a-866b-b49c3a635aa0">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttDemoninazioneAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="321" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="fa59f7dd-7f4a-44d9-a1ba-b3577f05aec7"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[TIPO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="321" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="7ab213c1-8fb1-4167-a2b4-b445dac3bf27">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttIdUnivAttTipoIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="333" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="f5509504-8a63-4b56-b7f3-913a85bf09a5"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CODICE UNIVOCO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="333" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="9ebd79d4-20d3-416a-81be-966d1505ccb3">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttIdUnivAttCodiceIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="345" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="55cfef40-db64-4663-9087-44119c4bd16c"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[NAZIONE:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="345" width="28" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="e47bb70b-60d2-4eb4-8efa-3cd9e53308aa">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttNazioneAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="172" y="345" width="47" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="c8653e99-1148-42db-8bb8-ca8e1fc0fb8f">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[PROVINCIA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="210" y="345" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="92a6c253-51e7-45d5-8076-f74800a91945">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttProvinciaAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="287" y="148" width="252" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="653bf139-6cbc-4f24-88ba-4f673e436655">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="2">
+					<bottomPen lineWidth="0.6" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[SOGGETTO INTESTATARIO]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="210" y="381" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="642e3547-11df-4b0c-be07-88673e92710a">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttCapAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="381" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="2faf067a-21c7-47df-b6e8-c4f5fbca2117"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CIVICO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="369" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="096d09e5-7d78-428a-b7ed-36a48988461b">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttIndirizzoAttestante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="381" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="80f39025-0ab2-48c1-870c-783f1a033634">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttCivicoAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="191" y="381" width="28" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="1c667c75-4c3a-4d0a-ba47-72d95781d63b">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CAP:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="369" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="5fddb962-1c79-41f4-91a1-7075bc0a230c"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[INDIRIZZO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="357" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="e1f5bf59-0460-4290-9d72-a8ad5b597713">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttLocalitaAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="357" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="16de80f3-592a-401e-afeb-11779161ca13"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[LOCALITÀ:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="393" width="167" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="d3206a5a-b23f-4b91-8751-50634be022f0">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttDenomUnitOperAttestante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="393" width="85" height="19" forecolor="#666666" backcolor="#FFFFFF" uuid="e0146ee8-a33b-40ea-964d-39b6ad89fb81">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[DENOMINAZIONE UNITÀ OPERATIVA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="412" width="85" height="19" forecolor="#666666" backcolor="#FFFFFF" uuid="cda9a193-05b1-4160-ad9c-dfe03a6d03ea">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CODICE UNITÀ OPERATIVA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="85" y="412" width="167" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="8173b6ce-eb8d-4fa1-84c9-0755e2538fb2">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{istitAttCodiceUnitOperAttestante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="309" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="9af54c82-6fe2-46b7-9ddb-1600adea27f6">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersAnagraficaVersante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="173" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="c987637b-1487-4436-9c98-3115270768e1">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagIdUnivPagTipoIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="309" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="d5a91552-edab-4d68-9dbd-163770b4d5d7">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[ANAGRAFICA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="321" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="9c1613e3-7f4f-40f8-a6fa-0b564fe7cfd7">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[TIPO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="161" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="33924126-9b64-42c1-acc1-b3a59bd0ae75">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagAnagraficaPagatore}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="321" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="a72291e9-ba2c-47f3-9dee-61d7aede774c">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersIdUnivVersTipoIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="333" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="b289e99c-a63e-4157-b5d6-b4968ba66a1d">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CODICE UNIVOCO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="185" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="d6c857cf-c6a4-493f-a6fa-b12ba9d3b0f0">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagIdUnivPagCodiceIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="333" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="44168004-3083-4533-83eb-eaf72c8d8d00">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="345" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="dbe403f0-d222-4d43-b51a-06380f6992c2">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersEmailVersante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="197" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="3633fbdc-cd4c-4eaa-a0dc-f9d26ef96161">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagEmailPagatore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="345" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="5df37e06-30da-4ac7-beaf-30ab54117329">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[EMAIL:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="357" width="28" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="b8d12791-021b-4d46-997b-4a0f4c048eb0">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersNazioneVersante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="209" width="28" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="9338c3d8-8e90-42c2-a3b9-40c87c8a1f04">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagNazionePagatore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="357" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="d0d1e07d-603c-42d6-9388-928ea76b1b9b">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[NAZIONE:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="497" y="209" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="6f88354a-82c9-4874-8fc4-5eb8014c8ec2">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagProvinciaPagatore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="456" y="357" width="48" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="414a77f0-bade-440f-8ee3-a9bcd5f1c0d8">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[PROVINCIA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="497" y="357" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="3ac02a0f-0329-4483-85dd-7ebf505fcec7">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersProvinciaVersante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="369" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="32ebb217-0fd5-4a01-b206-a4a4bee7971f">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersLocalitaVersante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="369" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="fd9cadef-a834-4952-a217-cd5739edc67c">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[LOCALITÀ:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="221" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="097b9a12-0811-4967-bffa-5cd588a503e1">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagLocalitaPagatore}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="233" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="07409a07-16c3-410a-b5e7-6e178817fe38">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagIndirizzoPagatore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="381" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="6749e545-7bd1-4228-b471-ce1059a9c7ca">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[INDIRIZZO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="381" width="167" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="cfbaffc0-c05b-44ed-b959-bfa5793ed450">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersIndirizzoVersante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="393" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="b9fbcc8b-6978-4579-8ea7-7deb0a4d0daf">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CIVICO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="245" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="43d8f4b5-cfab-46c8-b0ff-a0049f0478c6">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagCivicoPagatore}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="372" y="393" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="6fcc96f3-6167-4eb9-a708-7ebb1d413eeb">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersCivicoVersante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="497" y="245" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="93d11e2b-e818-4afb-a727-a5dc24d32db5">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggPagCapPagatore}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="476" y="393" width="28" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="a8199a24-6257-418b-8588-6e95cb386bb3">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CAP:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="497" y="393" width="42" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="446456b6-81dd-4f57-9926-35007464fa6d">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{soggVersCapVersante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="452" width="539" height="17" forecolor="#FFFFFF" backcolor="#006699" uuid="9bc803f2-7a98-415e-a3fe-b91da4afcff7">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="10" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[DOVUTI PAGATI]]></text>
+			</staticText>
+			<image>
+				<reportElement x="0" y="0" width="60" height="60" uuid="804c7895-8e04-4b15-9a6f-a0472a0fc550">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[new java.io.ByteArrayInputStream(org.apache.commons.codec.binary.Base64.decodeBase64($P{ente_img}.getBytes()))]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="478" y="0" width="60" height="60" uuid="d64141dd-52d6-4d91-b140-0e9741a00ab4">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[$P{pagolapa_img}]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="69" width="538" height="1" uuid="5aa4a91f-ddea-48fe-b247-af786a09f574">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="141" width="538" height="1" uuid="e1f0394e-f686-41bb-90fd-8bd7e9170f71">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="148" width="252" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="5655a172-d303-400a-bb88-e1eaa5e7afe1">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="2">
+					<bottomPen lineWidth="0.6" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[ENTE BENEFICIARIO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="209" width="85" height="12" forecolor="#666666" uuid="fd9a2bd2-2ef3-4029-8872-fce3186d284f"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LOCALITÀ:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="173" width="85" height="12" forecolor="#666666" uuid="3a57d4a5-81ab-4c9b-86ae-9a6844c15383">
+					<property name="local_mesure_unitx" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TIPO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="221" width="167" height="12" uuid="3dd69aaf-b002-461f-b5c9-2ba6b77fa03c">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefIndirizzoBeneficiario}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="209" width="167" height="12" uuid="20a3bdcf-cd64-4134-861e-57c6f8a29628">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefLocalitaBeneficiario}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="197" width="85" height="12" forecolor="#666666" uuid="cc54e51a-63f8-434d-a03c-98ecd926a188"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NAZIONE:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="185" width="85" height="12" forecolor="#666666" uuid="78a6e04f-9f8a-4b71-ae61-4cee96ebf86a"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODICE UNIVOCO:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="221" width="85" height="12" forecolor="#666666" uuid="c7158d83-76fd-4962-b16b-333b1197399b"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[INDIRIZZO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="233" width="42" height="12" uuid="1c9bbfc6-46c1-4a9c-8662-9d8617477062">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefCivicoBeneficiario}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="173" width="167" height="12" uuid="e054247c-e984-46ac-a9e8-c30e47126c0a">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefIdUnivBenefTipoIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="245" width="85" height="19" forecolor="#666666" uuid="c43186ab-70f2-4b51-9d93-54d28db0b96e">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DENOMINAZIONE UNITÀ OPERATIVA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="161" width="167" height="12" uuid="35f98c78-e36b-484c-9db4-78c2305b4a07">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefDenominazioneBeneficiario}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="210" y="197" width="42" height="12" uuid="8d1b95c9-8f46-4436-9d6f-e8c4bb7e6c2d">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefProvinciaBeneficiario}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="264" width="85" height="19" forecolor="#666666" uuid="ec7313e9-148b-4fdf-8391-d3629eef62b7">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODICE UNITÀ OPERATIVA:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="245" width="167" height="19" uuid="0be5f323-3aa7-46a7-a026-1ed0acdd2ad5">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefDenomUnitOperBeneficiario}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="161" width="85" height="12" forecolor="#666666" uuid="71f5f277-dc13-44e1-b104-9e026cb55479"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DENOMINAZIONE:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="210" y="233" width="42" height="12" uuid="13e5c3c2-fac9-476c-ad75-22533f1d310b">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefCapBeneficiario}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="185" width="167" height="12" uuid="9e763370-8108-4cc7-98f8-f90d696d7841">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefIdUnivBenefCodiceIdUnivoco}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="264" width="167" height="19" uuid="82fef54d-8e45-407c-a03e-a119d54c9a48">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefCodiceUnitOperBeneficiario}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="191" y="233" width="28" height="12" forecolor="#666666" uuid="756a90a0-0811-4613-b43f-24e09b6fb875">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CAP:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="172" y="197" width="47" height="12" forecolor="#666666" uuid="a7880b38-3c98-42b4-a6ab-32d1d3ca0690">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PROVINCIA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="233" width="85" height="12" forecolor="#666666" uuid="ee60b86f-beee-4a0f-a770-0feca6dba2fe"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CIVICO:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="88" y="197" width="28" height="12" uuid="c8aef07c-fa7f-4143-9a7a-1e1bc8477b82">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{enteBenefNazioneBeneficiario}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="287" y="296" width="252" height="12" backcolor="#D5E7EF" uuid="cc2b6dbc-8a3a-476b-b7d3-6e287afd266c">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$P{soggVersIdUnivVersCodiceIdUnivoco}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<bottomPen lineWidth="0.6" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[SOGGETTO VERSANTE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="161" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="6bb72749-a080-4938-a831-70498a4b8cab">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[ANAGRAFICA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="245" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="2ada5b84-4bc5-4963-8731-b1cacc4670b1">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CIVICO:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="185" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="8487cccc-cf9f-4f17-836a-48c9a828cb5d">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CODICE UNIVOCO:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="209" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="51e6f1ff-8e9d-4a66-adb0-be396e353563">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[NAZIONE:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="197" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="200d8fde-7488-44fb-b77f-2fff6ef80450">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[EMAIL:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="233" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="3f3363f9-61ea-4e2d-a272-8a6efd394a54">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[INDIRIZZO:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="173" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="f550d40e-1130-42e8-a9b8-c87f496dc43d">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[TIPO:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="287" y="221" width="85" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="a8c1d68d-c468-443c-9aec-d15d5d613c04">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[LOCALITÀ:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="456" y="209" width="48" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="b495f46b-f0a6-44dc-bcd4-1174bda5679f">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[PROVINCIA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="476" y="245" width="28" height="12" forecolor="#666666" backcolor="#FFFFFF" uuid="660cae0f-5b66-434d-9747-7a4595296bb6">
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[CAP:]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="438" width="538" height="1" uuid="f3c87a72-8a5f-4d6a-9b79-647d8d53f0b5">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<property name="local_mesure_unitheight" value="mm"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="389" y="123" width="149" height="12" uuid="5805108b-5638-4a86-936f-9f89a8e18b69">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$P{stazioneRichiedente}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{stazioneRichiedente}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="389" y="111" width="149" height="12" uuid="44c98432-c63d-434c-ba29-1d2474d6bed2">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{idMessaggioRicevuta}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="389" y="99" width="149" height="12" uuid="4f4017cd-5346-40e5-912e-2236b8da2fdc">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dataOraMessaggioRicevuta}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="287" y="111" width="99" height="12" forecolor="#006699" uuid="48de0b72-7128-45ca-8fd9-930bf14134cb"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[IDENTIFICATIVO RICEVUTA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="287" y="99" width="99" height="12" forecolor="#006699" uuid="30db3cf5-3e3c-46e1-b396-8eba6c46e2c3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DATA RICEVUTA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="287" y="123" width="99" height="12" forecolor="#006699" uuid="21577f17-72c9-4729-92bc-29e99eab0a96">
+					<printWhenExpression><![CDATA[$P{stazioneRichiedente}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[STAZIONE RICHIEDENTE:]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="64" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="mm"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="460" y="36" width="79" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="c9d996d3-ad78-4603-bf6b-582a1d96a22d"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{COMMISSIONI_APPLICATE_PSP}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="460" y="24" width="79" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="bdf11ad5-93e3-44da-be98-0e9f65c201a0"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Commissioni]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="356" y="0" width="183" height="12" backcolor="#D5E7EF" uuid="bba87d95-856e-4a23-9f9a-f4b8aadde521"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Id Univoco Riscossione]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="262" y="0" width="94" height="12" backcolor="#D5E7EF" uuid="364f2275-47d5-495e-ba49-d5d6afe458de">
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Data pagamento]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="161" y="0" width="101" height="12" backcolor="#D5E7EF" uuid="0da6560a-0214-4f46-a39c-e5814e63bacc">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Importo pagato]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="356" y="12" width="183" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="85004ce1-9f3e-4f43-8b03-1cbe25b2b1e5"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{IDENTIFICATIVO_UNIV_RISCOSSIONE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="161" y="12" width="101" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="b78c4b9f-456f-4cc2-af6c-8cdf721084a4">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["€ "+$F{IMPORTO_PAGATO}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="0" y="12" width="161" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="33bb0940-a932-43fb-ba77-f78ef66b89ed">
+					<property name="local_mesure_unitheight" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{IUD}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="0" y="0" width="161" height="12" backcolor="#D5E7EF" uuid="aea68349-cab3-46f9-99a6-915d037ad631">
+					<property name="local_mesure_unitx" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Id Univoco Dovuto]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="328" y="36" width="132" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="421a9510-4a84-43d0-9860-fa028f721580"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DATI_SPECIFICI_RISCOSSIONE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="328" y="24" width="132" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="37cbc3b4-d559-49c5-87ce-054baaf7338e"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Dati Specifici Riscossione]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="262" y="12" width="94" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="81a32c79-0053-48c1-81e3-878051d36ed7">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DATA_PAGAMENTO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="36" width="90" height="12" backcolor="#D5E7EF" uuid="5fc0eca5-cce8-42b7-b2b8-ecc416837010">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Causale versamento]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="90" y="36" width="238" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="d21a19dd-2608-4e12-bb64-0409f5679f2d">
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CAUSALE_VERSAMENTO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="24" width="60" height="12" backcolor="#D5E7EF" uuid="29f5d125-99c9-4ae6-8c2b-dfa4408dad32">
+					<property name="local_mesure_unitwidth" value="mm"/>
+					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+				</reportElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tipo Dovuto]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="60" y="24" width="268" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="aadcc0a6-38e1-49dc-b6ea-5c4ac9f62fca"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans Mono" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TIPO_DOVUTO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="mm"/>
+		</band>
+	</pageFooter>
+</jasperReport>

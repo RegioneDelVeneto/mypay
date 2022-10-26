@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    k8tz.io/injected: "true"
+    k8tz.io/timezone: Europe/Rome
+  name: mypay4-frontend-operatore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mypay4
+      run: mypay4-frontend-operatore
+  template:
+    metadata:
+      annotations:
+        k8tz.io/injected: "true"
+        k8tz.io/timezone: Europe/Rome
+        kubectl.kubernetes.io/default-container: mypay4-frontend
+      labels:
+        app: mypay4
+        run: mypay4-frontend-operatore
+    spec:
+      containers:
+      - env:
+        - name: FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX
+          value: mypay4_frontend_operatore.access
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: e45-fluent-config-secret
+        image: _REGISTRY_ENTE_/common/mypay4-fluentd:latest
+        imagePullPolicy: Always
+        name: fluentd-agent
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 1Gi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /mypay4/logs
+          name: access-logs
+        - mountPath: /fluentd/etc
+          name: mypay4-fe-fluent-config
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      - env:
+        - name: TZ
+          value: Europe/Rome
+        image: _REGISTRY_ENTE_/mypay4/mypay4-fe:latest
+        imagePullPolicy: Always
+        name: mypay4-frontend
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8443
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 0.1m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /mypay4/logs
+          name: access-logs
+        - mountPath: /mypay4/mypay4-fe-operatore/assets/conf/environment.json
+          name: mypay4-fe-operatore-configs
+          subPath: environment-operatore.json
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      imagePullSecrets:
+      - name: registry-_ENTE_-secret
+      securityContext:
+        fsGroup: 9001
+        runAsGroup: 9001
+        runAsUser: 9001
+      volumes:
+      - emptyDir: {}
+        name: access-logs
+      - configMap:
+          name: mypay4-fe-operatore-configs
+        name: mypay4-fe-operatore-configs
+      - configMap:
+          name: mypay4-fe-fluent-config
+        name: mypay4-fe-fluent-config
+      - hostPath:
+          path: /usr/share/zoneinfo
+        name: k8tz

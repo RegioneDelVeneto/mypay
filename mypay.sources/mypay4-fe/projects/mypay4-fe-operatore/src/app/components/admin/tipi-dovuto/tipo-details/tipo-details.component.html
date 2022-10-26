@@ -1,0 +1,49 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container"
+    fxLayout="column"
+    fxLayoutGap="20px">
+
+  <div class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+  </div>
+
+
+  <h2 class="mat-h2 text-center">
+    <img *ngIf="thumbLogoEnte" class="thumbnail-ente" src="{{'data:image/png;base64,'+thumbLogoEnte}}" alt="Immagine Ente" aria-hidden="true">
+    <span class="h2-ente">{{deNomeEnte}}</span> - <span class="h2-tipo-dovuto">{{deTipo}}</span>
+  </h2>
+
+  <div class="w100 mypay-search-form">
+    <mat-tab-group [selectedIndex]="selected.value" (selectedTabChange)="tabOnClick($event)">
+      <mat-tab label="Anagrafica">
+        <tipo-anagrafica (codTipoOutput)="setCodTipo($event)"></tipo-anagrafica>
+      </mat-tab>
+      <mat-tab label="Lista Operatori">
+        <app-utenti></app-utenti>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <div class="container" fxFlex fxLayout="row" fxLayoutGap="10px">
+    <button *ngIf="tabIndex > 0" fxFlex="10" type="button" mat-flat-button (click)="goBack()" color="primary">Indietro</button>
+    <span class="flex-spacer"></span>
+  </div>
+</div>

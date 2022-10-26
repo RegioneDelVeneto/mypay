@@ -1,0 +1,56 @@
+package routines;
+
+import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.util.Map;
+
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRStyle;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
+
+import org.apache.commons.lang3.StringUtils;
+
+
+public class JobStringManage {
+	
+    /**
+     * getValue: Ritorna null se stringa isBlank.
+     * 
+     * {param} string("world") input: The string need to return.
+     * 
+     * 
+     */
+    public static String getValue(String message) {    
+    	if (StringUtils.isNotBlank(message)) 
+			return message;
+        return null;
+    }
+    
+    public static String tagliaStr(String message, int width) {
+		return StringUtils.abbreviate(message, width);
+	}
+    
+    public static String getFormatStringToDouble(Double val){
+		Locale loc = Locale.UK;
+		NumberFormat nf = NumberFormat.getNumberInstance(loc);
+		DecimalFormat df = (DecimalFormat)nf;
+		df.applyPattern("###.##");
+		return df.format(val);
+    }
+    
+    public static String formatDecimal(Double number) { 
+    	if (number != null) {
+			return String.format("%15.2f", number).trim();
+		}
+    	return null;	
+    }
+}

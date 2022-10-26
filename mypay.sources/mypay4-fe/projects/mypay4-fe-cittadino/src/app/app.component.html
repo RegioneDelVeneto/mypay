@@ -1,0 +1,94 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<app-header *ngIf="coreElemActivated.header"></app-header>
+<mat-sidenav-container *ngIf="coreElemActivated.sidenav" aria-label="Pagina" role="main" style="height: calc(100% - 64px)" [hasBackdrop]="false">
+  <mat-sidenav #sidenav mode="over" aria-label="Sidebar" role="navigation"
+  [fixedInViewport]="true">
+    <div class="side-user-item" role="navigation" cdkTrapFocus>
+      <fa-icon [icon]="iconUser" size="3x" class="padding-right side-menu-item"
+      style="vertical-align: middle;" aria-label="Immagine del profilo" tabindex="0"></fa-icon>
+      <span *ngIf="userService.isLogged()" class="side-menu-item" style="overflow-y: auto"  role="textbox" aria-labelledby="Accesso"><mat-label id="Accesso">Ciao, {{userService.getLoggedUserString()}}</mat-label></span>
+      <button mat-button *ngIf="!userService.isLogged()" (click)="openLoginForm()" class="side-menu-item clickable" aria-label="Accedi">Accedi</button>
+      <button mat-icon-button (click)="closeSidenav()" style="margin-left:100px" class="side-menu-item">
+        <fa-icon [icon]="iconTimes" size="2x" aria-label="Chiudi Menu"></fa-icon>
+      </button>
+    </div>
+
+    <mat-list role="list">
+      <mat-list-item *ngFor="let item of menuService.getMenuFirstLevel(userService.isLogged())" style="overflow-y: auto"
+      aria-labelledby="{{item.getAriaLabel()}}"
+      role="listitem">
+        <button mat-button [class]="item.active?'active-first':null"
+           (click)="onClickFirstLevel(item)"
+           aria-label="{{item.getSidebarLabel()}}"
+           role="button">
+          <mat-label class="side-user-icon">
+            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+            <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon" size="lg" aria-hidden="true"></fa-icon>
+          </mat-label>
+          <mat-label id="{{item.getAriaLabel()}}" class="side-menu-item">{{item.getSidebarLabel()}}</mat-label>
+        </button>
+      </mat-list-item>
+      <mat-list-item *ngIf="userService.isLogged()" style="overflow-y: auto"
+      aria-labelledby="Esci"
+      role="listitem">
+        <button mat-button (click)="logout()">
+          <mat-label class="side-user-icon"> <fa-icon [icon]="iconSignOut" size="lg" aria-hidden="true"></fa-icon></mat-label>
+          <mat-label id="Esci" class="side-menu-item">Esci</mat-label>
+        </button>
+      </mat-list-item>
+    </mat-list>
+  </mat-sidenav>
+  <mat-sidenav-content class="pb-3" fullscreen aria-label="Main" role="region" style="overflow: auto;">
+    <div>
+      <my-pay-breadcrumbs></my-pay-breadcrumbs>
+    </div>
+    <ng-container *ngTemplateOutlet="mainContentTemplate"></ng-container>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<ng-container *ngIf="!coreElemActivated.sidenav">
+  <div fullscreen aria-label="Main" role="region" style="overflow: auto;">
+    <ng-container *ngTemplateOutlet="mainContentTemplate"></ng-container>
+  </div>
+</ng-container>
+
+<ng-template #mainContentTemplate>
+  <div class="main-container"
+      fxLayout="row wrap"
+      fxLayoutAlign="center start"
+      aria-label="Content" id="Content">
+    <router-outlet></router-outlet>
+    <div *ngIf="missingNeededCookieConsent" class="container py-4" role="region" aria-label="Info Funzionalità disabilitata per scelta cookie">
+      <span id="cookieConsentDisabledInfo">Questa funzionalità non è disponibile perchè non è stato consentito
+        l'uso dei cookie necessari al funzionamento della pagina.
+        Clicca <a [routerLink]="" (click)="resetCookieConsent()">qui</a> per modificare le impostazioni di consenso dei cookie.</span>
+    </div>
+  </div>
+  <div *ngIf="captchaActivated" class="container captcha pt-2" role="region" aria-label="Info Captcha">
+    <span id="captcha">Questo sito è protetto da reCAPTCHA e si applicano le
+    <a href="https://policies.google.com/privacy">Norme della Privacy</a> e i
+    <a href="https://policies.google.com/terms">Termini di servizio</a> di Google.</span>
+  </div>
+</ng-template>
+
+<app-footer *ngIf="coreElemActivated.footer"></app-footer>
+
+

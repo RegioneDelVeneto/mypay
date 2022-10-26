@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypay4-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 115Gi
+  storageClassName: rook-cephfs-external
+  volumeMode: Filesystem
+  volumeName: pvc-8d3bd3d9-a0ee-45fe-bc4d-147adde9de9b
+

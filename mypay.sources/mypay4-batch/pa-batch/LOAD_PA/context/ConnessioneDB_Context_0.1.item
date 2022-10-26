@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType confirmationNeeded="false" name="Default">
+    <contextParameter comment="" name="conn_db" prompt="conn_db?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_host" prompt="conn_host?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_port" prompt="conn_port?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_psw" prompt="conn_psw?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_schema" prompt="conn_schema?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_usr" prompt="conn_usr?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType confirmationNeeded="false" name="local">
+    <contextParameter comment="" name="conn_db" prompt="conn_db?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_host" prompt="conn_host?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_port" prompt="conn_port?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_psw" prompt="conn_psw?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_schema" prompt="conn_schema?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="conn_usr" prompt="conn_usr?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

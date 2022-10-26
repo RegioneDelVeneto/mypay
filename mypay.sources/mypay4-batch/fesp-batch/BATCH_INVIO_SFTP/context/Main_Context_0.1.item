@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" confirmationNeeded="false" name="Default">
+  <contextParameter comment="" name="directory_talend" prompt="directory_talend?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="directory_root_enti" prompt="directory_root_enti?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="directory_root_elaborazione" prompt="directory_root_elaborazione?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="numero_minuti_avviso" prompt="numero_minuti_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+  <contextParameter comment="" name="numero_minuti_trigger_batch" prompt="numero_minuti_trigger_batch?" promptNeeded="false" type="id_Integer" value="null"/>
+  <contextParameter comment="" name="codice_ipa_ente_mybox" prompt="codice_ipa_ente_mybox?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="folder_out" prompt="folder_out?" promptNeeded="false" type="id_String" value="null"/>
+</talendfile:ContextType>

@@ -1,0 +1,12 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: trigger-auth-kedartemis
+spec:
+  secretTargetRef:
+    - parameter: username
+      name: artemis-user-creds-secret
+      key: ARTEMIS_USER
+    - parameter: password
+      name: artemis-user-creds-secret
+      key: ARTEMIS_PASSWORD

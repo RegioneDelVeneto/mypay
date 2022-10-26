@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 18-mar-2019 11.26.04 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRrErDettaglio" table="mygov_rr_er_dettaglio">
+        <id name="mygovRrErDettaglioId" type="java.lang.Long">
+            <column name="mygov_rr_er_dettaglio_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_rr_er_dettaglio_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <many-to-one name="mygov_rr_er" class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRrEr" fetch="select">
+            <column name="mygov_rr_er_id" not-null="true" />
+        </many-to-one>
+        <property name="numRrDatiSingRevSingoloImportoRevocato" type="big_decimal">
+            <column name="num_rr_dati_sing_rev_singolo_importo_revocato" precision="12" not-null="true" />
+        </property>
+        <property name="codRrDatiSingRevIdUnivocoRiscossione" type="string">
+            <column name="cod_rr_dati_sing_rev_id_univoco_riscossione" length="35" not-null="true" />
+        </property>
+        <property name="deRrDatiSingRevCausaleRevoca" type="string">
+            <column name="de_rr_dati_sing_rev_causale_revoca" length="140" not-null="true" />
+        </property>
+        <property name="deRrDatiSingRevDatiAggiuntiviRevoca" type="string">
+            <column name="de_rr_dati_sing_rev_dati_aggiuntivi_revoca" length="140" not-null="true" />
+        </property>
+        <property name="numErDatiSingRevSingoloImportoRevocato" type="big_decimal">
+            <column name="num_er_dati_sing_rev_singolo_importo_revocato" precision="12" />
+        </property>
+        <property name="codErDatiSingRevIdUnivocoRiscossione" type="string">
+            <column name="cod_er_dati_sing_rev_id_univoco_riscossione" length="35" />
+        </property>
+        <property name="deErDatiSingRevCausaleRevoca" type="string">
+            <column name="de_er_dati_sing_rev_causale_revoca" length="140" />
+        </property>
+        <property name="deErDatiSingRevDatiAggiuntiviRevoca" type="string">
+            <column name="de_er_dati_sing_rev_dati_aggiuntivi_revoca" length="140" />
+        </property>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

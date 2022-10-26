@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mypay4-frontend-cittadino-service
+spec:
+  selector:
+    run: mypay4-frontend-cittadino
+    app: mypay4
+  ports:
+    - port: 8443
+      name: https
+    - port: 8080
+      name: http

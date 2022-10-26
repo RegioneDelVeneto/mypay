@@ -1,0 +1,76 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+@import '../../../../_variables';
+
+.mat-card {
+  background-color: $primary-lightest;
+  min-height: 180px;
+  height: 180px;
+  max-height: 180px;
+  min-width: 350px;
+  width: inherit;
+  margin-bottom: 15px;
+  margin-right: 15px !important;
+}
+
+.mat-card.placeholder-card {
+  background-color: unset;
+  box-shadow: unset;
+}
+
+::ng-deep .mat-card-header-text {
+  width: 100%;
+}
+
+.mat-card-title {
+  font-weight: bolder;
+}
+
+.card-action-right {
+  position: absolute;
+  top: 5px;
+  right: 0;
+}
+
+.mat-card-actions {
+  display: inline-block;
+  align-items: flex-end;
+}
+
+.myp4-center {
+  text-align: center;
+}
+
+.myp4-singleline {
+  white-space: nowrap;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+.font-accent {
+  color: mat-color($mypay4-fe-operatore-accent, 900);
+}
+
+.reduced-line-height {
+  line-height: mat-line-height($mypay4-fe-operatore-typography, body-1) * 0.8;
+}
+
+.reduced-font-size {
+  font-size: mat-font-size($mypay4-fe-operatore-typography, body-1) * 0.8;
+}

@@ -1,0 +1,89 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+@import '../my-pay-table-cittadino/my-pay-table-cittadino.component.scss';
+
+@include mat-table-columns((
+  thumbEnte: (width: 6em),
+  deEnte: (width: 20%),
+  deTipoDovuto: (width: 20%),
+  causale: (width: 40%, overflow: ellipsis),
+  importo: (width: 6em, justify: right)
+));
+
+.mat-card {
+  // border: 1px solid $primary;
+  // border-radius: unset;
+  // box-shadow: unset;
+  margin-bottom: 10px;
+  background-color: $primary-lightest;
+}
+
+.mat-expansion-panel {
+  margin-top: 10px;
+  background-color: unset;
+  box-shadow: unset;
+  border: 1px solid #0000001f;
+}
+
+.mat-accordion>.mat-expansion-panel-spacing:first-child{
+  margin-top: 10px;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-start,
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-gap,
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-end {
+  background-color: $white;
+}
+
+.label_indirizzo + .label_indirizzo {
+  padding-left: 15px;
+}
+
+.tipo-persona-group{
+  padding: 0 8px 36px 8px;
+}
+
+@media (max-width: 960px) {
+  .mat-button-bar {
+    .mat-button-base + .mat-button-base {
+      margin-left: unset;
+    }
+    .mat-button-base {
+      margin-bottom: 15px;
+    }
+  }
+  .tipo-persona-group{
+    padding-bottom: 24px;
+  }
+}
+
+::ng-deep .mat-step-icon-selected {
+  background-color: $accent !important;
+}
+
+//disable stepper navigation on header
+::ng-deep .mat-horizontal-stepper-header{
+  pointer-events: none !important;
+}
+
+::ng-deep .mat-step-header.cdk-keyboard-focused,
+::ng-deep .mat-step-header.cdk-program-focused,
+::ng-deep .mat-step-header:hover {
+  background-color: unset;
+}
+

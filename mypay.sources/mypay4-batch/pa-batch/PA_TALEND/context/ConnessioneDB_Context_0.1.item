@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType xmi:id="_aXi7APm4Eequku7963-Lrg" confirmationNeeded="false" name="Default">
+    <contextParameter xmi:id="_aXjiEPm4Eequku7963-Lrg" comment="" name="conn_host" prompt="conn_host?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiEfm4Eequku7963-Lrg" comment="" name="conn_port" prompt="conn_port?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiEvm4Eequku7963-Lrg" comment="" name="conn_db" prompt="conn_db?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiE_m4Eequku7963-Lrg" comment="" name="conn_schema" prompt="conn_schema?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiFPm4Eequku7963-Lrg" comment="" name="conn_usr" prompt="conn_usr?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiFfm4Eequku7963-Lrg" comment="" name="conn_psw" prompt="conn_psw?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType xmi:id="_aXjiFvm4Eequku7963-Lrg" confirmationNeeded="false" name="locale">
+    <contextParameter xmi:id="_aXjiF_m4Eequku7963-Lrg" comment="" name="conn_host" prompt="conn_host?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiGPm4Eequku7963-Lrg" comment="" name="conn_port" prompt="conn_port?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiGfm4Eequku7963-Lrg" comment="" name="conn_db" prompt="conn_db?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiGvm4Eequku7963-Lrg" comment="" name="conn_schema" prompt="conn_schema?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiG_m4Eequku7963-Lrg" comment="" name="conn_usr" prompt="conn_usr?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aXjiHPm4Eequku7963-Lrg" comment="" name="conn_psw" prompt="conn_psw?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

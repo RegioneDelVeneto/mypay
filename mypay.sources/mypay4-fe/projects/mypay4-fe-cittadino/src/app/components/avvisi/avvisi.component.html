@@ -1,0 +1,104 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpPage>
+  <div>
+    <p>Se hai ricevuto un avviso di pagamento compila il seguente form, riportando esattamente i dati indicati nell'avviso
+      di pagamento.</p>
+      <p>Se stai pagando un avviso di pagamento intestato a un altro soggetto, seleziona "Altro soggetto" e compila il campo
+      "Codice fiscale / partita IVA destinatario".</p>
+      <p>Se l'intestatario dell'avviso di pagamento non dispone di un codice fiscale, seleziona l'apposita casella e compila il
+      campo "Anagrafica intestatario" riportando esattamente i dati indicati nell'avviso.</p>
+  </div>
+</ng-template>
+
+<ng-template #helpFieldPageCF>
+  <div>
+    <p>Campo obbligatorio in caso di emissione avviso a carico soggetti privi di Codice Fiscale / Partita IVA.
+      Riportare esattamente l'anagrafica del destinatario avviso, come riportata nell'avviso di pagamento</p>
+  </div>
+</ng-template>
+
+<div class="container">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+      <p class="mat-h3">Se hai ricevuto un avviso di pagamento compila il seguente form <my-pay-help [template]="helpPage"></my-pay-help></p>
+      <p class="mat-h3">Non riesci a trovare l'avviso su MyPay? Forse l'ente che lo ha emesso non aderisce a MyPay. Prova direttamente sul sito di PagoPA <a href="https://checkout.pagopa.it/">"https://checkout.pagopa.it/"</a></p>
+    </div>
+
+    <ng-container *ngIf="hasConsent">
+      <div class="w100 mypay-search-form">
+        <form novalidate #sForm="ngForm" [formGroup]="form" (ngSubmit)="onSubmit()">
+          <mat-card #cardSearch class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+            <mat-card-content class="white">
+              <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                <mat-label id="sr-IUV" class="sr-only">Codice avviso / IUV</mat-label>
+                <mat-form-field fxFlex="100%" fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                  <mat-label>Codice avviso / IUV</mat-label>
+                  <input aria-labelledby="sr-IUV" required matInput formControlName="numeroAvviso" (focusout)="removeSpaces('numeroAvviso')">
+                  <mat-error *ngIf="formErrors['numeroAvviso']">{{ formErrors.numeroAvviso }}</mat-error>
+                </mat-form-field>
+                <div *ngIf="logged" fxFlex="100%" fxFlex.gt-sm="initial" fxLayout="column" class="tipo-persona-group">
+                  <span fxFlex class="mat-caption">Destinatario avviso</span>
+                  <div fxFlex>
+                  <mat-button-toggle-group (change)="onChangeTipoPersona($event)" formControlName="tipoPersona">
+                    <mat-button-toggle value="logged" >{{ loggedUserName }}</mat-button-toggle>
+                    <mat-button-toggle value="other">Altro soggetto</mat-button-toggle>
+                  </mat-button-toggle-group></div>
+                </div>
+                <mat-checkbox fxFlex="100%" fxFlex.gt-sm="18em" class="pl-4" formControlName="cfAnonimo"
+                  (change)="cfAnonimoOnChange($event.checked)">Non ho codice fiscale / partita IVA</mat-checkbox>
+                <div *ngIf="!cfAnonimoChecked" fxFlex="100%" fxFlex.gt-sm="18em" fxLayout="column">
+                  <mat-label id="sr-CodFis" class="sr-only">Codice fiscale / Partita IVA destinatario avviso</mat-label>
+                  <mat-form-field class="cod-fiscale" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                    <mat-label aria-hidden="true">Codice fiscale / Partita IVA destinatario avviso</mat-label>
+                    <input aria-labelledby="sr-CodFis" matInput required formControlName="codIdUnivoco" (focusout)="removeSpaces('codIdUnivoco')">
+                    <mat-error *ngIf="formErrors['codIdUnivoco']">{{ formErrors.codIdUnivoco }}</mat-error>
+                  </mat-form-field>
+                </div>
+                <mat-label id="sr-Destin" class="sr-only">Anagrafica destinatario avviso</mat-label>
+                <mat-form-field *ngIf="cfAnonimoChecked" class="cod-fiscale" fxFlex="100%" fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                  <mat-label aria-hidden="true">Anagrafica destinatario avviso</mat-label>
+                  <input aria-labelledby="sr-Destin" matInput required formControlName="anagrafica">
+                  <mat-error *ngIf="formErrors['anagrafica']">{{ formErrors.anagrafica }}</mat-error>
+                </mat-form-field>
+                <my-pay-help-field *ngIf="cfAnonimoChecked" [template]="helpFieldPageCF"></my-pay-help-field>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <div fxLayout="row wrap" fxLayoutAlign="end center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+                <button type="button" mat-flat-button (click)="onReset()" color="primary">Reset</button>
+                <button type="submit" mat-flat-button [disabled]="form.invalid || blockingError" color="accent">Cerca</button>
+              </div>
+            </mat-card-actions>
+          </mat-card>
+        </form>
+      </div>
+
+      <p *ngIf="hasSearched && tableData?.length==0">Nessun dato trovato con i criteri di ricerca impostati.</p>
+      <my-pay-table-cittadino [tableData]="tableData" [tableColumns]="tableColumns" [parentRef]="this"
+        [rowStyle]="rowStyleFun">
+      </my-pay-table-cittadino>
+    </ng-container>
+
+  </div>
+</div>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:TalendMetadata="http://www.talend.org/metadata/connection/2010" xmlns:orgomg.cwm.resource.relational="http:///orgomg/cwm/resource/relational.ecore" xmlns:relational="http://www.talend.org/cwm/resource/relational/2010">
+  <TalendMetadata:DatabaseConnection xmi:id="_5go0QJ3rEeK33r4ypFfqKA" name="pg_local" id="_5gfDQJ3rEeK33r4ypFfqKA" label="pg_local" dataPackage="_vt65oLaFEeOI2tGPe07jsw _vt65oraFEeOI2tGPe07jsw" DatabaseType="PostgreSQL" DriverClass="org.postgresql.Driver" URL="jdbc:postgresql://localhost:5432/user_comondw" dbVersionString="PRIOR_TO_V9" Port="5432" Username="postgres" Password="enc:system.encryption.key.v1:q3hAFXneqrO2bMlV4zYqQGLuEGrOeuyqBmJUcjmA8JJO4PHX" ServerName="localhost" DatasourceName="" FileFieldName="" SID="user_comondw" SqlSynthax="SQL Syntax" DbmsId="postgres_id" ProductId="POSTGRESQL" AdditionalParams="" StandardSQL="true" SQLMode="false" UiSchema="public">
+    <taggedValue xmi:id="_5go0QZ3rEeK33r4ypFfqKA" tag="Using URL" value="jdbc:postgresql://localhost:5432/mygov_portale_pagamenti"/>
+    <taggedValue xmi:id="_5hOqIJ3rEeK33r4ypFfqKA" tag="package filter" value=""/>
+    <taggedValue xmi:id="_5it34J3rEeK33r4ypFfqKA" tag="Status" value=""/>
+    <taggedValue xmi:id="_5it34Z3rEeK33r4ypFfqKA" tag="Version" value="0.1"/>
+    <taggedValue xmi:id="_5it34p3rEeK33r4ypFfqKA" tag="Purpose" value=""/>
+    <taggedValue xmi:id="_5it3453rEeK33r4ypFfqKA" tag="Description" value=""/>
+    <taggedValue xmi:id="_5it35J3rEeK33r4ypFfqKA" tag="Author" value=""/>
+    <taggedValue xmi:id="_5it35Z3rEeK33r4ypFfqKA" tag="otherParameter"/>
+    <taggedValue xmi:id="_5it35p3rEeK33r4ypFfqKA" tag="DB ProductName" value="PostgreSQL"/>
+    <taggedValue xmi:id="_5it3553rEeK33r4ypFfqKA" tag="DB ProductVersion" value="8.4.16"/>
+    <taggedValue xmi:id="_5it36J3rEeK33r4ypFfqKA" tag="DB IdentifierQuoteString" value="&quot;"/>
+    <taggedValue xmi:id="_NZ0pMLaDEeOI2tGPe07jsw" tag="Is Conn Need Reload" value="true"/>
+  </TalendMetadata:DatabaseConnection>
+  <orgomg.cwm.resource.relational:Catalog xmi:id="_vt65oLaFEeOI2tGPe07jsw" name="mygov_portale_pagamenti" dataManager="_5go0QJ3rEeK33r4ypFfqKA">
+    <ownedElement xsi:type="orgomg.cwm.resource.relational:Schema" xmi:id="_vt65obaFEeOI2tGPe07jsw" name="public"/>
+  </orgomg.cwm.resource.relational:Catalog>
+  <orgomg.cwm.resource.relational:Catalog xmi:id="_vt65oraFEeOI2tGPe07jsw" name="user_comondw" dataManager="_5go0QJ3rEeK33r4ypFfqKA">
+    <ownedElement xsi:type="orgomg.cwm.resource.relational:Schema" xmi:id="_vt65o7aFEeOI2tGPe07jsw" name="public">
+      <ownedElement xsi:type="relational:TdTable" xmi:id="_vt65pLaFEeOI2tGPe07jsw" name="dw_common_sesso" id="_U5BlsLaDEeOI2tGPe07jsw" label="dw_common_sesso" tableType="TABLE">
+        <taggedValue xmi:id="_vt65pbaFEeOI2tGPe07jsw" tag="Comment" value=""/>
+        <feature xsi:type="relational:TdColumn" xmi:id="_vt65praFEeOI2tGPe07jsw" name="flg_sesso" label="flg_sesso" length="1" sourceType="BPCHAR" talendType="id_String" key="true" nullable="false">
+          <taggedValue xmi:id="_vt65p7aFEeOI2tGPe07jsw" tag="Comment" value=""/>
+          <initialValue xsi:type="relational:TdExpression" xmi:id="_vt65qLaFEeOI2tGPe07jsw" language="COLUMN_DEF"/>
+          <sqlDataType xmi:id="_vt65qbaFEeOI2tGPe07jsw" name="BPCHAR" numericPrecisionRadix="10" javaDataType="1"/>
+        </feature>
+        <feature xsi:type="relational:TdColumn" xmi:id="_vt65qraFEeOI2tGPe07jsw" name="de_sesso" label="de_sesso" length="30" sourceType="VARCHAR" talendType="id_String">
+          <taggedValue xmi:id="_vt65q7aFEeOI2tGPe07jsw" tag="Comment" value=""/>
+          <initialValue xsi:type="relational:TdExpression" xmi:id="_vt65rLaFEeOI2tGPe07jsw" language="COLUMN_DEF"/>
+          <sqlDataType xmi:id="_vt65rbaFEeOI2tGPe07jsw" name="VARCHAR" numericPrecisionRadix="10" javaDataType="12" nullable="columnNullable"/>
+        </feature>
+      </ownedElement>
+      <ownedElement xsi:type="relational:TdTable" xmi:id="_vt65rraFEeOI2tGPe07jsw" name="dw_prova" id="_vbrTELaFEeOI2tGPe07jsw" label="dw_prova" tableType="TABLE">
+        <taggedValue xmi:id="_vt65r7aFEeOI2tGPe07jsw" tag="Comment" value=""/>
+        <feature xsi:type="relational:TdColumn" xmi:id="_vt65sLaFEeOI2tGPe07jsw" name="flg_prova" label="flg_prova" length="1" sourceType="BPCHAR" talendType="id_String" nullable="false">
+          <taggedValue xmi:id="_vt65sbaFEeOI2tGPe07jsw" tag="Comment" value=""/>
+          <initialValue xsi:type="relational:TdExpression" xmi:id="_vt65sraFEeOI2tGPe07jsw" language="COLUMN_DEF"/>
+          <sqlDataType xmi:id="_vt65s7aFEeOI2tGPe07jsw" name="BPCHAR" numericPrecisionRadix="10" javaDataType="1"/>
+        </feature>
+        <feature xsi:type="relational:TdColumn" xmi:id="_vt65tLaFEeOI2tGPe07jsw" name="de_prova" label="de_prova" length="30" sourceType="VARCHAR" talendType="id_String">
+          <taggedValue xmi:id="_vt65tbaFEeOI2tGPe07jsw" tag="Comment" value=""/>
+          <initialValue xsi:type="relational:TdExpression" xmi:id="_vt65traFEeOI2tGPe07jsw" language="COLUMN_DEF"/>
+          <sqlDataType xmi:id="_vt65t7aFEeOI2tGPe07jsw" name="VARCHAR" numericPrecisionRadix="10" javaDataType="12" nullable="columnNullable"/>
+        </feature>
+        <feature xsi:type="relational:TdColumn" xmi:id="_vt65uLaFEeOI2tGPe07jsw" name="mygov_carrello_id" label="mygov_carrello_id" length="19" sourceType="INT8" talendType="id_Long">
+          <taggedValue xmi:id="_vt65ubaFEeOI2tGPe07jsw" tag="Comment" value=""/>
+          <initialValue xsi:type="relational:TdExpression" xmi:id="_vt65uraFEeOI2tGPe07jsw" language="COLUMN_DEF"/>
+          <sqlDataType xmi:id="_vt65u7aFEeOI2tGPe07jsw" name="INT8" numericPrecisionRadix="10" javaDataType="-5" nullable="columnNullable"/>
+        </feature>
+      </ownedElement>
+    </ownedElement>
+  </orgomg.cwm.resource.relational:Catalog>
+</xmi:XMI>

@@ -1,0 +1,146 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>portal-schema</artifactId>
+	<packaging>jar</packaging>
+	<groupId>it.regioneveneto.portal</groupId>
+	<version>1.0</version>
+
+	<!--
+	<parent>
+		<groupId>it.regioneveneto.portal</groupId>
+		<artifactId>portal</artifactId>
+		<version>1.0</version>
+		<relativePath>../portal/pom.xml</relativePath>
+	</parent>
+	-->
+
+	<dependencies>
+		<dependency>
+			<groupId>xom</groupId>
+			<artifactId>xom</artifactId>
+			<version>1.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.4</version>
+		</dependency>
+		<!-- CACHE -->
+		<!--
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springmodules</groupId>
+			<artifactId>spring-modules-cache-patched</artifactId>
+			<version>0.9</version>
+		</dependency>
+		-->
+		<!-- TEST -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>2.5</version>
+			</extension>
+		</extensions>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>install-cache-patched</id>
+						<phase>validate</phase>
+						<configuration>
+							<file>${ws.900_1.path}/alfresco/alfresco/lib/spring-modules-cache-0.9-patched.jar</file>
+							<repositoryLayout>default</repositoryLayout>
+							<groupId>org.springmodules</groupId>
+							<artifactId>spring-modules-cache-patched</artifactId>
+							<version>0.9</version>
+							<packaging>jar</packaging>
+							<generatePom>true</generatePom>
+						</configuration>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>deploy</phase>
+						<configuration>
+							<tasks>
+								<sshexec trust="true" keyfile="${deploy.key}"
+									host="${deploy.host}" username="${deploy.user}" password="${deploy.pass}"
+									command="rm ${deploy.ws.path}/${project.artifactId}*"
+									failonerror="false">
+								</sshexec>
+
+								<scp trust="true" keyfile="${deploy.key}"
+									todir="${deploy.user}:${deploy.pass}@${deploy.host}:${deploy.ws.path}/${project.build.finalName}.${project.packaging}"
+									file="${project.build.directory}/${project.build.finalName}.${project.packaging}">
+								</scp>
+
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.ant</groupId>
+						<artifactId>ant-jsch</artifactId>
+						<version>1.7.1</version>
+					</dependency>
+					<dependency>
+						<groupId>com.jcraft</groupId>
+						<artifactId>jsch</artifactId>
+						<version>0.1.50</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+
+	</build>
+
+	<profiles>
+		<profile>
+			<id>test-esx</id>
+			<distributionManagement>
+				<repository>
+					<id>rospo-nexus</id>
+					<name>rospo-myp-releases</name>
+					<url>http://rospo-myp:8082/nexus/content/repositories/releases/</url>
+				</repository>
+				<snapshotRepository>
+					<id>rospo-nexus</id>
+					<name>rospo-myp-snapshots</name>
+					<url>http://rospo-myp:8082/nexus/content/repositories/snapshots/</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+	</profiles>
+</project>

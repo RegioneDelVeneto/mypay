@@ -1,0 +1,107 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<app-header></app-header>
+<mat-sidenav-container aria-label="Pagina" role="main" [hasBackdrop]="false">
+    <mat-sidenav #sidenav mode="side" aria-label="Sidebar" role="navigation"
+    [fixedInViewport]="true">
+    <div class="side-user-item" role="navigation" cdkTrapFocus tabindex="-1">
+      <fa-icon [icon]="iconUser" size="3x" class="padding-right side-menu-item"
+      style="vertical-align: middle;" aria-label="Immagine del profilo" tabindex="0"></fa-icon>
+      <mat-label *ngIf="userService.isLogged()" class="side-menu-item"
+        role="textbox" aria-label="Accesso">Ciao,{{userService.getLoggedUserString()}}</mat-label>
+      <button mat-button *ngIf="!userService.isLogged()" (click)="openLoginForm()" class="side-menu-item clickable"
+        aria-label="Accedi">Accedi</button>
+      <button mat-icon-button (click)="closeSidenav()" style="margin-left:50px" class="side-menu-item">
+        <fa-icon [icon]="iconTimes" size="2x" aria-label="Chiudi Menu"></fa-icon>
+      </button>
+    </div>
+
+    <div *ngIf="userService.isLogged()" class="container" fxLayout="column">
+
+    <mat-list-item>
+      <button fxFlex mat-button size="lg" (click)="toogleMainMenu()" role="button" class="side-menu-item text-left mt-3 clickable">
+        <mat-label> <fa-icon class="pr-1" [icon]="iconBars" aria-hidden="true"></fa-icon>Menu principale</mat-label>
+      </button>
+    </mat-list-item>
+      <mat-list fxFlex *ngIf="mainMenuOpen" role="list" >
+        <mat-list-item *ngFor="let item of menuService.getMainMenu()" style="overflow-y: auto" role="listitem">
+          <button mat-button [class]="item.active?'active-first':null" (click)="onClickMenu(item)">
+            <mat-label class="side-user-icon">
+              <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+              <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon"></fa-icon>
+            </mat-label>
+            <mat-label class="side-menu-item">{{item.getSidebarLabel()}}</mat-label>
+          </button>
+        </mat-list-item>
+      </mat-list>
+
+      <mat-label class="side-menu-item pl-3 mt-5" size="lg" tabindex="-1">MyPay 4</mat-label>
+
+      <mat-list fxFlex role="list">
+        <ng-container *ngFor="let item of menuService.getApplicationMenu()">
+          <mat-list-item *ngIf="item.auth" [class.active-first]="item.active" [class.disabled-link]="!item.url" (click)="onClickMenu(item)"
+          role="listitem">
+            <mat-label class="side-user-icon">
+              <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+              <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon"></fa-icon>
+            </mat-label>
+            <mat-label>{{item.getSidebarLabel()}}</mat-label>
+            <fa-icon *ngIf="item.submenu && item.submenu.length > 0" class="chevron" [class.chevron-opened]="item.opened" [icon]="iconChevronRight"></fa-icon>
+          </mat-list-item>
+          <mat-list *ngIf="item.opened && item.auth && item.submenu && item.submenu.length > 0" class="side-menu-item-submenu"
+            role="list">
+            <ng-container *ngFor="let subItem of item.submenu">
+              <mat-list-item *ngIf="subItem.auth" [class]="subItem.active?'active-first':null" role="listitem" (click)="onClickMenu(subItem)">
+                <mat-label class="side-user-icon">
+                  <img *ngIf="subItem.hasImgIcon()" [src]="subItem.icon" class="side-user-icon-img"/>
+                  <fa-icon *ngIf="subItem.hasFAIcon()" [icon]="subItem.icon"></fa-icon>
+                </mat-label>
+                <mat-label>{{ subItem.getSidebarLabel() }}</mat-label>
+              </mat-list-item>
+            </ng-container>
+          </mat-list>
+        </ng-container>
+      </mat-list>
+
+    <mat-list-item>
+      <button mat-button (click)="logout()" class="side-menu-item clickable">
+        <mat-label class="side-user-icon"> <fa-icon [icon]="iconSignOut" size="lg" aria-hidden="true"></fa-icon></mat-label>
+        <mat-label id="Esci" class="side-menu-item">Esci</mat-label>
+      </button>
+    </mat-list-item>
+
+  </div>
+
+  </mat-sidenav>
+
+  <mat-sidenav-content fullscreen aria-label="Main" role="region" style="overflow: auto;">
+    <div>
+      <my-pay-breadcrumbs></my-pay-breadcrumbs>
+    </div>
+    <div #mainContainerDiv class="main-container py-3"
+        fxLayout="row"
+        fxLayoutAlign="center start"
+        aria-label="Content" id="Content">
+        <router-outlet *ngIf="!overlayNeedEnte"></router-outlet>
+    </div>
+    <app-footer></app-footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+

@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    k8tz.io/injected: "true"
+    k8tz.io/timezone: Europe/Rome
+  name: fesp-batch-flusso-rendicontazione
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mypay4
+      job: batch
+      run: fesp-batch-flusso-rendicontazione
+  template:
+    metadata:
+      annotations:
+        k8tz.io/injected: "true"
+        k8tz.io/timezone: Europe/Rome
+        kubectl.kubernetes.io/default-container: fesp-batch-flusso-rendicontazione
+      labels:
+        app: mypay4
+        job: batch
+        run: fesp-batch-flusso-rendicontazione
+    spec:
+      containers:
+      - env:
+        - name: FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX
+          value: fesp_batch_flusso_rendicontazione.access
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: e45-fluent-config-secret
+        image: _REGISTRY_ENTE_/common/mypay4-fluentd:latest
+        imagePullPolicy: Always
+        name: fluentd-agent
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 1Gi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /var/log/batch
+          name: access-logs
+        - mountPath: /fluentd/etc
+          name: mypay4-batch-fluent-config
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      - command:
+        - /batch/bin/BatchFlussoRendicontazione_run.sh
+        env:
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: fesp-user-creds-secret
+        - secretRef:
+            name: mypay4-user-creds-secret
+        image: _REGISTRY_ENTE_/mypay4/fesp-batch-flusso-rendicontazione:latest
+        imagePullPolicy: Always
+        name: fesp-batch-flusso-rendicontazione
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512Mi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /E45
+          name: conf
+        - mountPath: /var/log/batch
+          name: access-logs
+        - mountPath: /conf/batchFlussoRendicontazione-properties_1.0.properties
+          name: fesp-batch-flusso-rendicontazione-configs
+          subPath: batchFlussoRendicontazione-properties_1.0.properties
+        - mountPath: /conf/batch-data.properties
+          name: fesp-batch-flusso-rendicontazione-configs
+          subPath: batch-data.properties
+        - mountPath: /conf/log4j-talend.xml
+          name: fesp-batch-flusso-rendicontazione-configs
+          subPath: log4j-talend.xml
+        - mountPath: /conf/flussi-rendicontazione-service.xml
+          name: fesp-batch-flusso-rendicontazione-configs
+          subPath: flussi-rendicontazione-service.xml
+        - mountPath: /conf/log4j.properties
+          name: fesp-batch-flusso-rendicontazione-configs
+          subPath: log4j.properties
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      imagePullSecrets:
+      - name: registry-_ENTE_-secret
+      volumes:
+      - name: conf
+        persistentVolumeClaim:
+          claimName: mypay4-claim
+      - configMap:
+          name: fesp-batch-flusso-rendicontazione-configs
+        name: fesp-batch-flusso-rendicontazione-configs
+      - emptyDir: {}
+        name: access-logs
+      - configMap:
+          name: mypay4-batch-fluent-config
+        name: mypay4-batch-fluent-config
+      - hostPath:
+          path: /usr/share/zoneinfo
+        name: k8tz

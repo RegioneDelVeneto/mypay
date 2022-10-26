@@ -1,0 +1,19 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: mypay4-batch-invia-esito-pagamento-push-keda
+spec:
+  scaleTargetRef:
+    name: mypay4-batch-invia-esito-pagamento-push
+    envSourceContainerName: mypay4-batch-invia-esito-pagamento-push
+  pollingInterval: 30  # Optional. Default: 30 seconds
+  cooldownPeriod: 300 # Optional. Default: 300 seconds
+  minReplicaCount: 1   # Optional. Default: 0
+  maxReplicaCount: 1 # Optional. Default: 100
+  triggers:
+  - type: postgresql
+    metadata:
+      connectionFromEnv: MYPAY4_KEDA_URL
+      query: "select count(1) from mygov_push_esito_sil pes, mygov_dovuto_elaborato de, mygov_flusso f, mygov_ente_tipo_dovuto etd  where pes.flg_esito_invio_push = false  and pes.mygov_dovuto_elaborato_id = de.mygov_dovuto_elaborato_id  and de.mygov_flusso_id = f.mygov_flusso_id  and etd.cod_tipo = de.cod_tipo_dovuto  and etd.mygov_ente_id = f.mygov_ente_id  and pes.num_tentativi_effettuati < etd.max_tentativi_inoltro_esito  and etd.mygov_ente_sil_id is not null"
+      targetQueryValue: "1"
+

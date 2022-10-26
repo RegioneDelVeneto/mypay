@@ -1,0 +1,226 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+    </div>
+
+    <mat-card #cardAnag class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+      <mat-card-header fxFlex="0 1 auto">
+        <mat-card-title role="heading" aria-level="1">Dati utente</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="w100 white">
+          <form novalidate [formGroup]="formEmail">
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-label id="sr-username" class="sr-only">Username</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Username</mat-label>
+                <input matInput aria-labelledby="sr-username" [value]="loggedUser.username" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-lastlogin" class="sr-only">Ultimo accesso</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Ultimo accesso</mat-label>
+                <input matInput aria-labelledby="sr-lastlogin" [value]="lastLoginFormatted" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-logintype" class="sr-only">Tipo di accesso</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Tipo di accesso</mat-label>
+                <input matInput aria-labelledby="sr-logintype" [value]="loggedUser.loginType" [readonly]="true">
+              </mat-form-field>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-label id="sr-email" class="sr-only">Email validata</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Email validata</mat-label>
+                <input aria-labelledby="sr-email" matInput formControlName="email" [readonly]="true">
+                <mat-error *ngIf="formEmailErrors['email']">{{ formEmailErrors.email }}</mat-error>
+              </mat-form-field>
+              <mat-label *ngIf="emailMode!=='view'" id="sr-emailNew" class="sr-only">Email da validare</mat-label>
+              <mat-form-field *ngIf="emailMode!=='view'" fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Email da validare</mat-label>
+                <input aria-labelledby="sr-emailNew" matInput [required]="emailMode==='enterMail'" [readonly]="emailMode!=='enterMail'" formControlName="emailNew">
+                <mat-error *ngIf="formEmailErrors['emailNew']">{{ formEmailErrors.emailNew }}</mat-error>
+              </mat-form-field>
+              <mat-label *ngIf="emailMode==='enterMail'" id="sr-emailConfirm" class="sr-only">Conferma email</mat-label>
+              <mat-form-field *ngIf="emailMode==='enterMail'" fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Conferma email</mat-label>
+                <input aria-labelledby="sr-emailConfirm" matInput required formControlName="emailConfirm" autocomplete="none">
+                <mat-error *ngIf="formEmailErrors['emailConfirm']">{{ formEmailErrors.emailConfirm }}</mat-error>
+              </mat-form-field>
+              <mat-label *ngIf="emailMode==='enterCode'" id="sr-emailCode" class="sr-only">Codice di validazione</mat-label>
+              <mat-form-field *ngIf="emailMode==='enterCode'" fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Codice di validazione</mat-label>
+                <input aria-labelledby="sr-emailCode" matInput required formControlName="emailCode">
+                <mat-error *ngIf="formEmailErrors['emailCode']">{{ formEmailErrors.emailCode }}</mat-error>
+              </mat-form-field>
+              <mat-label *ngIf="emailMode!=='enterMail'" id="sr-emailStatus" class="sr-only">Stato validazione email</mat-label>
+              <mat-form-field *ngIf="emailMode!=='enterMail'" fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Stato validazione email</mat-label>
+                <input matInput aria-labelledby="sr-emailStatus" [value]="emailSourceTypeFormatted" [readonly]="true">
+              </mat-form-field>
+            </div>
+          </form>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+          <span class="flex-spacer"></span>
+          <button type="button" mat-flat-button *ngIf="emailMode==='enterCode'" (click)="onResetEnterCode()" color="primary">Annulla validazione email</button>
+          <button type="button" mat-flat-button *ngIf="emailMode==='enterCode'" [disabled]="isMailSendCodeInvalid" (click)="onCodeSend()" color="accent">Invia codice</button>
+          <button type="button" mat-flat-button *ngIf="emailMode==='enterMail'" (click)="onResetEnterMail()" color="primary">Annulla</button>
+          <button type="button" mat-flat-button *ngIf="emailMode==='enterMail'" [disabled]="isMailSaveInvalid" (click)="onMailSave()" color="accent">Salva</button>
+          <button type="button" mat-flat-button *ngIf="emailMode==='view'" (click)="onMailEdit()" color="accent">Modifica email</button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card #cardAnag class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+      <mat-card-header fxFlex="0 1 auto">
+        <mat-card-title role="heading" aria-level="1">Dati anagrafici</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="w100 white">
+          <form novalidate>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-label id="sr-cf" class="sr-only">Codice fiscale</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="26%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Codice fiscale</mat-label>
+                <input matInput aria-labelledby="sr-cf" [value]="loggedUser.codiceFiscale || ''" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-nome" class="sr-only">Nome</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="37%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Nome</mat-label>
+                <input matInput aria-labelledby="sr-nome" [value]="loggedUser.nome || ''" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-cognome" class="sr-only">Cognome</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="37%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Cognome</mat-label>
+                <input matInput aria-labelledby="sr-cognome" [value]="loggedUser.cognome || ''" [readonly]="true">
+              </mat-form-field>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-label id="sr-nazNas" class="sr-only">Stato di nascita</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Stato di nascita</mat-label>
+                <input matInput aria-labelledby="sr-nazNas" [value]="loggedUser.statoNascita || ''" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-prNas" class="sr-only">Provincia di nascita</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="18%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Provincia di nascita</mat-label>
+                <input matInput aria-labelledby="sr-prNas" [value]="loggedUser.provinciaNascita || ''" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-comNas" class="sr-only">Comune di nascita</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="37%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Comune di nascita</mat-label>
+                <input matInput aria-labelledby="sr-comNas" [value]="loggedUser.comuneNascita || ''" [readonly]="true">
+              </mat-form-field>
+              <mat-label id="sr-datNas" class="sr-only">Data di nascita</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Data di nascita</mat-label>
+                <input matInput aria-labelledby="sr-datNas" [value]="loggedUser.dataNascita || ''" [readonly]="true">
+              </mat-form-field>
+            </div>
+          </form>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card #cardAddress class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+      <mat-card-header fxFlex="0 1 auto">
+        <mat-card-title role="heading" aria-level="1">Indirizzo</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="w100 white">
+          <form novalidate [formGroup]="formAddress" (ngSubmit)="onSubmit()">
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-label id="sr-ind2" class="sr-only">Indirizzo</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Indirizzo</mat-label>
+                <input aria-labelledby="sr-ind2" [readonly]="addressViewMode" matInput formControlName="indirizzo">
+                <mat-error *ngIf="formAddressErrors['indirizzo']">{{ formAddressErrors.indirizzo }}</mat-error>
+              </mat-form-field>
+              <mat-label id="sr-nciv2" class="sr-only">Numero Civico</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Numero civico</mat-label>
+                <input aria-labelledby="sr-nciv2" [readonly]="addressViewMode" matInput formControlName="civico">
+                <mat-error *ngIf="formAddressErrors['civico']">{{ formAddressErrors.civico }}</mat-error>
+              </mat-form-field>
+              <mat-label id="sr-CAP2" class="sr-only">CAP</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">CAP</mat-label>
+                <input aria-labelledby="sr-CAP2" [readonly]="addressViewMode" matInput formControlName="cap">
+                <mat-error *ngIf="formAddressErrors['cap']">{{ formAddressErrors.cap }}</mat-error>
+              </mat-form-field>
+            </div>
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-label id="sr-naz2" class="sr-only">Nazione</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Nazione</mat-label>
+                <input matInput *ngIf="addressViewMode" aria-labelledby="sr-naz2" [value]="nazioneAsReadonlyField" [readonly]="true">
+                <mat-select *ngIf="!addressViewMode" aria-labelledby="sr-naz2" addressViewMode formControlName="nazione" (selectionChange)="nazioneOnChange($event.value)">
+                  <mat-option *ngFor="let nazione of nazioni" [value]="nazione.nazioneId">
+                    {{nazione.nomeNazione}}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="formAddressErrors['nazione']">{{ formAddressErrors.nazione }}</mat-error>
+              </mat-form-field>
+              <mat-label id="sr-prov2" class="sr-only">Provincia</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label>Provincia</mat-label>
+                <input matInput *ngIf="addressViewMode" aria-labelledby="sr-prov2" [value]="provinciaAsReadonlyField" [readonly]="true">
+                <mat-select *ngIf="!addressViewMode" aria-labelledby="sr-prov2" formControlName="provincia" (selectionChange)="provinciaOnChange($event.value)">
+                  <mat-option *ngFor="let provincia of province" [value]="provincia.provinciaId">
+                    {{provincia.provincia}}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="formAddressErrors['provincia']">{{ formAddressErrors.provincia }}</mat-error>
+              </mat-form-field>
+              <mat-label id="sr-loc2" class="sr-only">Località</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label>Località</mat-label>
+                <input matInput *ngIf="addressViewMode"aria-labelledby="sr-loc2" [value]="comuneAsReadonlyField" [readonly]="true">
+                <mat-select *ngIf="!addressViewMode" aria-labelledby="sr-loc2" formControlName="comune" (selectionChange)="comuneOnChange($event.value)">
+                  <mat-option *ngFor="let comune of comuni" [value]="comune.comuneId">
+                    {{comune.comune}}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="formAddressErrors['comune']">{{ formAddressErrors.comune }}</mat-error>
+              </mat-form-field>
+            </div>
+          </form>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+          <span class="flex-spacer"></span>
+          <button type="button" *ngIf="!addressViewMode" mat-flat-button (click)="onCancelEdit()" color="primary">Annulla</button>
+          <button type="button" *ngIf="!addressViewMode" mat-flat-button (click)="onEmpty()" color="primary">Svuota</button>
+          <button type="button" *ngIf="addressViewMode && loggedUser.email" mat-flat-button (click)="onEdit()" color="accent">Modifica</button>
+          <button type="button" *ngIf="!addressViewMode" mat-flat-button [disabled]="formAddress.invalid" (click)="onSubmit()" color="accent">Salva</button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+
+  </div>
+</div>

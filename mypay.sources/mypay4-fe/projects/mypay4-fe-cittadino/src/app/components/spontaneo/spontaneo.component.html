@@ -1,0 +1,99 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+      <p class="mat-h3">Scegli <ng-container *ngIf="codIpaEnteLanding==null">l'ente che vuoi pagare e poi </ng-container> il servizio per il quale vuoi effettuare il pagamento, compila i
+        campi richiesti e procedi con il pagamento</p>
+    </div>
+
+    <ng-container *ngIf="hasConsent">
+      <mat-expansion-panel class="mypay-search-expansion-panel w100 mat-elevation-z0"
+      [ngClass]="{'no-bottom-border': hasSearched && currentTipoDovuto}" [expanded]="!hasSearched || !currentTipoDovuto">
+        <mat-expansion-panel-header aria-label="espandi o chiudi pannello selezione ente e tipo dovuto" collapsedHeight="auto">
+          <div class="w100" *ngIf="hasSearched && currentTipoDovuto">
+            <h2 class="mat-h2 text-center">
+              <img *ngIf="currentEnte?.thumbLogoEnte" class="thumbnail-ente" src="{{'data:image/png;base64,'+currentEnte?.thumbLogoEnte}}" alt="Immagine Ente" aria-hidden="true">
+              {{ currentEnte?.deNomeEnte }}
+            </h2>
+            <h2 class="mat-h2 text-center">Pagamento Dovuto: {{ currentTipoDovuto?.deTipo }}</h2>
+          </div>
+        </mat-expansion-panel-header>
+
+        <form novalidate #enteTipoDirective="ngForm" [formGroup]="enteTipo" (ngSubmit)="onSubmit()">
+        <div class="w100 mypay-search-form white">
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+
+              <mat-label id="sr-ente" class="sr-only">Ente</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Ente</mat-label>
+                <input aria-labelledby="sr-ente" type="text" matInput formControlName="ente"
+                  [matAutocomplete]="autoEnte" [placeholder]="placeholderEnte">
+                <mat-autocomplete #autoEnte="matAutocomplete" [displayWith]="enteDisplayFn">
+                  <mat-option *ngFor="let option of enteFilteredOptions | async" [value]="option">
+                    <img *ngIf="option.thumbLogoEnte" class="thumbnail-ente" src="{{'data:image/png;base64,'+option.thumbLogoEnte}}" alt="Immagine Ente" aria-hidden="true">
+                    {{option.deNomeEnte}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="enteTipoErrors['ente']">{{ enteTipoErrors['ente'] }}</mat-error>
+              </mat-form-field>
+
+              <mat-label id="sr-dovuto" class="sr-only">Tipologia di pagamento</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="60%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label class="mat-label" aria-hidden="true">Tipologia di pagamento</mat-label>
+                <input aria-labelledby="sr-dovuto" type="text" matInput formControlName="tipoDovuto"
+                  [matAutocomplete]="autoTipoDovuto" [placeholder]="placeholderTipoDovuto">
+                <mat-autocomplete #autoTipoDovuto="matAutocomplete" [displayWith]="tipoDovutoDisplayFn">
+                  <mat-option *ngFor="let optionTipoDovuto of tipoDovutoFilteredOptions | async" [value]="optionTipoDovuto">
+                    {{optionTipoDovuto.deTipo}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="enteTipoErrors['tipoDovuto']">{{ enteTipoErrors['tipoDovuto'] }}</mat-error>
+              </mat-form-field>
+
+            </div>
+        </div>
+
+          <div fxLayout="row wrap" fxLayoutAlign="end center" fxLayoutGap="0px" class="mt-3 mat-button-bar">
+            <button type="button" mat-flat-button (click)="onReset()" color="primary">Reset</button>
+            <button type="submit" mat-flat-button [disabled]="enteTipo.invalid || blockingError" color="accent">Procedi</button>
+          </div>
+        </form>
+      </mat-expansion-panel>
+
+      <mat-card *ngIf="hasSearched && currentTipoDovuto" #cardDynamo class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+        <mat-card-content>
+          <div class="w100 white" style="margin-top:20px;">
+            <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px">
+              <!-- Make sure if <app-messages> is needed. -->
+              <spontaneo-dynamo [fieldBeans]="fieldBeans" [currentEnte]="currentEnte" [currentTipoDovuto]="currentTipoDovuto"
+                  [importoPrefissato]="importoPrefissato" (reload)="onReset()">
+              </spontaneo-dynamo>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </ng-container>
+
+  </div>
+</div>

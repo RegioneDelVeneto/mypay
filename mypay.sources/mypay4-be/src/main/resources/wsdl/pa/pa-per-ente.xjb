@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<jaxb:bindings version="2.1"
+                xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+                xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+                xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <jaxws:bindings xmlns:jaxws="http://java.sun.com/xml/ns/jaxws">
+        <jaxws:enableWrapperStyle>true</jaxws:enableWrapperStyle>
+        <jaxws:enableAsyncMapping>false</jaxws:enableAsyncMapping>
+    </jaxws:bindings>
+
+    <jaxb:bindings schemaLocation="pa-per-ente.wsdl" node="/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace='http://www.regione.veneto.it/pagamenti/ente/']">
+      <jaxb:globalBindings>
+        <xjc:simple />
+        <xjc:javaType name="java.lang.String" xmlType="xs:string" adapter="it.regioneveneto.mygov.payment.mypay4.ws.helper.TrimStringXmlAdapter"/>
+      </jaxb:globalBindings>
+    </jaxb:bindings>
+
+</jaxb:bindings>

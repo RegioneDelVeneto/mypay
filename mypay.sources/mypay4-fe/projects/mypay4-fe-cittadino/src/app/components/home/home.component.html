@@ -1,0 +1,90 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div
+    class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayout.gt-sm="row wrap"
+    fxLayoutAlign="start center"
+    fxLayoutGap="10px">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+    </div>
+
+    <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+    <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+      <mat-card-header fxFlex="0 1 auto">
+        <div mat-card-avatar aria-hidden="true" role="presentation" alt=""><fa-icon [icon]="iconInfo" size="2x" aria-hidden="true"></fa-icon></div>
+        <mat-card-title role="heading" aria-level="1">Benvenuto su MyPay</mat-card-title>
+        <mat-card-subtitle>Il portale dei Pagamenti della Pubblica Amministrazione</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div>
+          <img style="float: right" src="assets/images/pagoPa.png" alt="Immagine pagoPa" aria-hidden="true"/>
+          <p class="mb-4">All'interno del Portale potrai agire sia come utente Autenticato sia come utente Non Autenticato.</p>
+          <p>Se accedi alla tua Area Personale potrai:</p>
+          <ul>
+            <li>effettuare pagamenti in modalità autenticata, troverai alcuni campi pre-compilati;</li>
+            <li>visualizzare lo storico dei pagamenti che hai effettuato;</li>
+            <li>visualizzare le tue eventuali posizioni debitorie aperte, cioè in attesa di pagamento.</li>
+          </ul>
+          <p>Per accedere usa le tue credenziali di identità digitale SPID o Carta d'Identità Elettronica.</p>
+          <p>Per avere maggiori informazioni su SPID collegati a <a href="http://www.spid.gov.it/"> "http://www.spid.gov.it/" </a>. </p>
+          <p>Per richiedere le credenziali SPID collegati a <a href="http://www.spid.gov.it/richiedi-spid">"http://www.spid.gov.it/richiedi-spid"</a> e segui le istruzioni.</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+    <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+      <mat-card-header fxFlex="0 1 auto">
+        <div mat-card-avatar aria-hidden="true" role="presentation" alt=""><a tabindex="-1" class="no-decoration" routerLink="/avvisi"><fa-icon aria-hidden="true" [icon]="iconFileInvoice" size="2x"></fa-icon><span class="sr-only">Avvisi di pagamento</span></a></div>
+        <mat-card-title style="width: calc( 100% - 5em )" role="heading" aria-level="1"><a tabindex="0" class="no-decoration" routerLink="/avvisi">Avvisi di pagamento</a></mat-card-title>
+        <mat-card-title class="card-action-right">
+          <a mat-button routerLink="/avvisi" title="Cerca avviso"><span class="font-bold"><u>Cerca avviso</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+        </mat-card-title>
+        <mat-card-subtitle><a tabindex="-1" class="no-decoration" routerLink="/avvisi">Cerca e paga un avviso di pagamento</a></mat-card-subtitle>
+      </mat-card-header>
+      <div fxFlex></div>
+      <!-- <mat-card-actions fxFlex="0 1 auto">
+        <a mat-button routerLink="/avvisi"><span class="font-bold"><u>Cerca avviso</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-actions> -->
+    </mat-card>
+
+
+    <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+      <mat-card-header fxFlex="0 1 auto">
+        <div mat-card-avatar aria-hidden="true" role="presentation" alt=""><a tabindex="-1" class="no-decoration" routerLink="/spontaneo"><fa-icon aria-hidden="true" [icon]="iconTags" size="2x"></fa-icon><span class="sr-only">Altre tipologie di pagamento</span></a></div>
+        <mat-card-title style="width: calc( 100% - 8em )" role="heading" aria-level="1"><a tabindex="0" class="no-decoration" routerLink="/spontaneo">Altre tipologie di pagamento</a></mat-card-title>
+        <mat-card-title class="card-action-right">
+          <a mat-button routerLink="/spontaneo" title="Ricerca altri pagamenti"><span class="font-bold"><u>Ricerca altri pagamenti</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+        </mat-card-title>
+        <mat-card-subtitle><a tabindex="-1" class="no-decoration" routerLink="/spontaneo">Scegli un ente e il tipo di pagamento spontaneo da
+          effettuare, compila i campi richiesti e procedi col pagamento</a></mat-card-subtitle>
+      </mat-card-header>
+      <div fxFlex></div>
+      <!-- <mat-card-actions fxFlex="0 1 auto">
+        <a mat-button routerLink="/spontaneo"><span class="font-bold"><u>Ricerca altri pagamenti</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-actions> -->
+    </mat-card>
+</div>

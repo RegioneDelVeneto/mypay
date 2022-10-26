@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType confirmationNeeded="false" name="Default">
+    <contextParameter comment="" name="email_indirizzo_gestore" prompt="email_indirizzo_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_smptHost_gestore" prompt="email_smptHost_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_smptPort_gestore" prompt="email_smptPort_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_usr_gestore" prompt="email_usr_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_psw_gestore" prompt="email_psw_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_amministratore" prompt="email_amministratore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_sendername" prompt="email_sendername?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_amministratore_ente" prompt="email_amministratore_ente?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_ssl_support" prompt="email_ssl_support?" promptNeeded="false" type="id_Boolean" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType confirmationNeeded="false" name="locale">
+    <contextParameter comment="" name="email_indirizzo_gestore" prompt="email_indirizzo_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_smptHost_gestore" prompt="email_smptHost_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_smptPort_gestore" prompt="email_smptPort_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_usr_gestore" prompt="email_usr_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_psw_gestore" prompt="email_psw_gestore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_amministratore" prompt="email_amministratore?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_sendername" prompt="email_sendername?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_amministratore_ente" prompt="email_amministratore_ente?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="email_ssl_support" prompt="email_ssl_support?" promptNeeded="false" type="id_Boolean" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

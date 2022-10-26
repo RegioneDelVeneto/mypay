@@ -1,0 +1,45 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container"
+     fxLayout="column"
+     fxLayoutAlign.gt-md="space-around center"
+     fxLayoutGap="10px">
+
+      <h1 fxFlex class="mat-h1">MyPay</h1>
+      <h2 fxFlex class="mat-h2">Il portale dell'operatore</h2>
+      <div *ngIf="!emailValidationNeeded" fxFlex class="text-center">
+        <p>Questa utenza ({{username}} - {{fullName}}) non ha accesso alle funzionalità
+        dedicate agli operatori ed è stata partanto automaticamente disconnessa.</p>
+      </div>
+      <div *ngIf="emailValidationNeeded" fxFlex class="text-center">
+        <p>Questa utenza ({{username}} - {{fullName}}) non ha un indirizzo email associato
+         ed è stata partanto automaticamente disconnessa.</p>
+        <p>Rivolgersi all'amministratore di sistema per configurare l'indirizzo email associato all'utenza.</p>
+      </div>
+      <div fxFlex class="text-center">
+        <p *ngIf="detailMsg">Dettaglio: {{detailMsg}}</p>
+      </div>
+      <div fxFlex class="text-center">
+        <span></span>
+        <p *ngIf="errorUID"><i>Se si contatta l'assistenza, menzionare il codice '{{errorUID}}'</i></p>
+      </div>
+      <button fxFlex type="button" mat-flat-button (click)="openLoginForm()" color="primary">Accedi</button>
+
+</div>

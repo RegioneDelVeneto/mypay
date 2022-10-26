@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<wsdl:definitions
+    xmlns:ppt="http://www.regione.veneto.it/pagamenti/pa/"
+    xmlns:tns="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciFlussiSPC"
+	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+	xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	name="PagamentiTelematiciFlussiSPCservice"
+	targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciFlussiSPC">
+  <wsdl:types>
+    <xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/pa/">
+      <xsd:simpleType name="stText35">
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+          <xsd:maxLength value="35"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="stPassword">
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="8"/>
+          <xsd:maxLength value="15"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:element name="paaSILChiediElencoFlussiSPC" type="ppt:paaSILChiediElencoFlussiSPC"/>
+      <xsd:element name="paaSILChiediElencoFlussiSPCRisposta" type="ppt:paaSILChiediElencoFlussiSPCRisposta"/>
+      <xsd:element name="paaSILChiediFlussoSPC" type="ppt:paaSILChiediFlussoSPC"/>
+      <xsd:element name="paaSILChiediFlussoSPCRisposta" type="ppt:paaSILChiediFlussoSPCRisposta"/>
+      <xsd:complexType name="risposta">
+        <xsd:sequence>
+          <xsd:element name="fault" type="ppt:faultBean" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="faultBean">
+        <xsd:sequence>
+          <xsd:element name="faultCode" type="xsd:string"/>
+          <xsd:element name="faultString" type="xsd:string"/>
+          <xsd:element name="id" type="xsd:string"/>
+          <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="serial" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="originalFaultCode" type="xsd:string"  minOccurs="0"  />
+		  <xsd:element name="originalFaultString" type="xsd:string"  minOccurs="0"  />
+		  <xsd:element name="originalDescription" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="paaSILChiediElencoFlussiSPC">
+        <xsd:sequence>
+          <xsd:element name="password" type="ppt:stPassword"/>
+          <xsd:element name="codIpaEnte" type="xsd:string"/>
+          <xsd:element name="identificativoPsp" type="xsd:string"/>
+          <xsd:element name="tipoFlusso" type="xsd:string"/>
+          <xsd:element name="dateFrom" type="xsd:date"/>
+          <xsd:element name="dateTo" type="xsd:date"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="paaSILChiediElencoFlussiSPCRisposta">
+        <xsd:complexContent>
+          <xsd:extension base="ppt:risposta">
+            <xsd:sequence>
+              <xsd:element name="elencoFlussiSPC" type="ppt:tipoElencoFlussiSPC" minOccurs="0"/>
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="tipoElencoFlussiSPC">
+        <xsd:sequence>
+          <xsd:element name="totRestituiti" type="xsd:int"/>
+          <xsd:element name="idSPC" type="ppt:tipoIdSPC" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="tipoIdSPC">
+        <xsd:sequence>
+          <xsd:element name="identificativoFlusso" type="xsd:string"/>
+          <xsd:element name="dataOraFlusso" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="paaSILChiediFlussoSPC">
+        <xsd:sequence>
+          <xsd:element name="password" type="ppt:stPassword"/>
+          <xsd:element name="codIpaEnte" type="xsd:string"/>
+          <xsd:element name="identificativoPsp" type="xsd:string"/>
+          <xsd:element name="tipoFlusso" type="xsd:string"/>
+          <xsd:element name="identificativoFlusso" type="xsd:string"/>
+          <xsd:element name="dataOraFlusso" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="paaSILChiediFlussoSPCRisposta">
+        <xsd:complexContent>
+          <xsd:extension base="ppt:risposta">
+            <xsd:sequence>
+              <xsd:element name="stato" type="xsd:string"/>
+              <xsd:element name="downloadUrl" type="xsd:string"/>
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="paaSILChiediElencoFlussiSPC">
+    <wsdl:part name="parameters" element="ppt:paaSILChiediElencoFlussiSPC"/>
+  </wsdl:message>
+  <wsdl:message name="paaSILChiediElencoFlussiSPCResponse">
+    <wsdl:part name="parameters" element="ppt:paaSILChiediElencoFlussiSPCRisposta"/>
+  </wsdl:message>
+  <wsdl:message name="paaSILChiediFlussoSPC">
+    <wsdl:part name="parameters" element="ppt:paaSILChiediFlussoSPC"/>
+  </wsdl:message>
+  <wsdl:message name="paaSILChiediFlussoSPCResponse">
+    <wsdl:part name="parameters" element="ppt:paaSILChiediFlussoSPCRisposta"/>
+  </wsdl:message>
+  <wsdl:portType name="PagamentiTelematiciFlussiSPC">
+    <wsdl:operation name="paaSILChiediElencoFlussiSPC">
+      <wsdl:input name="paaSILChiediElencoFlussiSPC" message="tns:paaSILChiediElencoFlussiSPC" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediElencoFlussiSPCRichiesta" wsaw:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediElencoFlussiSPCRichiesta"/>
+      <wsdl:output name="paaSILChiediElencoFlussiSPCResponse" message="tns:paaSILChiediElencoFlussiSPCResponse" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediElencoFlussiSPCRisposta" wsaw:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediElencoFlussiSPCRisposta"/>
+    </wsdl:operation>
+    <wsdl:operation name="paaSILChiediFlussoSPC">
+      <wsdl:input name="paaSILChiediFlussoSPC" message="tns:paaSILChiediFlussoSPC" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediFlussoSPCRichiesta" wsaw:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediFlussoSPCRichiesta"/>
+      <wsdl:output name="paaSILChiediFlussoSPCResponse" message="tns:paaSILChiediFlussoSPCResponse" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediFlussoSPCRisposta" wsaw:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILChiediFlussoSPCRisposta"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="PagamentiTelematiciFlussiSPCbinding" type="tns:PagamentiTelematiciFlussiSPC">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="paaSILChiediElencoFlussiSPC">
+      <soap:operation soapAction="paaSILChiediElencoFlussiSPC" style="document"/>
+      <wsdl:input name="paaSILChiediElencoFlussiSPC">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="paaSILChiediElencoFlussiSPCResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="paaSILChiediFlussoSPC">
+      <soap:operation soapAction="paaSILChiediFlussoSPC" style="document"/>
+      <wsdl:input name="paaSILChiediFlussoSPC">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="paaSILChiediFlussoSPCResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PagamentiTelematiciFlussiSPCservice">
+    <wsdl:port name="PagamentiTelematiciFlussiSPCPort" binding="tns:PagamentiTelematiciFlussiSPCbinding">
+      <soap:address location="/ws/pa/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
+
+
+

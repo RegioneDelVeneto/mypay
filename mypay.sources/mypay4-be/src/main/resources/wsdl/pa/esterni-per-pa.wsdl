@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<!--
+  Questo WSDL rappresenta l'interfaccia esposta dalla PAA
+  per la verifica dei pagamenti in attesa.
+-->
+<wsdl:definitions xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" 
+xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+xmlns:ppt="http://www.regione.veneto.it/pagamenti/pa/" 
+xmlns:ppthead="http://www.regione.veneto.it/pagamenti/pa/ppthead" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+xmlns:tns="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEsterniCCP" 
+xmlns:pay_i="http://www.regione.veneto.it/schemas/2012/Pagamenti/" 
+name="PPT" 
+targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEsterniCCP">
+	<wsdl:types>
+		<xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/pa/ppthead">
+			<xsd:simpleType name="stText35">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="35" />
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:element name="intestazionePPT">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="identificativoIntermediarioPA" type="ppthead:stText35" />
+						<xsd:element name="identificativoStazioneIntermediarioPA" type="ppthead:stText35" />
+						<xsd:element name="identificativoDominio" type="ppthead:stText35" />
+						<xsd:element name="identificativoUnivocoVersamento" type="ppthead:stText35" />
+						<xsd:element name="codiceContestoPagamento" type="ppthead:stText35" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+
+		<xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/pa/">
+			<xsd:import schemaLocation="PagInf_RP_Esito_6_2_0.xsd" namespace="http://www.regione.veneto.it/schemas/2012/Pagamenti/" />
+		
+			<xsd:simpleType name="stText35">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="35" />
+				</xsd:restriction>
+			</xsd:simpleType>
+			<!-- Wrapper Elements -->
+			<xsd:element name="paaSILVerificaEsterna" type="ppt:paaSILVerificaEsterna" />
+			<xsd:element name="paaSILVerificaEsternaRisposta" type="ppt:paaSILVerificaEsternaRisposta" />
+			<xsd:element name="paaSILAttivaEsterna" type="ppt:paaSILAttivaEsterna" />
+			<xsd:element name="paaSILAttivaEsternaRisposta" type="ppt:paaSILAttivaEsternaRisposta" />
+			<!-- Element Definition -->
+			<xsd:complexType name="paaTipoDatiPagamentoPA">
+				<xsd:sequence>
+					<xsd:element name="importoSingoloVersamento" type="pay_i:stImporto" minOccurs="1">
+					</xsd:element>
+					<xsd:element name="ibanAccredito" type="pay_i:stIBANIdentifier" minOccurs="1">
+					</xsd:element>
+					<xsd:element name="bicAccredito" type="pay_i:stBICIdentifier" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="enteBeneficiario" type="pay_i:ctEnteBeneficiario" minOccurs="0" maxOccurs="1">
+					</xsd:element>
+					<xsd:element name="credenzialiPagatore" type="pay_i:stText35" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="causaleVersamento" type="pay_i:stText140" minOccurs="1">
+					</xsd:element>
+					<!-- xsd:element name="datiSpecificiRiscossione" type="pay_i:stDatiSpecificiRiscossione" minOccurs="1">
+					</xsd:element -->
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="paaTipoDatiPagamentoPSP">
+				<xsd:sequence>
+					<xsd:element name="importoSingoloVersamento" type="pay_i:stImporto" minOccurs="1">
+					</xsd:element>
+					<xsd:element name="ibanAppoggio" type="pay_i:stIBANIdentifier" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="bicAppoggio" type="pay_i:stBICIdentifier" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="soggettoVersante" type="pay_i:ctSoggettoVersante" minOccurs="0"></xsd:element>
+							<!-- TODO: Da valutare -->
+					<xsd:element name="ibanAddebito" type="pay_i:stIBANIdentifier" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="bicAddebito" type="pay_i:stBICIdentifier" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="soggettoPagatore" type="pay_i:ctSoggettoPagatore" minOccurs="0"></xsd:element>
+				</xsd:sequence>
+
+			</xsd:complexType>
+
+
+			<xsd:complexType name="paaSILVerificaEsterna">
+				<xsd:sequence>
+					<xsd:element name="identificativoPSP" type="ppt:stText35" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paaSILVerificaEsternaRisposta">
+				<xsd:sequence>
+					<xsd:element name="paaSILVerificaEsternaRisposta" type="ppt:esitoSILVerificaEsterna" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="esitoSILVerificaEsterna">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="esito" type="xsd:string" minOccurs="0" />
+							<xsd:element name="datiPagamentoPA" type="ppt:paaTipoDatiPagamentoPA" minOccurs="0" />
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="paaSILAttivaEsterna">
+				<xsd:sequence>
+					<xsd:element name="identificativoPSP" type="ppt:stText35" />
+					<xsd:element name="identificativoIntermediarioPSP" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="identificativoCanalePSP" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="datiPagamentoPSP" type="ppt:paaTipoDatiPagamentoPSP" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paaSILAttivaEsternaRisposta">
+				<xsd:sequence>
+					<xsd:element name="paaSILAttivaEsternaRisposta" type="ppt:esitoSILAttivaEsterna" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="esitoSILAttivaEsterna">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="esito" type="xsd:string" minOccurs="0" />
+							<xsd:element name="datiPagamentoPA" type="ppt:paaTipoDatiPagamentoPA" minOccurs="0" />
+							<xsd:element name="dovuto" type="xsd:base64Binary"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="risposta">
+				<xsd:sequence>
+					<xsd:element name="fault" type="ppt:faultBean" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultBean">
+				<xsd:sequence>
+					<xsd:element name="faultCode" type="xsd:string" />
+					<xsd:element name="faultString" type="xsd:string" />
+					<xsd:element name="id" type="xsd:string" />
+					<xsd:element name="description" type="xsd:string" minOccurs="0" />
+					<xsd:element name="serial" type="xsd:int" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="paaSILVerificaEsterna">
+		<wsdl:part name="bodyrichiesta" element="ppt:paaSILVerificaEsterna" />
+		<wsdl:part name="header" element="ppthead:intestazionePPT" />
+	</wsdl:message>
+	<wsdl:message name="paaSILVerificaEsternaRisposta">
+		<wsdl:part name="bodyrisposta" element="ppt:paaSILVerificaEsternaRisposta" />
+	</wsdl:message>
+	<wsdl:message name="paaSILAttivaEsterna">
+		<wsdl:part name="bodyrichiesta" element="ppt:paaSILAttivaEsterna" />
+		<wsdl:part name="header" element="ppthead:intestazionePPT" />
+	</wsdl:message>
+	<wsdl:message name="paaSILAttivaEsternaRisposta">
+		<wsdl:part name="bodyrisposta" element="ppt:paaSILAttivaEsternaRisposta" />
+	</wsdl:message>
+	<wsdl:portType name="PagamentiTelematiciEsterniCCP">
+		<wsdl:operation name="paaSILVerificaEsterna">
+			<wsdl:input message="tns:paaSILVerificaEsterna" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILVerificaEsternaRichiesta" />
+			<wsdl:output message="tns:paaSILVerificaEsternaRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILVerificaEsternaRisposta" />
+		</wsdl:operation>
+		<wsdl:operation name="paaSILAttivaEsterna">
+			<wsdl:input message="tns:paaSILAttivaEsterna" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILAttivaEsternaRichiesta" />
+			<wsdl:output message="tns:paaSILAttivaEsternaRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILAttivaEsternaRisposta" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="PagamentiTelematiciEsterniCCPbinding" type="tns:PagamentiTelematiciEsterniCCP">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="paaSILAttivaEsterna">
+			<soap:operation soapAction="paaSILAttivaEsterna" />
+			<wsdl:input>
+				<soap:body parts="bodyrichiesta" use="literal" />
+				<soap:header message="tns:paaSILAttivaEsterna" part="header" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="paaSILVerificaEsterna">
+			<soap:operation soapAction="paaSILVerificaEsterna" />
+			<wsdl:input>
+				<soap:body parts="bodyrichiesta" use="literal" />
+				<soap:header message="tns:paaSILVerificaEsterna" part="header" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="PagamentiTelematiciEsterniCCPservice">
+		<wsdl:port name="PagamentiTelematiciEsterniCCPPort" binding="tns:PagamentiTelematiciEsterniCCPbinding">
+			<soap:address location="/ws/pa/" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

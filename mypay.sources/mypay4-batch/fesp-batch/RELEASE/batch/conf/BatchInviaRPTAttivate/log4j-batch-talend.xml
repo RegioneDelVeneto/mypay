@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j-batch-talend.dtd">
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
+  
+  <!-- Logs messages in files -->
+  <appender name="ImportFileAppender" class="org.apache.log4j.RollingFileAppender">
+    <param name="maxBackupIndex" value="10" />
+    <param name="maxFileSize" value="10MB" />
+    <param name="File" value="__TAG_BATCH_LOG_PATH__/BatchInviaRPTAttivate/batch-invia-rpt-attivate-talend.log"/>
+    <param name="Append" value="true"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+    </layout>
+  </appender>  
+  
+  <root>
+    <priority value ="WARN" />
+    <appender-ref ref="ImportFileAppender"/>
+  </root>
+</log4j:configuration>

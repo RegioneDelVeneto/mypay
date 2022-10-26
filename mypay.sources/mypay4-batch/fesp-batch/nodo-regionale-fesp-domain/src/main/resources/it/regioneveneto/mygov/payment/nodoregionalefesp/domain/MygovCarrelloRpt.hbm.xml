@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 6-set-2018 10.42.23 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovCarrelloRpt" table="mygov_carrello_rpt">
+        <id name="mygovCarrelloRptId" type="java.lang.Long">
+            <column name="mygov_carrello_rpt_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_carrello_rpt_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="codAckCarrelloRpt" type="string">
+            <column name="cod_ack_carrello_rpt" length="2" />
+        </property>
+        <property name="mygovCarrelloRpId" type="java.lang.Long">
+            <column name="mygov_carrello_rp_id" />
+        </property>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" />
+        </property>
+        <property name="codRptInviacarrellorptIdCarrello" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id_carrello" length="36" />
+        </property>
+        <property name="codRptInviacarrellorptIdIntermediarioPa" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id_intermediario_pa" length="35" />
+        </property>
+        <property name="codRptInviacarrellorptIdStazioneIntermediarioPa" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id_stazione_intermediario_pa" length="35" />
+        </property>
+        <property name="deRptInviacarrellorptPassword" type="string">
+            <column name="de_rpt_inviacarrellorpt_password" length="15" />
+        </property>
+        <property name="codRptInviacarrellorptIdPsp" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id_psp" length="35" />
+        </property>
+        <property name="codRptInviacarrellorptIdIntermediarioPsp" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id_intermediario_psp" length="35" />
+        </property>
+        <property name="codRptInviacarrellorptIdCanale" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id_canale" length="35" />
+        </property>
+        <property name="deRptInviacarrellorptEsitoComplessivoOperazione" type="string">
+            <column name="de_rpt_inviacarrellorpt_esito_complessivo_operazione" length="256" />
+        </property>
+        <property name="codRptInviacarrellorptUrl" type="string">
+            <column name="cod_rpt_inviacarrellorpt_url" length="512" />
+        </property>
+        <property name="codRptInviacarrellorptFaultCode" type="string">
+            <column name="cod_rpt_inviacarrellorpt_fault_code" length="256" />
+        </property>
+        <property name="codRptInviacarrellorptFaultString" type="string">
+            <column name="cod_rpt_inviacarrellorpt_fault_string" length="256" />
+        </property>
+        <property name="codRptInviacarrellorptId" type="string">
+            <column name="cod_rpt_inviacarrellorpt_id" length="256" />
+        </property>
+        <property name="deRptInviacarrellorptDescription" type="string">
+            <column name="de_rpt_inviacarrellorpt_description" length="1024" />
+        </property>
+        <property name="numRptInviacarrellorptSerial" type="java.lang.Integer">
+            <column name="num_rpt_inviacarrellorpt_serial" />
+        </property>
+        <property name="codRptSilinviacarrellorptOriginalFaultCode" type="string">
+            <column name="cod_rpt_silinviacarrellorpt_original_fault_code" length="256" />
+        </property>
+        <property name="deRptSilinviacarrellorptOriginalFaultString" type="string">
+            <column name="de_rpt_silinviacarrellorpt_original_fault_string" length="256" />
+        </property>
+        <property name="deRptSilinviacarrellorptOriginalFaultDescription" type="string">
+            <column name="de_rpt_silinviacarrellorpt_original_fault_description" length="1024" />
+        </property>
+        <set name="mygov_rpt_rt" inverse="true" lazy="true" table="mygov_rpt_rt" fetch="select">
+            <key>
+                <column name="mygov_carrello_rpt_id" />
+            </key>
+            <one-to-many class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRptRt" />
+        </set>
+    </class>
+</hibernate-mapping>

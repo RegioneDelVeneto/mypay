@@ -1,0 +1,129 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpPage>
+  <div>
+    <p>Il filtro "Data" è riferito alla data di scadenza della posizione debitoria.</p>
+    <p>Una posizione può risultare come:</p>
+    <ul>
+      <li>Da Pagare</li>
+      <li>Pagamento iniziato</li>
+      <li>Pagamento inserito nel carrello</li>
+      <li>Pagamento scaduto</li>
+    </ul>
+    <p>Se il pagamento è in stato "Da pagare", è possibile scaricare l'avviso o aggiungerlo al carrello.</p>
+    <p>Se il pagamento è in stato "Pagamento iniziato", non è più possibile rimuoverlo dall'elenco, ed è necessario
+      attendere alcune ore affinché il sistema processi il pagamento. Dopodiché il pagamento sarà consultabile nella
+      sezione "Storico", con esito positivo o negativo.</p>
+    <p>Nel caso di un "Pagamento inserito nel carrello", è possibile scaricare l'avviso o rimuoverlo dal carrello.</p>
+    <p>Nel caso di un "Pagamento scaduto", non è più possibile procedere al pagamento. Per regolarizzare la propria
+      posizione debitoria è necessario contattare l'Ente Beneficiario.</p>
+  </div>
+</ng-template>
+
+
+<div class="container" role="navigation">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}} <my-pay-help [template]="helpPage"></my-pay-help></h1>
+    </div>
+
+    <div class="w100 mypay-search-form">
+      <form novalidate #sForm="ngForm" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-card #cardSearch class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+          <mat-card-content class="white">
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+
+              <mat-label id="sr-ente" class="sr-only">Ente</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" fxFlex.gt-md="60%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Ente</mat-label>
+                <input aria-labelledby="sr-ente" type="text" matInput formControlName="ente"
+                  [matAutocomplete]="autoEnte" [placeholder]="placeholderEnte">
+                <mat-autocomplete #autoEnte="matAutocomplete" [displayWith]="enteDisplayFn">
+                  <mat-option *ngFor="let option of enteFilteredOptions | async" [value]="option">
+                    <img *ngIf="option.thumbLogoEnte" class="thumbnail-ente" src="{{'data:image/png;base64,'+option.thumbLogoEnte}}" alt="Immagine Ente" aria-hidden="true">
+                    {{option.deNomeEnte}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="formErrors['ente']">{{ formErrors.ente }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" fxFlex.gt-md="20%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label>Data scadenza da</mat-label>
+                <input matInput required formControlName="dateFrom" [matDatepicker]="pickerFrom">
+                <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+                <mat-datepicker #pickerFrom></mat-datepicker>
+                <mat-error *ngIf="formErrors['dateFrom']">{{ formErrors.dateFrom }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" fxFlex.gt-md="20%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label>Data scadenza a</mat-label>
+                <input matInput required formControlName="dateTo" [matDatepicker]="pickerTo">
+                <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
+                <mat-datepicker #pickerTo></mat-datepicker>
+                <mat-error *ngIf="formErrors['dateTo']">{{ formErrors.dateTo }}</mat-error>
+              </mat-form-field>
+
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+
+              <mat-label id="sr-dovuto" class="sr-only">Tipo dovuto</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Tipo dovuto</mat-label>
+                <input aria-labelledby="sr-dovuto" type="text" matInput formControlName="tipoDovuto"
+                  [matAutocomplete]="autoTipoDovuto" [placeholder]="placeholderTipoDovuto">
+                <mat-autocomplete #autoTipoDovuto="matAutocomplete" [displayWith]="tipoDovutoDisplayFn">
+                  <mat-option *ngFor="let optionTipoDovuto of tipoDovutoFilteredOptions | async" [value]="optionTipoDovuto">
+                    {{optionTipoDovuto.deTipo}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="formErrors['tipoDovuto']">{{ formErrors.tipoDovuto }}</mat-error>
+              </mat-form-field>
+
+              <mat-label id="sr-causale" class="sr-only">Causale</mat-label>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+                <mat-label aria-hidden="true">Causale</mat-label>
+                <input aria-labelledby="sr-causale" matInput formControlName="causale">
+                <mat-error *ngIf="formErrors['causale']">{{ formErrors.causale }}</mat-error>
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <div fxLayout="row wrap" fxLayoutAlign="end center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+              <button type="button" mat-flat-button (click)="onReset()" color="primary">Reset</button>
+              <button type="submit" mat-flat-button [disabled]="form.invalid || blockingError" color="accent">Cerca</button>
+            </div>
+          </mat-card-actions>
+        </mat-card>
+
+      </form>
+    </div>
+
+
+    <p *ngIf="hasSearched && tableData?.length==0">Nessun dato trovato con i criteri di ricerca impostati.</p>
+    <my-pay-table-cittadino [tableData]="tableData" [tableColumns]="tableColumns" [parentRef]="this"
+                            [detailFilterExclude]="detailFilterExclude" [hasDetail]="true">
+      <!-- [rowStyle]="rowStyleFun"> -->
+    </my-pay-table-cittadino>
+
+  </div>
+</div>

@@ -1,0 +1,47 @@
+package routines;
+
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+
+import org.apache.log4j.Logger;
+
+public class MoveFile {
+	
+	private static final Logger log = Logger.getLogger(MoveFile.class);
+
+    public static boolean SPOSTA_FILE(Path movefrom, Path target) {
+    	
+    	log.info("Invocato SPOSTA_FILE con parametri: ");
+    	log.info("movefrom " + movefrom);
+    	log.info("target " + target);
+        
+    	FileChannel channel = null;
+    	FileLock lock = null;
+    	try {
+            channel = FileChannel.open(movefrom, new OpenOption[] {StandardOpenOption.WRITE});
+            lock = channel.lock();
+            if(lock.isValid()) {
+                Files.move(movefrom, target, new CopyOption[] {StandardCopyOption.ATOMIC_MOVE});
+            }
+        }
+        catch(IOException ioe){
+        	log.error("Errore spostamento file.", ioe);
+            return false;
+        } finally {
+            try {
+				lock.release();
+				channel.close();
+			} catch (IOException e) {
+				log.error("Errore chiusura e rilascio risorse", e);
+			}
+        }
+        return true;
+    }
+}

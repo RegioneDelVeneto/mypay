@@ -1,0 +1,102 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpPageDatiIntestatario>
+  <div>
+    <p>In questa sezione sono richiesti i dati angrafici della persona fisica (cognome e nome) oppure i dati identificativi della persona giuridica</p>
+  </div>
+</ng-template>
+
+
+<form *ngIf="form" (ngSubmit)="addToCarrello()" [formGroup]="form">
+  <div *ngIf="contentTypeSchemaItems" class="container mypay-search-form"
+    fxFlex fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="10px">
+
+    <ng-container *ngFor="let item of contentTypeSchemaItems | filterRenderableItems | orderby:'insertableOrder'">
+        <div *ngIf="!(item.maxOccurences < 0)">
+            <content-editing-property [schemaItem]="item" [key]="item.name" [form]="form" [labelClass]="labelClass" [inputClass]="inputClass" [readOnly]="addedToCart"></content-editing-property>
+        </div>
+        <div *ngIf="(item.maxOccurences < 0)">
+            <div [formArrayName]="item.name">
+                <div *ngFor="let control of form.controls[item.name].controls; let i = index" class="container">
+                    <div [formGroupName]="i" class="row">
+                        <div class="col-xs-10">
+                            <content-editing-property [schemaItem]="item" [key]="i.toString()" [form]="form.get(item.name)" [labelClass]="labelClass" [inputClass]="inputClass" [readOnly]="addedToCart"></content-editing-property>
+                        </div>
+                        <div *ngIf="i > 0" class="col-xs-1">
+                            <button class="btn btn-danger" type="button" (click)="removeFieldButtonClicked(item, i)"><i class="fa fa-minus-circle"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" type="button" (click)="addFieldButtonClicked(item)"><i class="fa fa-plus-circle"></i></button>
+        </div>
+    </ng-container>
+
+    <mat-label id="sr-imp" class="sr-only">Importo</mat-label>
+    <mat-form-field *ngIf="!totalIncluded" fxFlex appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+      <mat-label aria-hidden="true">Importo</mat-label>
+      <input aria-labelledby="sr-imp" matInput type="text" required [readonly]="importoPrefissato != null || addedToCart"
+          formControlName="totalImporto" (change)="thisformOnChange('totalImporto')">
+      <mat-error *ngIf="thisformFields.totalImporto?.length > 0">{{ thisformFields.totalImporto }}</mat-error>
+    </mat-form-field>
+
+    <h3 fxFlex class="mat-h3 text-center">Dati intestatario <my-pay-help [template]="helpPageDatiIntestatario"></my-pay-help></h3>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+      <mat-label id="sr-ana" class="sr-only">Anagrafica</mat-label>
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="17em" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+        <mat-label aria-hidden="true">{{anagraficaLabel}}</mat-label>
+        <input aria-labelledby="sr-ana" matInput required formControlName="sys_intestatario_anagrafica" placeholder={{anagraficaPlaceholder}}>
+        <mat-error *ngIf="formErrors['sys_intestatario_anagrafica']">{{ formErrors.sys_intestatario_anagrafica }}</mat-error>
+      </mat-form-field>
+      <div fxFlex="100%" fxFlex.gt-sm="10em" fxLayout="column" class="tipo-persona-group">
+        <span fxFlex class="mat-caption">Tipo persona</span>
+        <div fxFlex>
+        <mat-button-toggle-group (change)="onChangeTipoPersona($event)" formControlName="sys_intestatario_tipoSoggetto">
+          <mat-button-toggle value="F">Fisica</mat-button-toggle>
+          <mat-button-toggle value="G">Giuridica</mat-button-toggle>
+        </mat-button-toggle-group></div>
+      </div>
+      <mat-checkbox fxFlex="100%" fxFlex.gt-sm="17em" class="pl-2" [class.mat-checkbox-disabled]="cfAnonimoDisabled"
+      formControlName="sys_intestatario_cfAnonimo" (change)="cfAnonimoOnChange($event.checked)">Non ho codice fiscale / partita IVA</mat-checkbox>
+      <div *ngIf="!cfAnonimoSelected" fxFlex="100%" fxFlex.gt-sm="13em" fxLayout="column">
+        <mat-label id="sr-univoco" class="sr-only">{{codiceIdentificativoUnivocoLabel}}</mat-label>
+        <mat-form-field appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+          <mat-label aria-hidden="true">{{codiceIdentificativoUnivocoLabel}}</mat-label>
+          <input aria-labelledby="sr-univoco" required matInput formControlName="sys_intestatario_codiceIdentificativoUnivoco">
+          <mat-error *ngIf="formErrors['sys_intestatario_codiceIdentificativoUnivoco']">{{ formErrors.sys_intestatario_codiceIdentificativoUnivoco }}</mat-error>
+        </mat-form-field>
+      </div>
+      <mat-label id="sr-email" class="sr-only">Email</mat-label>
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+        <mat-label aria-hidden="true">Email</mat-label>
+        <input aria-labelledby="sr-email" matInput formControlName="sys_intestatario_email">
+        <mat-error *ngIf="formErrors['sys_intestatario_email']">{{ formErrors.sys_intestatario_email }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div fxLayout="row wrap" fxLayoutAlign="end center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+      <button type="button" mat-flat-button color="primary" aria-label="Indietro" (click)="onReload()">Indietro</button>
+      <button type="button" mat-flat-button color="primary" aria-label="Reset" (click)="onReset()">Reset</button>
+      <button type="submit" *ngIf="!addedToCart" mat-flat-button [disabled]="form.invalid" color="accent" aria-label="Aggiungi al carrello">Aggiungi al carrello</button>
+      <button type="button" *ngIf="addedToCart" mat-flat-button [routerLink]="'/carrello'" color="accent" aria-label="Vai al carrello">Vai al carrello</button>
+    </div>
+  </div>
+</form>

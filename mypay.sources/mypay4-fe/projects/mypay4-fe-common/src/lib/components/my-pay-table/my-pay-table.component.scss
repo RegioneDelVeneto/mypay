@@ -1,0 +1,335 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+.mat-table {
+  table-layout:fixed;
+  width:100%;
+  word-break:break-word;
+}
+
+.mat-table,
+.mat-paginator{
+  background-color: inherit;
+  width: 100%;
+}
+
+.mypay4-element-row td {
+  border-bottom-width: 0;
+}
+
+tr.mypay4-detail-row {
+  height: 0;
+}
+
+tr.mypay4-nested-table-row {
+  height: 0;
+  td {
+    border: 0;
+  }
+}
+
+tr.mypay4-element-row:not(.mypay4-expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.mypay4-element-row:not(.mypay4-expanded-row):active {
+  background:#fefefe;
+}
+
+.mypay4-element-detail {
+  overflow: hidden;
+  display: flex;
+}
+
+.detail-action {
+  display: flex;
+  flex-direction: column;
+  .mat-fab {
+    margin-top: auto;
+    margin-bottom: 10px;
+  }
+}
+
+.button-row{
+  position: relative;
+}
+
+.floating-buttons{
+  padding-left: 15px;
+  padding: 5px 10px;
+}
+
+.float-button-container{
+  //display: flex;
+  position: absolute;
+  left: 0;
+  top: -5px;
+  transform: translateX(-110%);
+  border-radius: 20px;
+  background-color: $primary;
+  color: $accent;
+  max-width: 0px;
+  overflow: hidden;
+
+  white-space: nowrap;
+  display: inline-block;
+  transition: max-width 1000ms ease-in-out;
+}
+
+.float-button-container.active{
+  width: auto;
+  max-width: 200px;
+}
+
+.mat-table[matTableResponsive] {
+  .mat-table {
+    padding-left: 2rem;
+  }
+
+  .mat-row td.mat-cell.mat-column-expandedDetail {
+    padding:0;
+  }
+}
+
+::ng-deep .mat-menu-panel {
+  min-height: 0;
+  min-width: 0;
+}
+
+::ng-deep .mat-menu-content {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.mat-menu-item {
+  font-size: 18px;
+  height: 75%;
+  line-height: 80%;
+  padding: 5px;
+  text-align: right;
+}
+
+.mat-menu-item span {
+  font-size: 75%;
+  font-weight: 700;
+}
+
+$responsiveTableTreshold: 768px;
+
+@media (max-width: $responsiveTableTreshold) {
+
+  .mat-table[matTableResponsive] {
+
+    .mat-table {
+      padding-left: 0;
+    }
+
+    .mat-row {
+      height: auto;
+
+      td.mat-cell:not(.mat-column-actions) {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        padding: 0.5rem;
+        text-align: left;
+        word-break: break-word;
+
+        & > * {
+          grid-column: 2;
+        }
+
+        &:before {
+          content: attr(data-column-name);
+          text-align: left;
+          font-weight:bold;
+        }
+      }
+
+      td.mat-column-actions {
+        display: flex;
+        justify-content: center;
+        padding: 0 0.5rem;
+
+        & > button {
+          margin: 0.5rem 0;
+        }
+      }
+
+      &:last-of-type td:last-of-type {
+        border: none;
+      }
+
+      td.mat-cell.mat-column-expandedDetail::before {
+        display:none !important;
+      }
+
+      td.mat-cell.mat-column-expandedDetail {
+        display: grid;
+        grid-template-columns: 0%;
+
+        tr.mat-row{
+          display: grid;
+          grid-template-columns: 50% 50%;
+        }
+
+        td.mat-cell{
+          text-align:left;
+          display:block;
+          padding-left: 0;
+
+          &:before{
+            display:none;
+          }
+        }
+      }
+    }
+
+
+    .mat-header-row {
+      display: none;
+
+    //   display: flex;
+    //   flex-wrap: wrap;
+    //   height: auto;
+    //   // position: sticky;
+    //   top: 0;
+    //   z-index: 2;
+
+    //   th.mat-header-cell {
+    //     display: flex;
+    //     flex: 1;
+    //     align-items: center;
+    //     padding: 1rem 0.5rem;
+    //     justify-content: space-around;
+
+    //     & > .mat-sort-header-container {
+    //       padding-left: 15px; // padding is used to center the header table cells, due to the width of the sort icon
+    //     }
+
+    //     &:not([mat-sort-header]),
+    //     &.mat-sort-header-disabled,
+    //     &.mat-column-actions {
+    //       display: none;
+    //     }
+    //   }
+    }
+  }
+
+  .mat-card,
+  .mat-expansion-panel {
+    .mat-table[matTableResponsive] {
+      border: 0.5rem solid #fafafa;
+    }
+  }
+
+}
+
+td.mat-cell{
+  padding: .25rem;
+}
+
+th.mat-column-rowActions {
+  width: 3.5em;
+  word-break: keep-all;
+  ::ng-deep.mat-sort-header-container {
+    justify-content: center !important;
+  }
+}
+
+td.mat-column-rowActions {
+  text-align: center;
+}
+
+th.mat-column-tableExpandColumn {
+  width: 2.5em;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+@mixin mat-table-columns($columns) {
+  @media (min-width: $responsiveTableTreshold) {
+    ::ng-deep th.mat-column- {
+      @each $colName, $props in $columns {
+        $width: map-get($props, 'width');
+        $justify: map-get($props, 'justify');
+        &#{$colName} {
+          width: $width;
+          @if $justify==right {
+            .mat-sort-header-container {
+              justify-content: flex-end;
+              padding-right: 0.25rem;
+            }
+          }
+        }
+      }
+    }
+    ::ng-deep td.mat-column- {
+      @each $colName, $props in $columns {
+        $overflow: map-get($props, 'overflow');
+        $justify: map-get($props, 'justify');
+        &#{$colName} {
+          @if $justify==right {
+            text-align: right !important;
+          }
+          @if $overflow==ellipsis {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+          }
+        }
+      }
+    }
+  }
+}
+
+.mypay4-table-expansion-indicator {
+  padding-right: 0.5em;
+}
+.mypay4-table-expansion-indicator::after {
+  color: rgba(0, 0, 0, 0.54);
+  border-style: solid;
+  border-width: 0 2px 2px 0;
+  content: "";
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg) translate(0, -5px);
+  vertical-align: middle;
+}
+
+.mypay4-expanded-row .mypay4-table-expansion-indicator::after {
+  transform: rotate(-135deg) translate(-3px, 3px);
+}
+
+::ng-deep .mypay4-detail-panel {
+  width: 70vw;
+  //height: 70vh;
+}
+
+tr.mat-footer-row {
+  font-weight: bold;
+}
+
+.mat-table-sticky {
+  border-top: 1px solid #e0e0e0;
+}

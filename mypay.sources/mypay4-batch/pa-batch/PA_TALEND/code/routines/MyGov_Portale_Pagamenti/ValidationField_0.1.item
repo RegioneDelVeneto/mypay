@@ -1,0 +1,325 @@
+package routines;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+
+public class ValidationField {
+
+	public enum TIPO_IDENTIFICATIVO_UNIVOCO {
+		PERSONA_FISICA("F"), PERSONA_GIURIDICA("G");
+		private String value;
+
+		private TIPO_IDENTIFICATIVO_UNIVOCO(String value) {
+			this.value = value;
+		}
+
+		/**
+		 * @return the value
+		 */
+		public String getValue() {
+			return value;
+		}
+
+		/**
+		 * @param value the value to set
+		 */
+		public void setValue(String value) {
+			this.value = value;
+		}
+		
+		
+	};
+
+	public enum AZIONE {
+		INSERISCI("I"), MODIFICA("M"), ANNULLA("A");
+		private String value;
+
+		private AZIONE(String value) {
+			this.value = value;
+		}
+	};
+
+	public enum TIPO_VERSAMENTO {
+		BONIFICO_BANCARIO_TESORERIA("BBT"), BOLLETTINO_POSTALE("BP"), ADDEBITO_DIRETTO(
+				"AD"), CARTA_PAGAMENTO("CP"), PAGAMENTO_PRESSO_PSP("PO"), 
+				ONLINE_BANKING_ELETTRONIC_PAYMENT("OBEP"), 
+				TUTTI("ALL");
+		private String value;
+
+		private TIPO_VERSAMENTO(String value) {
+			this.value = value;
+		}
+	};
+
+	private static final String DATI_SPECIFICI_RISCOSSIONE_PATTERN = "[0129]{1}\\/\\S{3,138}";
+	private static final String MAIL_PATTERN = "[A-Za-z0-9_]+([\\-\\+\\.'][A-Za-z0-9_]+)*@[A-Za-z0-9_]+([\\-\\.][A-Za-z0-9_]+)*\\.[A-Za-z0-9_]+([\\-\\.][A-Za-z0-9_]+)*";
+	public final static String ANAGRAFICA_INDIRIZZO_PATTERN = "[a-z A-Z0-9.,()/'&]{1,70}";
+	public final static String ANAGRAFICA_INDIRIZZO_PATTERN_NEGATIVO = "[^a-z A-Z0-9.,()/'&]{1,70}";
+	public final static String ANAGRAFICA_CIVICO_PATTERN = "[a-z A-Z0-9.,()/'&]{1,16}";
+
+	/**
+	 * @param stringa
+	 * @return
+	 */
+	public static boolean validaTipoIdentificativoUnivoco(String stringa) {
+
+		for (TIPO_IDENTIFICATIVO_UNIVOCO type : TIPO_IDENTIFICATIVO_UNIVOCO
+				.values()) {
+			if (type.value.equalsIgnoreCase(stringa))
+				return true;
+		}
+
+		return false;
+
+	}
+	
+	public static boolean validaMail(String mail) {
+		if (StringUtils.isBlank(mail)) {
+			return true;
+		}
+		Pattern pattern = Pattern.compile(MAIL_PATTERN);
+		Matcher matcher = pattern.matcher(mail);
+
+		return matcher.matches();
+	}
+
+	/**
+	 * @param stringa
+	 * @return
+	 */
+	public static boolean validaDatiSpecificiRiscossione(String stringa) {
+
+		Pattern pattern = Pattern.compile(DATI_SPECIFICI_RISCOSSIONE_PATTERN);
+		Matcher matcher = pattern.matcher(stringa);
+
+		return matcher.matches();
+
+	}
+
+	/**
+	 * @param stringa
+	 * @return
+	 */
+	public static boolean validaIUD(String stringa) {
+
+		if (JobStringManage.getValue(stringa) != null) {
+			if (!stringa.startsWith("000")) {
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+	
+	/**
+	 * @param IUV
+	 * @return
+	 */
+	public static boolean validaIUV(String IUV, boolean flag_genera_iuv) {
+
+		if (StringUtils.isNotBlank(IUV)) {
+			if (IUV.length() == 15) {
+				if (!IUV.startsWith("00"))
+					return true;
+			} else if (IUV.length() == 25) {
+				if(IUV.endsWith("0000")) {
+					if(IUV.charAt(6) == '9' && IUV.charAt(7) == '9') // vecchio formato ente
+						return true;
+				} else // nuovo formato ente
+					return true;
+			} else if(IUV.length() == 17){
+				if(flag_genera_iuv)
+					return true;				
+				if(IUV.charAt(2) != '0' || IUV.charAt(3) != '0')
+					return true;
+			} else
+				return false;
+		} else
+			return true;
+		return false;
+	}
+	
+	/**
+	 * @param IUV
+	 * @param COD
+	 * @return
+	 */
+	public static boolean validaApplicationCode(String IUV, String COD) {
+		if (StringUtils.isNotBlank(IUV)) {
+			if(IUV.length() == 17){
+				if(IUV.charAt(0) != COD.charAt(0) || IUV.charAt(1) != COD.charAt(1)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}	
+
+	/**
+	 * @param stringa
+	 * @return
+	 */
+	public static String getTipoIdentificativoUnivoco() {
+		String result = "  ";
+		for (TIPO_IDENTIFICATIVO_UNIVOCO type : TIPO_IDENTIFICATIVO_UNIVOCO
+				.values()) {
+			result += type.value + ", ";
+		}
+
+		return result.substring(0, result.length() - 2);
+	}
+
+	/**
+	 * @param stringa
+	 * @return
+	 */
+	public static boolean validaAction(String stringa) {
+
+		boolean noFind = true;
+		for (AZIONE type : AZIONE.values()) {
+			if (type.value.equalsIgnoreCase(stringa))
+				noFind = false;
+		}
+		return noFind;
+
+	}
+
+	/**
+	 * @param stringa
+	 * @return
+	 */
+	public static boolean validaTipoVersamento(String stringa) {
+
+		if (stringa == null || "".equalsIgnoreCase(stringa)) {
+			// Il campo non e' obbligatorio
+			return true;
+		}
+
+		String[] token = stringa.split("\\|");
+		for (int i = 0; i < token.length; i++) {
+			boolean find = false;
+			for (TIPO_VERSAMENTO type : TIPO_VERSAMENTO.values()) {
+				if (type.value.equalsIgnoreCase(token[i].trim())) {
+					find = true;
+					break;
+				}
+			}
+			if (!find)
+				return false;
+		}
+		// non posso mettere 'ALL' con altre cose
+		if (stringa.contains(TIPO_VERSAMENTO.TUTTI.value) && token.length > 1)
+			return false;
+
+		return true;
+
+	}
+	
+	public static boolean isValidCF(String cf) {
+		if(cf.length() > 16)
+			return false;
+		boolean isOkDigit = false;
+		boolean isOkNumeric = false;
+		String cfTocheck = cf.trim().toUpperCase();
+		CFUtilities.UCheckDigit ucheckDigit = new CFUtilities.UCheckDigit(cfTocheck);
+		CFUtilities.UCheckNum ucheckNum = new CFUtilities.UCheckNum(cfTocheck);
+		
+		try {
+			isOkDigit = ucheckDigit.controllaCorrettezza();
+			
+		} catch(Exception ex){}
+		
+		try {
+			isOkNumeric = ucheckNum.controllaCfNum();
+			
+		} catch(Exception ex){}
+		
+		return isOkDigit || isOkNumeric;
+	}
+	
+	public static boolean isValidCodIdUnivocoConAnonimo(Boolean anonimo, String tipoPersona, String codIdUnivoco) {
+		if (anonimo!=null && anonimo && "ANONIMO".equals(codIdUnivoco)) {
+			return true;
+		} 
+		else if ("G".equals(tipoPersona)) {
+			return isValidPIVA(codIdUnivoco);
+		} 
+		else if ("F".equals(tipoPersona)) {
+			return isValidCF(codIdUnivoco);
+		} 
+		else return false;
+	}
+	
+	public static boolean validaIndirizzoAnagrafica(String stringa) {
+		
+		if(StringUtils.isBlank(stringa))
+			return true;
+
+		Pattern pattern = Pattern.compile(ANAGRAFICA_INDIRIZZO_PATTERN);
+		Matcher matcher = pattern.matcher(stringa);
+
+		return matcher.matches();
+	}
+	
+	public static String checkIndirizzoAnagrafica(String stringa){
+		
+		if(StringUtils.isBlank(stringa))
+			return stringa;
+		
+		String result = StringUtils.stripAccents(stringa);
+		
+		result=result.replaceAll(ANAGRAFICA_INDIRIZZO_PATTERN_NEGATIVO, " ");
+		
+		return result;
+	}
+	
+	public static boolean validaCivicoAnagrafica(String stringa) {
+		if(StringUtils.isBlank(stringa))
+			return true;
+		
+		Pattern pattern = Pattern.compile(ANAGRAFICA_CIVICO_PATTERN);
+		
+		Matcher matcher = pattern.matcher(stringa);
+
+		return matcher.matches();
+	}
+
+	public static boolean isValidPIVA(String pi) {
+		int i, c, s;
+		if (pi.length() == 0)
+			return false;
+		if (pi.length() != 11)
+			return false;
+		for (i = 0; i < 11; i++) {
+			if (pi.charAt(i) < '0' || pi.charAt(i) > '9')
+				return false;
+		}
+		s = 0;
+		for (i = 0; i <= 9; i += 2)
+			s += pi.charAt(i) - '0';
+		for (i = 1; i <= 9; i += 2) {
+			c = 2 * (pi.charAt(i) - '0');
+			if (c > 9)
+				c = c - 9;
+			s += c;
+		}
+		if ((10 - s % 10) % 10 != pi.charAt(10) - '0')
+			return false;
+		return true;
+	}
+	
+	
+	public static void main(String[] args) {
+		//String IUV=StringUtils.leftPad(String.valueOf(Numeric.random(1, 99)), 2, "0") + "961" + StringUtils.leftPad(String.valueOf(Numeric.sequence("IUV", Numeric.random(1000,10000), 1)), 9, "0") + "00";
+		String IUV="01000000000026529";
+		if (validaIUV(IUV,false)){
+			System.out.println("valido");
+		} else {
+			System.out.println("non valido");		
+		}
+		
+	}
+}

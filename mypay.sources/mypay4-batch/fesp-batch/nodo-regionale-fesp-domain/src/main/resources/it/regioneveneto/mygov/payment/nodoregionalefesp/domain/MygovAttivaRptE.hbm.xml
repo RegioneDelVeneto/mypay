@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Jan 22, 2019 5:27:55 PM by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovAttivaRptE" table="mygov_attiva_rpt_e">
+        <id name="mygovAttivaRptEId" type="java.lang.Long">
+            <column name="mygov_attiva_rpt_e_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_attiva_rpt_e_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="codAttivarptIdPsp" type="string">
+            <column name="cod_attivarpt_id_psp" length="35" not-null="true" />
+        </property>
+        <property name="codAttivarptIdentificativoIntermediarioPa" type="string">
+            <column name="cod_attivarpt_identificativo_intermediario_pa" length="35" not-null="true" />
+        </property>
+        <property name="codAttivarptIdentificativoStazioneIntermediarioPa" type="string">
+            <column name="cod_attivarpt_identificativo_stazione_intermediario_pa" length="35" not-null="true" />
+        </property>
+        <property name="codAttivarptIdentificativoDominio" type="string">
+            <column name="cod_attivarpt_identificativo_dominio" length="35" not-null="true" />
+        </property>
+        <property name="codAttivarptIdentificativoUnivocoVersamento" type="string">
+            <column name="cod_attivarpt_identificativo_univoco_versamento" length="35" not-null="true" />
+        </property>
+        <property name="codAttivarptCodiceContestoPagamento" type="string">
+            <column name="cod_attivarpt_codice_contesto_pagamento" length="35" not-null="true" />
+        </property>
+        <property name="dtAttivarpt" type="timestamp">
+            <column name="dt_attivarpt" length="29" not-null="true" />
+        </property>
+        <property name="numAttivarptImportoSingoloVersamento" type="big_decimal">
+            <column name="num_attivarpt_importo_singolo_versamento" precision="12" not-null="true" />
+        </property>
+        <property name="deAttivarptIbanAppoggio" type="string">
+            <column name="de_attivarpt_iban_appoggio" length="35" />
+        </property>
+        <property name="deAttivarptBicAppoggio" type="string">
+            <column name="de_attivarpt_bic_appoggio" length="11" />
+        </property>
+        <property name="codAttivarptSoggVersIdUnivVersTipoIdUnivoco" type="string">
+            <column name="cod_attivarpt_sogg_vers_id_univ_vers_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codAttivarptSoggVersIdUnivVersCodiceIdUnivoco" type="string">
+            <column name="cod_attivarpt_sogg_vers_id_univ_vers_codice_id_univoco" length="35" />
+        </property>
+        <property name="deAttivarptSoggVersAnagraficaVersante" type="string">
+            <column name="de_attivarpt_sogg_vers_anagrafica_versante" length="70" />
+        </property>
+        <property name="deAttivarptSoggVersIndirizzoVersante" type="string">
+            <column name="de_attivarpt_sogg_vers_indirizzo_versante" length="70" />
+        </property>
+        <property name="deAttivarptSoggVersCivicoVersante" type="string">
+            <column name="de_attivarpt_sogg_vers_civico_versante" length="16" />
+        </property>
+        <property name="codAttivarptSoggVersCapVersante" type="string">
+            <column name="cod_attivarpt_sogg_vers_cap_versante" length="16" />
+        </property>
+        <property name="deAttivarptSoggVersLocalitaVersante" type="string">
+            <column name="de_attivarpt_sogg_vers_localita_versante" length="35" />
+        </property>
+        <property name="deAttivarptSoggVersProvinciaVersante" type="string">
+            <column name="de_attivarpt_sogg_vers_provincia_versante" length="35" />
+        </property>
+        <property name="codAttivarptSoggVersNazioneVersante" type="string">
+            <column name="cod_attivarpt_sogg_vers_nazione_versante" length="2" />
+        </property>
+        <property name="deAttivarptSoggVersEmailVersante" type="string">
+            <column name="de_attivarpt_sogg_vers_email_versante" length="256" />
+        </property>
+        <property name="deAttivarptIbanAddebito" type="string">
+            <column name="de_attivarpt_iban_addebito" length="35" />
+        </property>
+        <property name="deAttivarptBicAddebito" type="string">
+            <column name="de_attivarpt_bic_addebito" length="11" />
+        </property>
+        <property name="codAttivarptSoggPagIdUnivPagTipoIdUnivoco" type="string">
+            <column name="cod_attivarpt_sogg_pag_id_univ_pag_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codAttivarptSoggPagIdUnivPagCodiceIdUnivoco" type="string">
+            <column name="cod_attivarpt_sogg_pag_id_univ_pag_codice_id_univoco" length="35" />
+        </property>
+        <property name="deAttivarptSoggPagAnagraficaPagatore" type="string">
+            <column name="de_attivarpt_sogg_pag_anagrafica_pagatore" length="70" />
+        </property>
+        <property name="deAttivarptSoggPagIndirizzoPagatore" type="string">
+            <column name="de_attivarpt_sogg_pag_indirizzo_pagatore" length="70" />
+        </property>
+        <property name="deAttivarptSoggPagCivicoPagatore" type="string">
+            <column name="de_attivarpt_sogg_pag_civico_pagatore" length="16" />
+        </property>
+        <property name="codAttivarptSoggPagCapPagatore" type="string">
+            <column name="cod_attivarpt_sogg_pag_cap_pagatore" length="16" />
+        </property>
+        <property name="deAttivarptSoggPagLocalitaPagatore" type="string">
+            <column name="de_attivarpt_sogg_pag_localita_pagatore" length="35" />
+        </property>
+        <property name="deAttivarptSoggPagProvinciaPagatore" type="string">
+            <column name="de_attivarpt_sogg_pag_provincia_pagatore" length="35" />
+        </property>
+        <property name="codAttivarptSoggPagNazionePagatore" type="string">
+            <column name="cod_attivarpt_sogg_pag_nazione_pagatore" length="2" />
+        </property>
+        <property name="deAttivarptSoggPagEmailPagatore" type="string">
+            <column name="de_attivarpt_sogg_pag_email_pagatore" length="256" />
+        </property>
+        <property name="dtEAttivarpt" type="timestamp">
+            <column name="dt_e_attivarpt" length="29" />
+        </property>
+        <property name="numEAttivarptImportoSingoloVersamento" type="big_decimal">
+            <column name="num_e_attivarpt_importo_singolo_versamento" precision="12" />
+        </property>
+        <property name="deEAttivarptIbanAccredito" type="string">
+            <column name="de_e_attivarpt_iban_accredito" length="35" />
+        </property>
+        <property name="deEAttivarptBicAccredito" type="string">
+            <column name="de_e_attivarpt_bic_accredito" length="11" />
+        </property>
+        <property name="codEAttivarptEnteBenefIdUnivBenefTipoIdUnivoco" type="string">
+            <column name="cod_e_attivarpt_ente_benef_id_univ_benef_tipo_id_univoco" length="1" />
+        </property>
+        <property name="codEAttivarptEnteBenefIdUnivBenefCodiceIdUnivoco" type="string">
+            <column name="cod_e_attivarpt_ente_benef_id_univ_benef_codice_id_univoco" length="35" />
+        </property>
+        <property name="deEAttivarptEnteBenefDenominazioneBeneficiario" type="string">
+            <column name="de_e_attivarpt_ente_benef_denominazione_beneficiario" length="70" />
+        </property>
+        <property name="codEAttivarptEnteBenefCodiceUnitOperBeneficiario" type="string">
+            <column name="cod_e_attivarpt_ente_benef_codice_unit_oper_beneficiario" length="35" />
+        </property>
+        <property name="deEAttivarptEnteBenefDenomUnitOperBeneficiario" type="string">
+            <column name="de_e_attivarpt_ente_benef_denom_unit_oper_beneficiario" length="70" />
+        </property>
+        <property name="deEAttivarptEnteBenefIndirizzoBeneficiario" type="string">
+            <column name="de_e_attivarpt_ente_benef_indirizzo_beneficiario" length="70" />
+        </property>
+        <property name="deEAttivarptEnteBenefCivicoBeneficiario" type="string">
+            <column name="de_e_attivarpt_ente_benef_civico_beneficiario" length="16" />
+        </property>
+        <property name="codEAttivarptEnteBenefCapBeneficiario" type="string">
+            <column name="cod_e_attivarpt_ente_benef_cap_beneficiario" length="16" />
+        </property>
+        <property name="deEAttivarptEnteBenefLocalitaBeneficiario" type="string">
+            <column name="de_e_attivarpt_ente_benef_localita_beneficiario" length="35" />
+        </property>
+        <property name="deEAttivarptEnteBenefProvinciaBeneficiario" type="string">
+            <column name="de_e_attivarpt_ente_benef_provincia_beneficiario" length="35" />
+        </property>
+        <property name="codEAttivarptEnteBenefNazioneBeneficiario" type="string">
+            <column name="cod_e_attivarpt_ente_benef_nazione_beneficiario" length="2" />
+        </property>
+        <property name="deEAttivarptCredenzialiPagatore" type="string">
+            <column name="de_e_attivarpt_credenziali_pagatore" length="35" />
+        </property>
+        <property name="deEAttivarptCausaleVersamento" type="string">
+            <column name="de_e_attivarpt_causale_versamento" length="140" />
+        </property>
+        <property name="deAttivarptEsito" type="string">
+            <column name="de_attivarpt_esito" length="256" />
+        </property>
+        <property name="codAttivarptFaultCode" type="string">
+            <column name="cod_attivarpt_fault_code" length="256" />
+        </property>
+        <property name="deAttivarptFaultString" type="string">
+            <column name="de_attivarpt_fault_string" length="1024" />
+        </property>
+        <property name="codAttivarptId" type="string">
+            <column name="cod_attivarpt_id" length="256" />
+        </property>
+        <property name="deAttivarptDescription" type="string">
+            <column name="de_attivarpt_description" length="1024" />
+        </property>
+        <property name="codAttivarptSerial" type="java.lang.Integer">
+            <column name="cod_attivarpt_serial" />
+        </property>
+        <property name="codAttivarptIdIntermediarioPsp" type="string">
+            <column name="cod_attivarpt_id_intermediario_psp" length="35" />
+        </property>
+        <property name="codAttivarptIdCanalePsp" type="string">
+            <column name="cod_attivarpt_id_canale_psp" length="35" />
+        </property>
+        <property name="codAttivarptOriginalFaultCode" type="string">
+            <column name="cod_attivarpt_original_fault_code" length="256" />
+        </property>
+        <property name="deAttivarptOriginalFaultString" type="string">
+            <column name="de_attivarpt_original_fault_string" length="256" />
+        </property>
+        <property name="deAttivarptOriginalFaultDescription" type="string">
+            <column name="de_attivarpt_original_fault_description" length="1024" />
+        </property>
+    </class>
+</hibernate-mapping>

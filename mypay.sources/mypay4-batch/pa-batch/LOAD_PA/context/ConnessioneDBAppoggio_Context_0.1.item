@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<talendfile:ContextType xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd" confirmationNeeded="false" name="Default">
+  <contextParameter comment="" name="conn_db_appo" prompt="conn_db_appo?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="conn_host_appo" prompt="conn_host_appo?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="conn_port_appo" prompt="conn_port_appo?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="conn_psw_appo" prompt="conn_psw_appo?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="conn_schema_appo" prompt="conn_schema_appo?" promptNeeded="false" type="id_String" value="null"/>
+  <contextParameter comment="" name="conn_usr_appo" prompt="conn_usr_appo?" promptNeeded="false" type="id_String" value="null"/>
+</talendfile:ContextType>

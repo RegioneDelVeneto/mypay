@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 6-set-2018 9.47.53 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovCarrelloRp" table="mygov_carrello_rp">
+        <id name="mygovCarrelloRpId" type="java.lang.Long">
+            <column name="mygov_carrello_rp_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_carrello_rp_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="codAckCarrelloRp" type="string">
+            <column name="cod_ack_carrello_rp" length="2" />
+        </property>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" />
+        </property>
+        <property name="idSessionCarrello" type="string">
+            <column name="id_session_carrello" length="36" />
+        </property>
+        <property name="deRpSilinviacarrellorpEsito" type="string">
+            <column name="de_rp_silinviacarrellorp_esito" length="256" />
+        </property>
+        <property name="codRpSilinviacarrellorpRedirect" type="java.lang.Integer">
+            <column name="cod_rp_silinviacarrellorp_redirect" />
+        </property>
+        <property name="codRpSilinviacarrellorpUrl" type="string">
+            <column name="cod_rp_silinviacarrellorp_url" length="256" />
+        </property>
+        <property name="codRpSilinviacarrellorpFaultCode" type="string">
+            <column name="cod_rp_silinviacarrellorp_fault_code" length="256" />
+        </property>
+        <property name="deRpSilinviacarrellorpFaultString" type="string">
+            <column name="de_rp_silinviacarrellorp_fault_string" length="256" />
+        </property>
+        <property name="codRpSilinviacarrellorpId" type="string">
+            <column name="cod_rp_silinviacarrellorp_id" length="256" />
+        </property>
+        <property name="deRpSilinviacarrellorpDescription" type="string">
+            <column name="de_rp_silinviacarrellorp_description" length="1024" />
+        </property>
+        <property name="codRpSilinviacarrellorpSerial" type="java.lang.Integer">
+            <column name="cod_rp_silinviacarrellorp_serial" />
+        </property>
+        <property name="codiceFiscaleEnte" type="string">
+            <column name="codice_fiscale_ente" length="11" not-null="true"  />
+        </property>
+        <property name="codRpSilinviacarrellorpOriginalFaultCode" type="string">
+            <column name="cod_rp_silinviacarrellorp_original_fault_code" length="256" />
+        </property>
+        <property name="deRpSilinviacarrellorpOriginalFaultString" type="string">
+            <column name="de_rp_silinviacarrellorp_original_fault_string" length="256" />
+        </property>
+        <property name="deRpSilinviacarrellorpOriginalFaultDescription" type="string">
+            <column name="de_rp_silinviacarrellorp_original_fault_description" length="1024" />
+        </property>
+        <set name="mygov_rp_e" inverse="true" lazy="true" table="mygov_rp_e" fetch="select">
+            <key>
+                <column name="mygov_carrello_rp_id" />
+            </key>
+            <one-to-many class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRpE" />
+        </set>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,40 @@
+package routines;
+
+public class Constants {
+	
+	public final static double				DOVUTI_PER_ABITANTE = 1.5;
+	public final static int					NUMERO_COMUNI_VENETO = 581;
+	
+	public final static String				COD_IPA_RVE = "_COD_IPA_ENTE_";
+	
+	public final static int					POPOLAZIONE_VENETO = 4857210;
+	public final static int					MAX_POPOLAZIONE = 261362;
+	public final static int					MIN_POPOLAZIONE = 123;
+	
+	public final static int					NUM_ENTI = 1000;
+	
+	public final static int					TIPO_DOVUTI_ENTE_MAX = 100;
+	public final static int					TIPO_DOVUTI_ENTE_MIN = 10;
+	
+	public final static int					NUM_UTENTI = 1000000;
+	
+	public final static int					DOVUTI_ENTE_MAX = 4000000;
+	public final static int					DOVUTI_ENTE_MIN = 40000;
+	public final static int					DOVUTI_ELAB_ENTE_MAX = 4000000;
+	public final static int					DOVUTI_ELAB_ENTE_MIN = 40000;
+	public final static int					NUM_ANNI_DOVUTI_ELAB = 5;
+	public final static int					DOVUTI_ENTE_RVE = 40000000;
+	
+	public final static int					DOVUTI_TK_RVE = 30000000;
+	public final static int					DOVUTI_BOLLO_RVE = 4200000;
+	
+	public final static String				DE_RP_VERSIONE_OGGETTO = "6.0";
+	
+	public final static String				DOVUTO_ANNULLATO = "ANNULLATO";
+	public final static String				DOVUTO_PAGATO = "COMPLETATO";
+	public final static String				DOVUTO_NON_PAGATO = "PENDENTE";
+	public final static String				DOVUTO_SCADUTO_ELABORATO = "SCADUTO_ELABORATO";
+	public final static String				DOVUTO_ABORTITO = "ABORT";
+
+ 
+}

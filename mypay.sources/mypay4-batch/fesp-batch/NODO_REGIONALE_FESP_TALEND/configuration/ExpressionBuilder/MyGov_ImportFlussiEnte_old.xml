@@ -1,0 +1,824 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:expression="http:///expression.ecore">
+  <expression:EMFExpression id="null=>LOAD_TABLE_FLUSSI=>fk_ente" expression="(Integer)globalMap.get(&quot;idEnte&quot;) ">
+    <variables name="row3.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row5.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row5.version" value="0" talendType="id_Integer"/>
+    <variables name="row5.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row5.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row5.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>RIFIUTO_DOVUTI_ERRORI_DB=>dt_creazione" expression="TalendDate.getCurrentDate() ">
+    <variables name="row15.errorMessage" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row15.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row15.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row16.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row16.version" value="0" talendType="id_Integer"/>
+    <variables name="row16.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row16.de_stato" value="null" talendType="id_String"/>
+    <variables name="row16.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row16.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row16.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA=>dt_ultima_modifica" expression="TalendDate.getCurrentDate() ">
+    <variables name="row20.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.version" value="0" talendType="id_Integer"/>
+    <variables name="row20.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row20.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row20.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row20.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row20.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row20.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row20.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.nuovo_stato" value="null" talendType="id_Integer" nullable="true"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA=>version" expression="row20.version + 1">
+    <variables name="row20.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.version" value="0" talendType="id_Integer"/>
+    <variables name="row20.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row20.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row20.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row20.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row20.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row20.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row20.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.nuovo_stato" value="null" talendType="id_Integer" nullable="true"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>ANNULLA_DOVUTO=>version" expression="row20.version + 1">
+    <variables name="row22.IUD" value="null" talendType="id_String"/>
+    <variables name="row22.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row22.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row22.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row22.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row22.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row22.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="ingolo_versamento&quot; valu" value="null" talendType="id_String"/>
+    <variables name="row22.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row22.azione" value="null" talendType="id_String"/>
+    <variables name="row20.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.version" value="0" talendType="id_Integer"/>
+    <variables name="row20.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row20.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row20.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row20.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row20.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row20.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row20.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+    <variables name="row11.IUD" value="null" talendType="id_String"/>
+    <variables name="row11.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row11.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row11.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row11.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row11.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row11.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row11.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row11.azione" value="null" talendType="id_String"/>
+    <variables name="row21.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row21.version" value="0" talendType="id_Integer"/>
+    <variables name="row21.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row21.de_stato" value="null" talendType="id_String"/>
+    <variables name="row21.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row21.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row21.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>ANNULLA_DOVUTO=>dt_ultima_modifica" expression="TalendDate.getCurrentDate()">
+    <variables name="row22.IUD" value="null" talendType="id_String"/>
+    <variables name="row22.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row22.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row22.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row22.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row22.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row22.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row22.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row22.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row22.azione" value="null" talendType="id_String"/>
+    <variables name="row20.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.version" value="0" talendType="id_Integer"/>
+    <variables name="row20.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row20.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row20.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row20.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row20.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row20.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row20.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="  &lt;variables name=&quot;row20.sog_pag_provincia_pagatore&quot; value=&quot;" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+    <variables name="row11.IUD" value="null" talendType="id_String"/>
+    <variables name="row11.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row11.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row11.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row11.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row11.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row11.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row11.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row11.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row11.azione" value="null" talendType="id_String"/>
+    <variables name="row21.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row21.version" value="0" talendType="id_Integer"/>
+    <variables name="row21.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row21.de_stato" value="null" talendType="id_String"/>
+    <variables name="row21.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row21.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row21.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>INSERISCI_ANNULLATO=>capPagatore" expression="row21.capPagatore">
+    <variables name="row21.IUD" value="null" talendType="id_String"/>
+    <variables name="row21.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row21.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row21.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row21.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row21.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row21.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row21.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row21.azione" value="null" talendType="id_String"/>
+    <variables name="row20.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.version" value="0" talendType="id_Integer"/>
+    <variables name="row20.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row20.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row20.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row20.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row20.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row20.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row20.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>ANNULLA_DOVUTO=>flg_dovuto_attuale" expression="false">
+    <variables name="row21.IUD" value="null" talendType="id_String"/>
+    <variables name="row21.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row21.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row21.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row21.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row21.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row21.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row21.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row21.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row21.azione" value="null" talendType="id_String"/>
+    <variables name="row20.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.version" value="0" talendType="id_Integer"/>
+    <variables name="row20.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row20.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row20.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row20.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row20.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row20.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row20.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row20.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row20.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row20.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row20.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Flusso=>dt_ultima_modifica" expression="TalendDate.getCurrentDate()">
+    <variables name="row3.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row5.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row5.version" value="0" talendType="id_Integer"/>
+    <variables name="row5.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row5.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row5.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Flusso=>iuf" expression="(String) globalMap.get(&quot;IUF&quot;)">
+    <variables name="row3.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row5.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row5.version" value="0" talendType="id_Integer"/>
+    <variables name="row5.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row5.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row5.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Flusso=>fk_ente" expression="(Integer)globalMap.get(&quot;idEnte&quot;) ">
+    <variables name="row3.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="&quot;null&quot; talend" value="0" talendType="id_Integer"/>
+    <variables name="row5.version" value="0" talendType="id_Integer"/>
+    <variables name="row5.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row5.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row5.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>CARICA_DOVUTI=>fk_flusso" expression="(Integer)globalMap.get(&quot;idFlusso&quot;)  ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Dovuti=>fk_flusso" expression="(Integer)globalMap.get(&quot;idFlusso&quot;)">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>CARICA_DOVUTI=>num_riga_flusso" expression="(Integer) globalMap.get(&quot;contaRigheFile&quot;) ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Dovuti=>num_riga_flusso" expression="(Integer) globalMap.get(&quot;contaRigheFile&quot;) ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="String&quot;/>&#xD;&#xA;    &lt;variables name=&quot;INSER" value="rtoD" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="variables name=&quot;STATI.cod" value="alue" talendType="Type=&quot;id_" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>CARICA_DOVUTI=>dt_creazione" expression="TalendDate.getCurrentDate() ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Dovuti=>dt_creazione" expression="TalendDate.getCurrentDate() ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Dovuti=>dt_ultima_modifica" expression="TalendDate.getCurrentDate() ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>CARICA_DOVUTI=>dt_scadenza_pagamento" expression="TalendDate.parseDate(&quot;yyyy-MM-dd&quot;, INSERISCI.dataScadenzaPagamento) ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name=" value=&quot;null&quot; " value="e=&quot;i" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Dovuti=>dt_scadenza_pagamento" expression="TalendDate.parseDate(&quot;yyyy-MM-dd&quot;, INSERISCI.dataScadenzaPagamento) ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Flusso=>dt_creazione" expression="TalendDate.getCurrentDate() ">
+    <variables name="row3.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row5.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row5.version" value="0" talendType="id_Integer"/>
+    <variables name="row5.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row5.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row5.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>row26=>cod_stato" expression="&quot;OK&quot;.equalsIgnoreCase((String)globalMap.get(&quot;validazioneFlusso&quot;))?(&quot;A&quot;.equalsIgnoreCase(row27.azione)?&quot;ANNULLATO&quot;:&quot;INSERIMENTO_DOVUTO&quot;):&quot;ERROR_DOVUTO&quot;;      ">
+    <variables name="row27.IUD" value="null" talendType="id_String"/>
+    <variables name="row27.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row27.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row27.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row27.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row27.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row27.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row27.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row27.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.azione" value="null" talendType="id_String"/>
+    <variables name="row26.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row26.version" value="0" talendType="id_Integer"/>
+    <variables name="row26.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row26.de_stato" value="null" talendType="id_String"/>
+    <variables name="row26.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row26.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row26.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="lendType=&quot;id_Integer" value="&lt;var" talendType="ow5.id_st" nullable="true"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>INSERISCI_DA_ANNULLA=>dt_ultima_modifica" expression="TalendDate.getCurrentDate() ">
+    <variables name="row27.IUD" value="null" talendType="id_String"/>
+    <variables name="row27.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row27.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="row27.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="row27.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="row27.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="row27.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="row27.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="row27.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row27.azione" value="null" talendType="id_String"/>
+    <variables name="row26.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row26.version" value="0" talendType="id_Integer"/>
+    <variables name="row26.cod_stato" value="null" talendType="id_String"/>
+    <variables name="me=&quot;row35.sog_" value="&quot; va" talendType="id_String"/>
+    <variables name="row26.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row26.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row26.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_FLUSSO=>version" expression="row32.version + 1">
+    <variables name="row32.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.version" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_ente" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_stato_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.iuf" value="null" talendType="id_String"/>
+    <variables name="row32.num_righe_totali" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.num_righe_importate_correttamente" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row32.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row32.flg_attivo" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_FLUSSO=>flg_attivo" expression="true">
+    <variables name="row32.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.version" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_ente" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_stato_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.iuf" value="null" talendType="id_String"/>
+    <variables name="row32.num_righe_totali" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.num_righe_importate_correttamente" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row32.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row32.flg_attivo" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_FLUSSO=>dt_ultima_modifica" expression="TalendDate.getCurrentDate()">
+    <variables name="row32.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.version" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_ente" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_stato_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.iuf" value="null" talendType="id_String"/>
+    <variables name="row32.num_righe_totali" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.num_righe_importate_correttamente" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row32.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row32.flg_attivo" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_FLUSSO=>num_righe_totali" expression="(Integer) globalMap.get(&quot;contaRigheFile&quot;)">
+    <variables name="row32.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.version" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_ente" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_stato_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.iuf" value="null" talendType="id_String"/>
+    <variables name="row32.num_righe_totali" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.num_righe_importate_correttamente" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row32.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row32.flg_attivo" value="false" talendType="id_Boolean"/>
+    <variables name="row33.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row33.version" value="0" talendType="id_Integer"/>
+    <variables name="row33.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row33.de_stato" value="null" talendType="id_String"/>
+    <variables name="row33.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row33.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row33.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_FLUSSO=>num_righe_importate_correttamente" expression="(Integer) globalMap.get(&quot;contaRigheFile&quot;) - (Integer) globalMap.get(&quot;contaRigheScartate&quot;)  ">
+    <variables name="row32.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.version" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_ente" value="0" talendType="id_Integer"/>
+    <variables name="row32.fk_stato_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row32.iuf" value="null" talendType="id_String"/>
+    <variables name="row32.num_righe_totali" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.num_righe_importate_correttamente" value="null" talendType="id_Double" nullable="true"/>
+    <variables name="row32.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row32.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row32.flg_attivo" value="false" talendType="id_Boolean"/>
+    <variables name="row33.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row33.version" value="0" talendType="id_Integer"/>
+    <variables name="row33.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row33.de_stato" value="null" talendType="id_String"/>
+    <variables name="row33.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row33.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row33.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_DOVUTI_ERRATI=>version" expression="row35.version + 1">
+    <variables name="row35.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row35.version" value="0" talendType="id_Integer"/>
+    <variables name="row35.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row35.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row35.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row35.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row35.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row35.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row35.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row35.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_DOVUTI_ERRATI=>dt_ultima_modifica" expression="TalendDate.getCurrentDate()">
+    <variables name="row35.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row35.version" value="0" talendType="id_Integer"/>
+    <variables name="row35.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row35.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row35.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row35.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row35.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row35.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row35.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row35.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>AGGIORNA_DOVUTI_ERRATI=>flg_dovuto_attuale" expression="false">
+    <variables name="row35.id_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row35.version" value="0" talendType="id_Integer"/>
+    <variables name="row35.fk_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row35.num_riga_flusso" value="0" talendType="id_Double"/>
+    <variables name="row35.fk_stato_dovuto" value="0" talendType="id_Integer"/>
+    <variables name="row35.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row35.dt_ultima_modifica" value="null" talendType="id_Date"/>
+    <variables name="row35.cod_iud" value="null" talendType="id_String"/>
+    <variables name="row35.dt_scadenza_pagamento" value="null" talendType="id_Date"/>
+    <variables name="row35.sog_pag_id_pag_tipo_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_id_pag_codice_identificativo_univoco" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_anagrafica_pagatore" value="null" talendType="id_String"/>
+    <variables name="row35.sog_pag_indirizzo_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_civico_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_cap_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_localita_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_provincia_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_nazione_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.sog_pag_email_pagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_importo_singolo_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_causale_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_dati_singolo_vers_dati_specifici_riscossione" value="null" talendType="id_String"/>
+    <variables name="row35.dati_vers_tipo_versamento" value="null" talendType="id_String"/>
+    <variables name="row35.flg_dovuto_attuale" value="false" talendType="id_Boolean"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>STATI=>cod_stato" expression="&quot;OK&quot;.equalsIgnoreCase((String)globalMap.get(&quot;validazioneFlusso&quot;))?&quot;INSERIMENTO_DOVUTO&quot;:&quot;ERROR_DOVUTO&quot;; ">
+    <variables name="INSERISCI.IUD" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.codiceIdentificativoUnivoco" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.anagraficaPagatore" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.indirizzoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.civicoPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.capPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.localitaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.provinciaPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.nazionePagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.emailPagatore" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.dataScadenzaPagamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.importoDovuto" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.tipoVersamento" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.causaleVersamento" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.datiSpecificiRiscossione" value="null" talendType="id_String"/>
+    <variables name="INSERISCI.deRifiuto" value="null" talendType="id_String" nullable="true"/>
+    <variables name="INSERISCI.azione" value="null" talendType="id_String"/>
+    <variables name="STATI.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="STATI.version" value="0" talendType="id_Integer"/>
+    <variables name="STATI.cod_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="STATI.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="STATI.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+  <expression:EMFExpression id="null=>Load_Flusso=>version" expression="Numeric.sequence(&quot;seq_ver_flusso&quot;,0,1) ">
+    <variables name="row3.id_flusso" value="0" talendType="id_Integer"/>
+    <variables name="row5.id_stato" value="0" talendType="id_Integer"/>
+    <variables name="row5.version" value="0" talendType="id_Integer"/>
+    <variables name="row5.cod_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_stato" value="null" talendType="id_String"/>
+    <variables name="row5.de_tipo_stato" value="null" talendType="id_String"/>
+    <variables name="row5.dt_creazione" value="null" talendType="id_Date"/>
+    <variables name="row5.dt_ultima_modifica" value="null" talendType="id_Date"/>
+  </expression:EMFExpression>
+</xmi:XMI>

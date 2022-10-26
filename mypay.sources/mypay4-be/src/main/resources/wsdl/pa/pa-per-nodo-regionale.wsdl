@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<wsdl:definitions xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ppt="http://www.regione.veneto.it/pagamenti/pa/"
+	xmlns:ppthead="http://www.regione.veneto.it/pagamenti/pa/ppthead" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:tns="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEsito" name="PPT" targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEsito">
+	<wsdl:types>
+		<xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/pa/ppthead">
+			<xsd:simpleType name="stText35">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="35" />
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:element name="intestazionePPT">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="identificativoDominio" type="ppthead:stText35" />
+						<xsd:element name="identificativoUnivocoVersamento" type="ppthead:stText35" />
+						<xsd:element name="codiceContestoPagamento" type="ppthead:stText35" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+		<xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/pa/">
+			<xsd:simpleType name="stText35">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="35" />
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:element name="paaSILInviaEsito" type="ppt:paaSILInviaEsito" />
+			<xsd:element name="paaSILInviaEsitoRisposta" type="ppt:paaSILInviaEsitoRisposta" />
+			<xsd:complexType name="paaSILInviaEsito">
+				<xsd:sequence>
+					<xsd:element name="esito" type="xsd:base64Binary" />
+					<xsd:element name="tipoFirma" type="xsd:string" />
+     				<xsd:element name="rt" type="xsd:base64Binary" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paaSILInviaEsitoRisposta">
+				<xsd:sequence>
+					<xsd:element name="paaSILInviaEsitoRisposta" type="ppt:esitoPaaSILInviaEsito" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="esitoPaaSILInviaEsito">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="esito" type="xsd:string" minOccurs="0" />
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="risposta">
+				<xsd:sequence>
+					<xsd:element name="fault" type="ppt:faultBean" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultBean">
+				<xsd:sequence>
+					<xsd:element name="faultCode" type="xsd:string" />
+					<xsd:element name="faultString" type="xsd:string" />
+					<xsd:element name="id" type="xsd:string" />
+					<xsd:element name="description" type="xsd:string" minOccurs="0" />
+					<xsd:element name="serial" type="xsd:int" minOccurs="0" />
+					<xsd:element name="originalFaultCode" type="xsd:string"  minOccurs="0"  />
+					<xsd:element name="originalFaultString" type="xsd:string"  minOccurs="0"  />
+					<xsd:element name="originalDescription" type="xsd:string" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="paaSILInviaEsito">
+		<wsdl:part name="bodyrichiesta" element="ppt:paaSILInviaEsito" />
+		<wsdl:part name="header" element="ppthead:intestazionePPT" />
+	</wsdl:message>
+	<wsdl:message name="paaSILInviaEsitoResponse">
+		<wsdl:part name="bodyrisposta" element="ppt:paaSILInviaEsitoRisposta" />
+	</wsdl:message>
+	<wsdl:portType name="PagamentiTelematiciEsito">
+		<wsdl:operation name="paaSILInviaEsito">
+			<wsdl:input message="tns:paaSILInviaEsito" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILInviaEsitoRichiesta" />
+			<wsdl:output message="tns:paaSILInviaEsitoResponse" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILInviaEsitoRisposta" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="PagamentiTelematiciEsitobinding" type="tns:PagamentiTelematiciEsito">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="paaSILInviaEsito">
+			<soap:operation soapAction="paaSILInviaEsito" />
+			<wsdl:input>
+				<soap:body parts="bodyrichiesta" use="literal" />
+				<soap:header message="tns:paaSILInviaEsito" part="header" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="PagamentiTelematiciEsitoservice">
+		<wsdl:port name="PagamentiTelematiciEsitoPort" binding="tns:PagamentiTelematiciEsitobinding">
+			<soap:address location="/ws/pa/" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

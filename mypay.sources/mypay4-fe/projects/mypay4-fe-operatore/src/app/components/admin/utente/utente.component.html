@@ -1,0 +1,137 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container">
+
+  <div class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+    <h2 class="mat-h2 text-center" *ngIf="modeAnag!=='insert'" >{{operatore?.nome}} {{operatore?.cognome}}</h2>
+  </div>
+
+  <div class="w100 mypay-search-form">
+    <mat-tab-group dynamicHeight animationDuration="0" [(selectedIndex)]="activeTabIndex">
+
+      <mat-tab label="Anagrafica">
+        <div fxFlex fxLayout="column">
+          <form novalidate [formGroup]="formAnag">
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-form-field [class.mat-form-field-disabled]="modeAnag!=='insert'" fxFlex="100%" fxFlex.gt-sm="18em" fxFlex.gt-md="20em" appearance="{{'appearance'|global}}">
+                  <mat-label>ID utente</mat-label>
+                  <input matInput [readonly]="modeAnag!=='insert'" required formControlName="username" placeholder="Inserire un testo">
+                  <mat-error *ngIf="formAnagErrors['username']">{{ formAnagErrors.username }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field [class.mat-form-field-disabled]="modeAnag==='view'" fxFlex="100%" fxFlex.gt-sm="12em" fxFlex.gt-md="17em" appearance="{{'appearance'|global}}">
+                <mat-label>Cognome</mat-label>
+                <input matInput [readonly]="modeAnag==='view'" required formControlName="cognome" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['cognome']">{{ formAnagErrors.cognome }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field [class.mat-form-field-disabled]="modeAnag==='view'" fxFlex="100%" fxFlex.gt-sm="12em" fxFlex.gt-md="17em" appearance="{{'appearance'|global}}">
+                <mat-label>Nome</mat-label>
+                <input matInput [readonly]="modeAnag==='view'" required formControlName="nome" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['nome']">{{ formAnagErrors.nome }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field [class.mat-form-field-disabled]="modeAnag==='view'" fxFlex="100%" fxFlex.gt-sm="12em" fxFlex.gt-md="17em" appearance="{{'appearance'|global}}">
+                <mat-label>Codice fiscale</mat-label>
+                <input matInput [readonly]="modeAnag==='view'" required formControlName="codiceFiscale" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['codiceFiscale']">{{ formAnagErrors.codiceFiscale }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field [class.mat-form-field-disabled]="modeAnag==='view'" fxFlex="100%" fxFlex.gt-sm="18em" fxFlex.gt-md="20em" appearance="{{'appearance'|global}}">
+                <mat-label>Email</mat-label>
+                <input matInput [readonly]="modeAnag==='view'" required formControlName="email" placeholder="Inserire un testo">
+                <mat-error *ngIf="formAnagErrors['email']">{{ formAnagErrors.email }}</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 pt-2 mat-button-bar">
+              <button fxFlex="8em" type="button" mat-flat-button *ngIf="modeAnag!=='edit'" (click)="goBack()" color="primary">Indietro</button>
+              <button fxFlex="8em" type="button" mat-flat-button *ngIf="modeAnag==='view' && modifyUserEnabled" (click)="enableEdit()" color="accent">Modifica</button>
+              <button fxFlex="8em" type="button" mat-flat-button *ngIf="modeAnag==='edit'" (click)="onReset()" color="primary">Annulla</button>
+             
+            </div>
+
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+              <div fxFlex></div>
+              <button fxFlex="8em" type="button" mat-flat-button *ngIf="modeAnag!=='view'" [disabled]="!formAnagModified" (click)="onResetInserting()" color="primary">Reset</button>
+              <button fxFlex="8em" type="button" mat-flat-button *ngIf="modeAnag!=='view'" [disabled]="formAnag.invalid || blockingError || !formAnagModified" color="accent"
+                      app-confirm="{{saveConfirmMsg(this)}}" (clickConfirmed)="onSave()">Salva</button>
+            </div>
+
+
+          </form>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Enti associati" [disabled]="modeAnag==='insert'">
+        <div fxFlex fxLayout="column">
+          <ng-container *ngIf="!externalProfileEnabled">
+            <h2 class="mat-h2 text-center">Associazione nuovo ente</h2>
+            <form novalidate #enteForm="ngForm" [formGroup]="formEnte">
+              <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" fxLayoutGap.gt-sm="16px">
+                <mat-form-field fxFlex="100%" fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}">
+                  <mat-label>Ente</mat-label>
+                  <input type="text" matInput required formControlName="ente" [matAutocomplete]="autoEnte" (focusout)="enteFocusout($event)">
+                  <mat-autocomplete #autoEnte="matAutocomplete" [displayWith]="enteDisplayFn"
+                      (optionSelected)="enteSelected($event.option.value)" (closed)="enteClosed()">
+                    <mat-option *ngFor="let option of enteFilteredOptions | async" [value]="option">
+                      <img *ngIf="option.thumbLogoEnte" class="thumbnail-ente" src="{{'data:image/png;base64,'+option.thumbLogoEnte}}" alt="Immagine Ente" aria-hidden="true">
+                      {{option.deNomeEnte}}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+                <mat-form-field fxFlex="100%" fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}">
+                  <mat-label>Email</mat-label>
+                  <input matInput required formControlName="email">
+                  <mat-error *ngIf="formEnteErrors['email']">{{ formEnteErrors.email }}</mat-error>
+                </mat-form-field>
+                <div class="mat-form-field" fxFlex="100%" fxFlex.gt-sm="13em">
+                  <mat-checkbox formControlName="coupleWithAllTipiDovuto">
+                    Abilita a tutti i tipi dovuto
+                  </mat-checkbox>
+                </div>
+                <div fxFlex="8em" class="mat-form-field" [ngClass.lt-md]="'py-3'" >
+                  <button type="button" mat-flat-button (click)="coupleEnte()"
+                      [disabled]="formEnte.invalid || blockingError" color="accent">Associa</button>
+                </div>
+              </div>
+            </form>
+            <div class="w100 mypay-search-form">
+              <mat-divider></mat-divider>
+            </div>
+          </ng-container>
+          <h2 class="mat-h2 text-center pt-3 mb-0">Enti associati</h2>
+          <p *ngIf="tableData?.length==0" class="pt-3 text-center">Nessun ente associato</p>
+          <my-pay-table-operatore #myPayTable [tableData]="tableData" [tableColumns]="tableColumns"
+                [paginatorData]="paginatorData" [parentRef]="this" [showFilter]="true">
+          </my-pay-table-operatore>
+          <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 pt-2 mat-button-bar">
+            <button fxFlex="8em" type="button" mat-flat-button *ngIf="modeAnag!=='edit'" (click)="goBack()" color="primary">Indietro</button>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+
+</div>
+

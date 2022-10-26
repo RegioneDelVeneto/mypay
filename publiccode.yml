@@ -1,0 +1,358 @@
+# This repository adheres to the publiccode.yml standard by including this 
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/italia/publiccode.yml
+
+publiccodeYmlVersion: '0.2'
+categories:
+  - collaboration
+  - payment-gateway
+description:
+  it:
+    features:
+      - Configurare gli enti aderenti al sistema
+      - |-
+        Configurare per ogni ente aderente al sistema le tipologie dei dovuti da
+
+        esporre
+      - |-
+        Configurare per ogni ente aderente al sistema gli operatori per la
+
+        gestione dei dovuti dell'ente
+      - |-
+        Configurare per ogni ente aderente al sistema l'associazione
+
+        deglioperatori ai dovuti
+      - |-
+        Caricare a sistema dovuti relativi a posizioni debitorie intestate a
+
+        cittadini e imprese
+      - |-
+        Gestire dovuti  e pagati e richiedere estrazioni massive con filtri di
+
+        attributi configurabili
+      - |-
+        Pagare tramite interfacciamento a PagoPA dovuti associati a posizioni
+
+        debitorie
+      - |-
+        Ricercare, stampare  avvisi e ricevute di pagamento di cui si conoscono
+
+        gli estremi identificativi
+    genericName: Product & Payment Manager
+    longDescription: |
+      Il decreto di semplificazione “Switch off PagoPA e strumenti di pagamento
+
+      elettronico – Artt. 24 e 24-bis, D.L. 76/2020 (art. 65, D.Lgs. 217/2017)”
+
+      cita l’obbligo per i prestatori di servizi di pagamento abilitati
+
+      all’utilizzo della piattaforma PagoPA per i pagamenti verso le PA di
+
+      dotarsi di una piattaforma evoluta in grado di soddisfare i requisiti
+
+      d'integrazione con Nodo Centrale Nazionale dei Pagamenti e dettagliati
+
+      nelle SANP periodicamente aggiornate e pubblicate da PagoPA.
+
+
+
+      Il progetto myPay è rivolto agli Enti della PA aderenti al Sistema dei
+
+      pagamenti elettronici pagoPA, che vogliano assumere il ruolo di
+
+      intermediario tecnologico. Il Progetto implementa un’ piattaforma
+
+      territoriale dei pagamenti elettronici che garantisce omogeneità di
+
+      utilizzo del sistema da parte dei cittadini e delle imprese sul territorio
+
+      e consente a tutti gli enti aderenti di operare con un unico sistema di
+
+      intermediazione con il nodo nazionale “PagoPa”.
+
+
+
+      Tale piattaforma consente la gestione dei pagamenti e regolarizzazione e
+
+      riconciliazione delle posizioni debitorie tale da soddisfare i requisiti
+
+      imposti dalle SANP indicate da PagoPa, e rendere disponibili funzionalità
+
+      dedicate a cittadini e operatori degli enti per la verifica e gestione
+
+      delle informazioni relative alle posizioni debitorie pagate e non pagate
+
+      da parte di Enti (anche se non riscossori)
+
+
+
+      L'obiettivi del progetto è rendere disponibile una piattaforma dedicata al
+
+      mondo dei pagamenti in grado di soddisfare le esigenze di gestione dei
+
+      pagamenti degli enti che necessitano di
+
+
+
+      - esporre ai cittadini le eventuali posizioni debitorie a loro carico per
+
+      poterle consultare ed eventualmente pagare tramite l’integrazione con col
+
+      Nodo Nazionale dei Pagamenti PagoPA
+
+
+      - gestire le posizioni debitorie pagate tramite il Nodo Nazionale dei
+
+      Pagamenti PagoPA e conseguentemente da regolarizzare e riconciliare con i
+
+      sistemi interno dell’ente stesso.
+
+
+
+      Col progetto si vogliono offrire servizi compatibili con le linee guida
+
+      Agid in termini di adempienza agli SLA, all’accessibilità (UNI-en
+
+      301549-2018), all’enhancement della piattaforma in termini di usabilità e
+
+      user experience per i cittadini, gli operatori e gli Enti.
+
+
+
+      Il progetto si basa sulle Specifiche Attuative del Nodo dei Pagamenti –
+
+      SPC Versione 2.4.3
+
+
+
+      Il sistema è fortemente orientata al mondo cloud e incentrata su concetti
+
+      di scalabilità orizzontale e verticale al fine di potersi adattare in modo
+
+      dinamico ed automatico ai crescenti carichi previsti vista la forte spinta
+
+      all’utilizzo di strumenti di pagamenti telematici integrati con PagoPa.
+
+
+
+      La soluzione è composta dalle seguenti componenti:
+
+
+
+      - L'applicazione MyPayCittadino App orientata agli utenti cittadini che a
+
+      seconda che si siano autenticati o meno potranno avere a disposizione
+
+      funzionalità dedicate. L'applicazione prevede sia un'area pubblica con
+
+      alcune funzionalità che non necessitano di autenticazione per poter essere
+
+      erogate e un'area privata nella quale previa autenticazione i cittadini
+
+      avranno a disposizione funzionalità dedicate e incentrate sui propri dati
+
+      personali.
+
+
+      - L'applicazione MyPayOperatore App orientata agli operatori sia degli
+
+      Enti Locali intermediati sia dell'Ente Intermediario. L'applicazione
+
+      prevede che in funzione del proprio profilo applicativo ogni operatore
+
+      possa usufruire di diverse funzionalità per la gestione delle posizioni
+
+      debitorie da pagare e pagate nell'ambito circoscritto alle fasi
+
+      propedeutiche al pagamento e alla sua finalizzazione.
+
+
+
+      **Funzionalità Applicative**
+
+
+
+      Le macrocategorie di funzionalità applicative sono:
+
+
+
+      - Funzionalità del cittadino autenticato
+
+
+      - Funzionalità del cittadino non autenticato
+
+
+      - Funzionalità di backoffice per l'operatore dell' ente intermediato in
+
+      ambito pagamenti
+
+
+      - Funzionalità di backoffice per l'operatore amministratore dei pagamenti
+
+      dell' ente intermediato
+
+
+      - Funzionalità di backoffice per l'amministratore dell' ente intermediario
+
+
+
+      ++Funzionalità Utente cittadino non autenticato ++
+
+
+
+      - ricercare, stampare e pagare avvisi di pagamento di cui ha gli elementi
+
+      univoci di identificazione richiesti dal sistema e se pagato, scaricare la
+
+      ricevuta di pagamento
+
+
+      - effettuare il pagamento spontaneo di diverse tipologie di dovuti esposte
+
+      dai vari enti aderenti alla piattaforma
+
+
+
+      ++Funzionalità utente cittadino autenticato++
+
+
+
+      - ricercare, stampare e pagare avvisi di pagamento di cui ha gli elementi
+
+      univoci di identificazione richiesti dal sistema
+
+
+      - effettuare il pagamento spontaneo di diverse tipologie di dovuti esposte
+
+      dai vari enti aderenti alla piattaforma
+
+
+      - ricercare, visualizzare e pagare i propri dovuti da pagare
+
+
+      - ricercare, visualizzare i propri dovuti pagati e scaricarne la ricevuta
+
+      di pagamento
+
+
+
+      **Funzionalità di backoffice per l'utente amministratore di sistema dell'
+
+      ente intermediario**
+
+
+
+      - Configurare gli enti aderenti al sistema
+
+
+      - Configurare per ogni ente aderente al sistema le tipologie dei dovuti da
+
+      esporre agli utenti cittadini
+
+
+      - Configurare per ogni ente aderente al sistema gli operatori per la
+
+      gestione dei dovuti dell'ente
+
+
+      - Configurare per ogni ente aderente al sistema l'associazione degli
+
+      operatori ai dovuti
+
+
+
+      **Funzionalità di backoffice per l'utente amministratore dei pagamenti
+
+      dell' ente intermediato**
+
+
+
+      - Configurare un set ridotto degli attributi dell'ente a cui è associato
+
+      precedentemente inseriti a sistema
+
+
+      - Configurare un set ridotto degli attributi dei dovuti dell'ente
+
+      precedentemente inseriti a sistema
+
+
+      - Configurare gli operatori per la gestione dei dovuti dell'ente
+
+
+      - Associare gli operatori dell'ente ai dovuti dell'ente
+
+
+      - Caricare dovuti relativi a posizioni debitorie intestate a cittadini e
+
+      imprese per l'ente
+
+
+      - Richiedere estrazione massive di "dovuti"/"avvisi di pagamento" e
+
+      ricevute di pagamento
+
+
+      - Visualizzare e scaricare in locale i flussi di import e di export di
+
+      dati effettuati da altri utenti o da sistemi automatici dell'ente
+
+
+
+      **Funzionalità di backoffice per l'operatore dell' ente intermediato in
+
+      ambito pagamenti**
+
+
+
+      - Caricare e gestire in termini di inserimento, modifica, annullamento i
+
+      dovuti relativi a posizioni debitorie per l'ente intestate a cittadini e
+
+      imprese
+
+
+      - Richiedere estrazione massive di "dovuti"/"avvisi di pagamento" e
+
+      ricevute di pagamento per l'ente
+
+
+
+      ​
+    shortDescription: 'MyPay, pagamenti e loro gestione'
+developmentStatus: stable
+it:
+  conforme:
+    gdpr: true
+    lineeGuidaDesign: false
+    misureMinimeSicurezza: true
+    modelloInteroperabilita: false
+  countryExtensionVersion: '0.2'
+  piattaforme:
+    anpr: false
+    cie: false
+    pagopa: true
+    spid: false
+  riuso:
+    codiceIPA: r_veneto
+legal:
+  license: AGPL-3.0-or-later
+localisation:
+  availableLanguages:
+    - it
+  localisationReady: false
+maintenance:
+  contacts:
+    - email: antonino.mola@regione.veneto.it
+      name: Antonino Mola
+  contractors:
+    - name: SPAC Community
+      until: '2024-04-30'
+  type: internal
+name: MyPay
+platforms:
+  - web
+  - linux
+releaseDate: '2022-06-25'
+softwareType: standalone/backend
+url: 'https://github.com/RegioneDelVeneto/mypay.git'

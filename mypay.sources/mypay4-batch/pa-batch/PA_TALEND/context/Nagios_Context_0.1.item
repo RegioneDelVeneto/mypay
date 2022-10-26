@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType xmi:id="_aaNNcPm4Eequku7963-Lrg" confirmationNeeded="false" name="Default">
+    <contextParameter xmi:id="_aaNNcfm4Eequku7963-Lrg" comment="" name="nagios_url" prompt="nagios_url?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNcvm4Eequku7963-Lrg" comment="" name="nagios_username" prompt="nagios_username?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNc_m4Eequku7963-Lrg" comment="" name="nagios_password" prompt="nagios_password?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNdPm4Eequku7963-Lrg" comment="" name="nagios_codice_applicazione" prompt="nagios_codice_applicazione?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNdfm4Eequku7963-Lrg" comment="" name="nagios_codice_servizio" prompt="nagios_codice_servizio?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNdvm4Eequku7963-Lrg" comment="" name="nagios_flag_attiva" prompt="nagios_flag_attiva?" promptNeeded="false" type="id_Boolean" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType xmi:id="_aaNNd_m4Eequku7963-Lrg" confirmationNeeded="false" name="locale">
+    <contextParameter xmi:id="_aaNNePm4Eequku7963-Lrg" comment="" name="nagios_url" prompt="nagios_url?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNefm4Eequku7963-Lrg" comment="" name="nagios_username" prompt="nagios_username?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNevm4Eequku7963-Lrg" comment="" name="nagios_password" prompt="nagios_password?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNe_m4Eequku7963-Lrg" comment="" name="nagios_codice_applicazione" prompt="nagios_codice_applicazione?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNfPm4Eequku7963-Lrg" comment="" name="nagios_codice_servizio" prompt="nagios_codice_servizio?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter xmi:id="_aaNNffm4Eequku7963-Lrg" comment="" name="nagios_flag_attiva" prompt="nagios_flag_attiva?" promptNeeded="false" type="id_Boolean" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

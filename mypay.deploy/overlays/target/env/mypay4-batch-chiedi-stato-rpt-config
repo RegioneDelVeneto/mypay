@@ -1,0 +1,4 @@
+LOGLEVEL_MYPAY4=
+logging_level_it_regioneveneto_mygov_payment_mypay4_scheduled_chiedistatorpt=
+#task_chiediStatoRPT_skipCloseRtNegativa=
+task_chiediStatoRPT_minTriesBeforeRtNegativa=

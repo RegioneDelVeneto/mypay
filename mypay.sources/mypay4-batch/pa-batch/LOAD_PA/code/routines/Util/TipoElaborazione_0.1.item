@@ -1,0 +1,87 @@
+package routines;
+
+
+public enum TipoElaborazione {
+
+	FULL("full", new String[]{
+			"mygov_anagrafica_stato",
+			"mygov_comune",
+			"mygov_provincia",
+			"mygov_nazione",
+			
+			"mygov_ente", 
+			"mygov_ente_funzionalita",
+			"mygov_ente_tipo_dovuto",
+			
+			"mygov_flusso",
+			"mygov_dovuto",
+			"mygov_dovuto_elaborato",
+			"mygov_dovuto_rifiutato",
+			"mygov_dovuto_carrello"
+
+			}),
+			
+	DOVUTI("dovuti", new String[]{
+			
+			"mygov_ente", 
+			"mygov_ente_funzionalita",
+			"mygov_ente_tipo_dovuto",
+			
+			"mygov_flusso",
+			"mygov_dovuto",
+			"mygov_dovuto_elaborato",
+			"mygov_dovuto_rifiutato",
+			"mygov_dovuto_carrello"
+			
+			});
+	
+	private String code;
+	private String[] table;
+	
+	private TipoElaborazione(String code, String[] table) {
+		this.code = code;
+		this.table = table;
+	}
+	
+	/**
+	 * @param code
+	 * @return
+	 */
+	public static TipoElaborazione getTipoElaborazione(String code) {
+		for (TipoElaborazione tipoElaborazione : TipoElaborazione.values()) {
+			if (tipoElaborazione.toString().equalsIgnoreCase(code)) {
+				return tipoElaborazione;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @return the code
+	 */
+	public String getCode() {
+		return code;
+	}
+
+	/**
+	 * @param code the code to set
+	 */
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	/**
+	 * @return the table
+	 */
+	public String[] getTable() {
+		return table;
+	}
+
+	/**
+	 * @param table the table to set
+	 */
+	public void setTable(String[] table) {
+		this.table = table;
+	}
+	
+}

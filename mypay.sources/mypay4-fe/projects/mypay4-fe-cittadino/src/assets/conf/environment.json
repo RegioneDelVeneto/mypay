@@ -1,0 +1,4 @@
+{
+  "localPersistCarrello":true,
+  "baseApiUrl": "http://localhost:8080/mypay4/"
+}

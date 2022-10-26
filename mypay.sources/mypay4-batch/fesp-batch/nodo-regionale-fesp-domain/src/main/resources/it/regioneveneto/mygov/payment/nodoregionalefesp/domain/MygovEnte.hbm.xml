@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Jun 28, 2017 11:14:15 AM by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovEnte" table="mygov_ente">
+        <id name="mygovEnteId" type="java.lang.Long">
+            <column name="mygov_ente_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_ente_mygov_ente_id_seq</param>
+            </generator>
+        </id>
+        <property name="codIpaEnte" type="string">
+            <column name="cod_ipa_ente" length="80" not-null="true" unique="true" />
+        </property>
+        <property name="codiceFiscaleEnte" type="string">
+            <column name="codice_fiscale_ente" length="11" not-null="true" />
+        </property>
+        <property name="deNomeEnte" type="string">
+            <column name="de_nome_ente" length="100" not-null="true" />
+        </property>
+        <property name="emailAmministratore" type="string">
+            <column name="email_amministratore" length="50" />
+        </property>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" not-null="true" />
+        </property>
+        <property name="deRpInviarpTipoFirma" type="string">
+            <column name="de_rp_inviarp_tipo_firma" length="256" />
+        </property>
+        <property name="codRpEnteBenefIdUnivBenefTipoIdUnivoco" type="string">
+            <column name="cod_rp_ente_benef_id_univ_benef_tipo_id_univoco" length="1" not-null="true" />
+        </property>
+        <property name="codRpEnteBenefIdUnivBenefCodiceIdUnivoco" type="string">
+            <column name="cod_rp_ente_benef_id_univ_benef_codice_id_univoco" length="35" not-null="true" />
+        </property>
+        <property name="deRpEnteBenefDenominazioneBeneficiario" type="string">
+            <column name="de_rp_ente_benef_denominazione_beneficiario" length="70" not-null="true" />
+        </property>
+        <property name="codRpEnteBenefCodiceUnitOperBeneficiario" type="string">
+            <column name="cod_rp_ente_benef_codice_unit_oper_beneficiario" length="35" />
+        </property>
+        <property name="deRpEnteBenefDenomUnitOperBeneficiario" type="string">
+            <column name="de_rp_ente_benef_denom_unit_oper_beneficiario" length="70" />
+        </property>
+        <property name="deRpEnteBenefIndirizzoBeneficiario" type="string">
+            <column name="de_rp_ente_benef_indirizzo_beneficiario" length="70" />
+        </property>
+        <property name="deRpEnteBenefCivicoBeneficiario" type="string">
+            <column name="de_rp_ente_benef_civico_beneficiario" length="16" />
+        </property>
+        <property name="codRpEnteBenefCapBeneficiario" type="string">
+            <column name="cod_rp_ente_benef_cap_beneficiario" length="16" />
+        </property>
+        <property name="deRpEnteBenefLocalitaBeneficiario" type="string">
+            <column name="de_rp_ente_benef_localita_beneficiario" length="35" />
+        </property>
+        <property name="deRpEnteBenefProvinciaBeneficiario" type="string">
+            <column name="de_rp_ente_benef_provincia_beneficiario" length="35" />
+        </property>
+        <property name="codRpEnteBenefNazioneBeneficiario" type="string">
+            <column name="cod_rp_ente_benef_nazione_beneficiario" length="2" />
+        </property>
+        <property name="codRpDatiVersFirmaRicevuta" type="string">
+            <column name="cod_rp_dati_vers_firma_ricevuta" length="1" not-null="true" />
+        </property>
+        <property name="paaSilInviaRispostaPagamentoUrl" type="string">
+            <column name="paa_sil_invia_risposta_pagamento_url" length="256" />
+        </property>
+        <property name="deWispUrlBack" type="string">
+            <column name="de_wisp_url_back" length="256" not-null="true" />
+        </property>
+        <property name="deWispUrlReturn" type="string">
+            <column name="de_wisp_url_return" length="256" not-null="true" />
+        </property>
+        <property name="codCodiceSegregazione" type="string">
+            <column name="cod_codice_segregazione" length="2" not-null="true" />
+        </property>
+        <property name="deUrlEsterniAttiva" type="string">
+            <column name="de_url_esterni_attiva" />
+        </property>
+    </class>
+</hibernate-mapping>

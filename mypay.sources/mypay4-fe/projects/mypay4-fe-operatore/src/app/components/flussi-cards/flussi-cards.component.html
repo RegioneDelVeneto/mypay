@@ -1,0 +1,108 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div
+    class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayout.gt-sm="row wrap"
+    fxLayoutAlign="start center"
+    fxLayoutGap="10px">
+
+  <div class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+  </div>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/flussi-import"><fa-icon [icon]="iconImport" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/flussi-import" id="sr-fi">Importazione flussi</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/flussi-import"><span class="font-bold" aria-labelledby="sr-fi"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>Questa funzionalità permette di caricare un file .zip, corrispondente a un flusso di dovuti, contenente le
+        informazioni necessarie per creare, modificare o annullare posizioni debitorie. Questa funzionalità consente inoltre
+        di visualizzare lo stato del caricamento, i dovuti effettivamente caricati e gli eventuali scarti, gli avvisi di
+        pagamento generati.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/flussi-import"><span class="font-bold" aria-labelledby="sr-fi"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/flussi-export"><fa-icon [icon]="iconExport" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/flussi-export" id="sr-frt">Flussi RT</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/flussi-export"><span class="font-bold" aria-labelledby="sr-frt"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>Questa funzionalità permette di prenotare l’esportazione dei dovuti pagati in un certo intervallo di date.
+        Trascorso il tempo necessario per elaborare l'esportazione sarà possibile scaricarla, in formato standard MyPay.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/flussi-export"><span class="font-bold" aria-labelledby="sr-frt"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/flussi-spc/rendicontazione"><fa-icon [icon]="iconSpc" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/flussi-spc/rendicontazione" id="sr-fr">Flussi di rendicontazione</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/flussi-spc/rendicontazione"><span class="font-bold" aria-labelledby="sr-fr"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>Questa funzionalità permette di scaricare i flussi di rendicontazione standard pagoPA, che MyPay regolarmente
+        scarica dal Nodo SPC per conto degli enti aderenti.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/flussi-spc/rendicontazione"><span class="font-bold" aria-labelledby="sr-fr"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/flussi-spc/quadratura"><fa-icon [icon]="iconSpc" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/flussi-spc/quadratura" id="sr-fq">Flussi di quadratura</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/flussi-spc/quadratura"><span class="font-bold" aria-labelledby="sr-fq"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>Questa funzionalità permette di scaricare i flussi di quadratura dei flussi di traffico che il nodo pagoPA mette a
+        disposizione dei soggetti che ne facciano richiesta.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/flussi-spc/quadratura"><span class="font-bold" aria-labelledby="sr-fq"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+</div>
+

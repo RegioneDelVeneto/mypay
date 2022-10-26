@@ -1,0 +1,107 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-container  [formGroup]="form">
+
+  <!-- TEXT, TEXTAREA, INTEGER -->
+  <mat-form-field *ngIf="['TEXT', 'TEXTAREA', 'INTEGER'].includes(schemaItem.htmlRender)" fxFlex appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+    <mat-label>{{ schemaItem.htmlLabel }}</mat-label>
+    <input *ngIf="'TEXT' == schemaItem.htmlRender" matInput
+        [formControlName]="schemaItem.name" [required]="schemaItem.required" [readonly]="readOnly">
+    <input *ngIf="'INTEGER' == schemaItem.htmlRender" matInput type="number"
+        [formControlName]="schemaItem.name" [required]="schemaItem.required" [readonly]="readOnly">
+    <textarea *ngIf="'TEXTAREA' == schemaItem.htmlRender"
+        [formControlName]="schemaItem.name" [required]="schemaItem.required" [readonly]="readOnly">
+    </textarea>
+    <fa-icon *ngIf="schemaItem.helpMessage && schemaItem.helpMessage.length > 0" matSuffix
+        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"></fa-icon>
+    <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
+  </mat-form-field>
+
+  <!-- CURRENCY, CURRENCY_LABEL -->
+  <mat-form-field *ngIf="['CURRENCY', 'CURRENCY_LABEL'].includes(schemaItem.htmlRender)" fxFlex appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+    <mat-label>{{ schemaItem.htmlLabel }}</mat-label>
+    <input matInput *ngIf="'CURRENCY' == schemaItem.htmlRender" [formControlName]="schemaItem.name" [readonly]="readOnly">
+    <input matInput *ngIf="'CURRENCY_LABEL' == schemaItem.htmlRender" [formControlName]="schemaItem.name" readonly
+        [value]="form.get(schemaItem.name).value | currency:'EUR'">
+    <fa-icon *ngIf="schemaItem.helpMessage && schemaItem.helpMessage.length > 0" matSuffix
+        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"></fa-icon>
+    <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
+  </mat-form-field>
+
+  <!-- DATE, DATETIME -->
+  <mat-label *ngIf="['DATE', 'DATETIME'].includes(schemaItem.htmlRender)" id="sr-date" class="sr-only">{{ schemaItem.htmlLabel }}</mat-label>
+  <mat-form-field *ngIf="['DATE', 'DATETIME'].includes(schemaItem.htmlRender)" fxFlex appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+    <mat-label aria-hidden="true">{{ schemaItem.htmlLabel }}</mat-label>
+    <input aria-labelledby="sr-date" matInput [formControlName]="schemaItem.name" [required]="schemaItem.required" [readonly]="readOnly"
+        [matDatepicker]="datePicker">
+    <mat-datepicker-toggle *ngIf="!readOnly" matSuffix [for]="datePicker"></mat-datepicker-toggle>
+    <mat-datepicker #datePicker></mat-datepicker>
+    <fa-icon *ngIf="schemaItem.helpMessage && schemaItem.helpMessage.length > 0" matSuffix
+        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"></fa-icon>
+    <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
+  </mat-form-field>
+
+  <!-- BOOLEAN -->
+  <mat-checkbox *ngIf="'BOOLEAN' == schemaItem.htmlRender" fxFlex appearance="{{'appearance'|global}}"
+      [formControlName]="schemaItem.name" (change)="flgAnagraficaAnonimaOnChange($event.checked)">
+    {{ schemaItem.htmlLabel }}
+  </mat-checkbox>
+
+  <!-- SINGLESELECT, MULTISELECT -->
+  <mat-form-field *ngIf="['SINGLESELECT', 'MULTISELECT'].includes(schemaItem.htmlRender)" fxFlex appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+    <mat-label aria-hidden="true">{{ schemaItem.htmlLabel }}</mat-label>
+    <mat-select aria-label="{{ schemaItem.htmlLabel }}" [multiple]="'MULTISELECT' == schemaItem.htmlRender" [formControlName]="schemaItem.name" [required]="schemaItem.required">
+      <mat-option aria-label="v" [disabled]="readOnly" *ngFor="let v of schemaItem.enumerationList" [value]="v">{{v}}</mat-option>
+    </mat-select>
+    <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
+  </mat-form-field>
+
+  <!-- FILE -->
+  <file-upload *ngIf="'FILE' == schemaItem.htmlRender" fxFlex appearance="{{'appearance'|global}}"
+      [formControlName]="schemaItem.name" [name]="schemaItem.name"></file-upload>
+
+  <!-- MULTIFIELD -->
+  <ng-container *ngIf="'MULTIFIELD' == schemaItem.htmlRender">
+    <div fxLayout="row" fxLayoutAlign="space-between center">
+      <div></div>
+      <div [className]="labelClass">{{ schemaItem.htmlLabel }}</div>
+      <mat-error *ngIf="hasError" class="multifield-warn">{{ errors[0] }}</mat-error>
+      <div></div>
+    </div>
+    <div *ngFor="let subItem of schemaItem.subfields | filterRenderableItems | orderby:'insertableOrder'"
+        [className]="subItem.htmlClass">
+      <content-editing-property [schemaItem]="subItem" [key]="subItem.name" [form]="form.get(key)"
+          [labelClass]="subItem.labelClass" [readOnly]="readOnly"></content-editing-property>
+    </div>
+  </ng-container>
+
+  <!-- TAB -->
+  <mat-tab-group *ngIf="'TAB' == schemaItem.htmlRender" #tabGroup fxFlex="100">
+    <mat-tab *ngFor="let subItem of schemaItem.subfields | filterRenderableItems | orderby:'insertableOrder'"
+        [disabled]="form.controls[schemaItem.name]?.controls[subItem.name]?.status == 'DISABLED'">
+      <ng-template mat-tab-label>{{ subItem.htmlLabel }}</ng-template>
+      <div [className]="subItem.htmlClass">
+        <content-editing-property [schemaItem]="subItem" [key]="subItem.name" [form]="form.get(key)"
+            [labelClass]="'label-no-display'" [readOnly]="readOnly"></content-editing-property>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+</ng-container>

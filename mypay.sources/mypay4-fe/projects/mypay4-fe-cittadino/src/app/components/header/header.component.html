@@ -1,0 +1,87 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<header role="banner" aria-label="Barra di navigazione">
+<mat-toolbar role="navigation" color="primary" aria-label="Toolbar principale">
+
+  <mat-toolbar-row>
+    <button mat-icon-button aria-label="Apri Menù" (click)="toggleSidenav()" focusvisible="true"><fa-icon [icon]="iconBars" size="2x" class="active" alt="Menu"></fa-icon></button>
+    <img class="logo" src="assets/images/pagolapa-white.png" alt="Logo pagoPA" height="50">
+    <img class="logo" src="assets/images/logo-MyPay-white.png" alt="Logo MyPay">
+    <span class="flex-spacer" aria-hidden="true"></span>
+    <button mat-button *ngFor="let item of menuService.getMenuFirstLevel(logged,'center')"
+        [fxShow]="item.active || item.dontHide"
+        [class]="item.active?'active-first':null" fxShow.gt-md
+        (click)="menuService.onClickFirstLevel(item)">
+          <span class="side-user-icon">
+            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img" />
+            <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon" size="lg"></fa-icon>
+          </span>
+          <span>{{item.getHeaderLabel()}}</span>
+    </button>
+    <span class="flex-spacer" aria-hidden="true" ></span>
+
+    <button class="button-login" mat-button *ngIf="!logged" (click)="openLoginForm()">
+      <fa-icon fxHide="false" fxHide.gt-sm [icon]="iconSignIn" size="lg" matTooltip="Accedi all'area personale"></fa-icon>
+      <span fxShow="false" fxShow.gt-sm>Accedi all'area personale</span>
+    </button>
+
+    <button mat-button *ngFor="let item of menuService.getMenuFirstLevel(logged,'right')"
+        [fxShow]="item.active || item.dontHide" fxShow.gt-md
+        [class]="item.active?'active-first':null"
+        (click)="menuService.onClickFirstLevel(item)"
+        [attr.aria-labelledby]="item.getId()">
+          <span class="side-user-icon">
+            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+            <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon" size="lg" alt="{{item}}"></fa-icon>
+          </span>
+          <span id="{{item.getId()}}" class="sr-only">{{item.getAriaLabel()}}</span>
+          <span aria-hidden="true">{{item.getHeaderLabel()}}</span>
+        </button>
+
+    <button mat-button  aria-label="Esci" matTooltip="Esci" *ngIf="logged" (click)="logout()"><fa-icon [icon]="itemSignOut" size="lg" alt="Esci"></fa-icon></button>
+
+  </mat-toolbar-row>
+</mat-toolbar>
+<mat-toolbar [class]="classHeader" *ngIf="secondLevelMenu?.length>0" color="accent" class="second-level mypay-toolbar" role="heading" aria-level="2" aria-label="">
+  <mat-toolbar-row>
+    <span class="flex-spacer" aria-hidden="true"></span>
+    <button mat-button *ngFor="let item of secondLevelMenu"
+        class="mypay-toolbar-item"
+        [href]="item.external?item.url:null"
+        [routerLink]="item.external?null:item.url"
+        (click)="myPayBreadcrumbsService.resetBreadcrumbsIfPageChange(item.external?null:item.url)"
+        routerLinkActive="active-second"
+        [attr.aria-label]="item.labelHeader">
+          <span class="side-user-icon">
+            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+            <fa-icon *ngIf="item.hasFAIcon() && !item.hasFABadge()" [icon]="item.icon" size="lg"></fa-icon>
+            <fa-layers class="badge-fa-layers" *ngIf="item.hasFAIcon() && item.hasFABadge()" [fixedWidth]="true">
+              <fa-icon [icon] = "item.icon" size="lg"></fa-icon>
+              <fa-layers-counter [content]="item.iconBadgeFun()" ></fa-layers-counter>
+            </fa-layers>
+          </span>
+          <span>{{item.labelHeader}}</span>
+    </button>
+    <button mat-icon-button aria-label="Apri toolbar" class="toolbar-trigger" (click)="onClickButtonHeader()"><fa-icon [icon]="iconHeader" size="lg"></fa-icon></button>
+    <span class="flex-spacer" aria-hidden="true"></span>
+  </mat-toolbar-row>
+
+</mat-toolbar>
+</header>

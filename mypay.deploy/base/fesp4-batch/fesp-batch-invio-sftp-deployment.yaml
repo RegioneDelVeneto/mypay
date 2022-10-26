@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    k8tz.io/injected: "true"
+    k8tz.io/timezone: Europe/Rome
+  name: fesp-batch-invio-sftp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mypay4
+      job: batch
+      run: fesp-batch-invio-sftp
+  template:
+    metadata:
+      annotations:
+        k8tz.io/injected: "true"
+        k8tz.io/timezone: Europe/Rome
+        kubectl.kubernetes.io/default-container: fesp-batch-invio-sftp
+      labels:
+        app: mypay4
+        job: batch
+        run: fesp-batch-invio-sftp
+    spec:
+      containers:
+      - env:
+        - name: FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX
+          value: mypay4_batch_invia_sftp.access
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: e45-fluent-config-secret
+        image: _REGISTRY_ENTE_/common/mypay4-fluentd:latest
+        imagePullPolicy: Always
+        name: fluentd-agent
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 1Gi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /var/log/batch
+          name: access-logs
+        - mountPath: /fluentd/etc
+          name: mypay4-batch-fluent-config
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      - command:
+        - /batch/bin/BatchInvioSftp_run.sh
+        env:
+        - name: TZ
+          value: Europe/Rome
+        image: _REGISTRY_ENTE_/mypay4/fesp-batch-invio-sftp:latest
+        imagePullPolicy: Always
+        name: fesp-batch-invio-sftp
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512Mi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /E45
+          name: conf
+        - mountPath: /var/log/batch
+          name: access-logs
+        - mountPath: /conf/inviosftp-properties_1.0.properties
+          name: fesp-batch-invio-sftp-configs
+          subPath: inviosftp-properties_1.0.properties
+        - mountPath: /conf/log4j.xml
+          name: fesp-batch-invio-sftp-configs
+          subPath: log4j.xml
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      imagePullSecrets:
+      - name: registry-_ENTE_-secret
+      volumes:
+      - name: conf
+        persistentVolumeClaim:
+          claimName: mypay4-claim
+      - configMap:
+          name: fesp-batch-invio-sftp-configs
+        name: fesp-batch-invio-sftp-configs
+      - emptyDir: {}
+        name: access-logs
+      - configMap:
+          name: mypay4-batch-fluent-config
+        name: mypay4-batch-fluent-config
+      - hostPath:
+          path: /usr/share/zoneinfo
+        name: k8tz

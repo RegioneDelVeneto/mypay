@@ -1,0 +1,147 @@
+package routines;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicException;
+import net.sf.jmimemagic.MagicMatch;
+import net.sf.jmimemagic.MagicMatchNotFoundException;
+import net.sf.jmimemagic.MagicParseException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
+public class Utility {
+	
+	private static final Logger log = Logger.getLogger(Utility.class);
+	
+	public static void main(String[] args) throws Exception {
+//		String file = "_USER_REPO_";
+//		String gzipFile = "_USER_REPO_";
+//		compressGzipFile(file, gzipFile);
+		
+		
+//		String outputFolder = "D:/E45/DATA/AVVISATURA_DIGITALE/C_D530/AV_ACK/2016/11";
+//		String inputFile = "D:/E45/DATA/AVVISATURA_DIGITALE/C_D530/AV_ACK/2016/11/80007580279_00133880252_20161130_02_AV_ACK.zip";
+//		uncompressFiles_IN_ZIP_Format(inputFile, outputFolder);
+//		System.out.println("Done.");
+		
+		IS_ZIP_MIME_TYPE("_USER_REPO_");
+	}
+
+	public static void uncompressFiles_IN_ZIP_Format(String zipFile, String outputFolder) throws IOException {
+    	log.info("Invocato uncompressFiles_IN_ZIP_Format con parametri: ");
+    	log.info("zipFile " + zipFile);
+    	log.info("outputFolder " + outputFolder);
+		byte[] buffer = new byte[1024];
+    	//create output directory is not exists
+    	File folder = new File(outputFolder);
+    	if(!folder.exists()){
+    		folder.mkdir();
+    	}
+    	ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
+    	ZipEntry ze = zis.getNextEntry();
+    	while(ze!=null){
+    	   String fileName = ze.getName();
+           File newFile = new File(outputFolder + File.separator + fileName);
+            new File(newFile.getParent()).mkdirs();
+            FileOutputStream fos = new FileOutputStream(newFile);
+            int len;
+            while ((len = zis.read(buffer)) > 0) {
+       		fos.write(buffer, 0, len);
+            }
+            fos.close();
+            ze = zis.getNextEntry();
+    	}
+        zis.closeEntry();
+    	zis.close();
+	}
+	
+	public static void compressZipFile(String file, String zipFile) throws IOException {
+    	log.info("Invocato compressZipFile con parametri: ");
+    	log.info("zipFile " + zipFile);
+    	log.info("file " + file);
+		Path p = Paths.get(file);	
+		String nome_file = p.getFileName().toString();
+		byte[] buffer = new byte[1024];
+		FileOutputStream fos = new FileOutputStream(zipFile);
+		ZipOutputStream zos = new ZipOutputStream(fos);
+		ZipEntry ze= new ZipEntry(nome_file);
+		zos.putNextEntry(ze);
+		FileInputStream in = new FileInputStream(file);
+		int len;
+		while ((len = in.read(buffer)) > 0) {
+			zos.write(buffer, 0, len);
+		}
+		in.close();
+		zos.closeEntry();
+		zos.close();
+    }
+	
+	public static boolean VALIDA_FLUSSO_AV(String codiceAvviso, BigDecimal importoAvviso) {
+    	log.info("Invocato VALIDA_FLUSSO_AV con parametri: ");
+    	log.info("codiceAvviso " + codiceAvviso);
+    	log.info("importoAvviso " + importoAvviso);
+		if (importoAvviso != null &&
+				importoAvviso.floatValue() <= new Float("0.10")) {
+			return false;
+		}
+		if (StringUtils.length(codiceAvviso) != 18) {
+			return false;
+		}
+		
+		if (!StringUtils.isNumeric(codiceAvviso)){
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public static String TRIM_STRINGA(String value, Integer maxLength) {
+		if (value == null) {
+			return "";
+		}
+		return value.substring(0, Math.min(value.length(), maxLength));
+	}
+	
+	public static String MIME_TYPE(String path) throws IOException {
+		String result;
+		try {
+			result = Files.probeContentType(Paths.get(path));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw(e);
+		}
+		return result;
+	}
+	
+	public static boolean IS_ZIP_MIME_TYPE(String path) {
+    	log.info("Invocato IS_ZIP_MIME_TYPE con parametri: ");
+    	log.info("path " + path);
+		MagicMatch match;
+		try {
+			match = Magic.getMagicMatch(new File(path), false, true);
+			String mimeType = match.getMimeType();
+			if (mimeType != null && mimeType.contains("zip")){
+				return true;
+			} 	
+		} catch (MagicParseException e) {
+			log.error("Errore recupero mime type. ", e);
+		} catch (MagicMatchNotFoundException e) {
+			log.error("Errore recupero mime type. ", e);
+		} catch (MagicException e) {
+			log.error("Errore recupero mime type. ", e);
+		}
+		return false;
+	  }
+}

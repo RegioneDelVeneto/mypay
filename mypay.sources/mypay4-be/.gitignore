@@ -1,0 +1,7 @@
+/lombok.config
+/.gradle
+/build
+/id_rsa*
+/sshtunnel*
+/src/main/resources/application-local*.properties
+/standalone-run

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd 
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd 
+						http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" />
+
+	<!-- GESTIONE TRANSAZIONALITA' -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<!-- FINE GESTIONE TRANSAZIONALITA' -->
+
+	<bean id="commonPropertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:batch.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- ########################################### -->
+	<!-- ################# CLIENT ################## -->
+	<!-- ########################################### -->
+
+	<bean id="pagamentiTelematiciRPServiceClient" class="it.regioneveneto.mygov.payment.nodoregionalefesp.client.PagamentiTelematiciRPServiceClientImpl">
+		<property name="pagamentiTelematiciRPPortEndpointURL" value="${pa.pagamentiTelematiciRPPortEndpointURL}" />
+	</bean>
+
+	<!-- ########################################### -->
+	<!-- ################# SERVICE ################ -->
+	<!-- ########################################### -->
+
+	<bean id="chiediCopiaEsitoBean" class="it.regioneveneto.mygov.payment.pa.domain.utils.ChiediCopiaEsitoBean">
+		<property name="minutiScadenzaControlloCarrelloModelloImmediato" value="${pa.minutiScadenzaControlloCarrello.modelloImmediato}" />
+		<property name="minutiScadenzaControlloCarrelloModelloDifferito" value="${pa.minutiScadenzaControlloCarrello.modelloDifferito}" />
+		<property name="minutiScadenzaControlloCarrelloModelloAttivatoPressoPSP" value="${pa.minutiScadenzaControlloCarrello.modelloAttivatoPressoPSP}" />
+		<property name="forzaChiusuraCarrelli" value="${pa.forza.chiusura.carrelli}" />
+	</bean>
+
+	<bean id="carrelloService"
+		class="it.regioneveneto.mygov.payment.pa.service.CarrelloServiceImpl">
+		<property name="carrelloDao" ref="carrelloDao" />
+		<property name="dovutoDao" ref="dovutoDao" />
+		<property name="dovutoElaboratoDao" ref="dovutoElaboratoDao" />
+		<property name="dovutoCarrelloDao" ref="dovutoCarrelloDao" />
+	</bean>
+
+	<bean id="anagraficaStatoService" class="it.regioneveneto.mygov.payment.pa.service.AnagraficaStatoServiceImpl">
+		<property name="anagraficaStatoDao" ref="anagraficaStatoDao" />
+	</bean>
+
+	<bean id="esitoService" class="it.regioneveneto.mygov.payment.pa.service.EsitoServiceImpl">
+		<property name="carrelloDao" ref="carrelloDao" />
+		<property name="dovutoDao" ref="dovutoDao" />
+		<property name="dovutoElaboratoDao" ref="dovutoElaboratoDao" />
+		<property name="dovutoCarrelloDao" ref="dovutoCarrelloDao" />
+		<property name="datiMarcaBolloDigitaleDao" ref="datiMarcaBolloDigitaleDao" />
+		<property name="avvisoAnonimoDao" ref="avvisoAnonimoDao" />
+        <property name="pushEsitoSilDao" ref="pushEsitoSilDao" />
+	</bean>
+
+	<bean id="enteService" class="it.regioneveneto.mygov.payment.pa.service.EnteServiceImpl">
+		<property name="enteDao" ref="enteDao" />
+		<property name="enteFunzionalitaDao" ref="enteFunzionalitaDao" />
+	</bean>
+
+	<bean id="pagatoService" class="it.regioneveneto.mygov.payment.pa.service.PagatoServiceImpl">
+		<property name="dovutoElaboratoDao" ref="dovutoElaboratoDao" />
+	</bean>
+
+	<bean id="avvisoDigitaleService" class="it.regioneveneto.mygov.payment.pa.service.AvvisoDigitaleServiceImpl">
+		<property name="avvisoDigitaleDao" ref="avvisoDigitaleDao" />
+		<property name="enteTipoProgressivoDao" ref="enteTipoProgressivoDao" />
+		<property name="enteService" ref="enteService" />
+	</bean>
+	
+	<!-- #################################### -->
+	<!-- ############### DAO ################ -->
+	<!-- #################################### -->
+
+    <bean id="pushEsitoSilDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernatePushEsitoSilDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="dovutoElaboratoDao" ref="dovutoElaboratoDao" />
+	</bean>
+    
+	<bean id="carrelloDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateCarrelloDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="anagraficaStatoDao" ref="anagraficaStatoDao" />
+	</bean>
+	
+	<bean id="dovutoDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateDovutoDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="anagraficaStatoDao" ref="anagraficaStatoDao" />
+	</bean>
+	
+	<bean id="dovutoElaboratoDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateDovutoElaboratoDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="anagraficaStatoDao" ref="anagraficaStatoDao" />
+		<property name="dovutoCarrelloDao" ref="dovutoCarrelloDao" />
+	</bean>
+	
+	<bean id="dovutoCarrelloDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateDovutoCarrelloDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean id="anagraficaStatoDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateAnagraficaStatoDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>	
+	
+	<bean id="flussoAvvisoDigitaleDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateFlussoAvvisoDigitaleDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="anagraficaStatoDao" ref="anagraficaStatoDao" />
+	</bean>	
+
+	<bean id="avvisoAnonimoDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateAvvisoAnonimoDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="carrelloDao" ref="carrelloDao" />
+	</bean>
+
+	<bean id="enteDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateEnteDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="enteFunzionalitaDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateEnteFunzionalitaDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="avvisoDigitaleDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateAvvisoDigitaleDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="anagraficaStatoDao" ref="anagraficaStatoDao" />
+	</bean>
+
+	<bean id="enteTipoProgressivoDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateEnteTipoProgressivoDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="datiMarcaBolloDigitaleDao" class="it.regioneveneto.mygov.payment.pa.dao.hibernate.HibernateDatiMarcaBolloDigitaleDao">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<!-- SESSION FACTORY DI HIBERNATE -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mappingResources">
+			<list>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Dovuto.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/DovutoCarrello.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/DovutoElaborato.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Ente.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/EnteTipoDovuto.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/EnteFunzionalita.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Flusso.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/FlussoAvvisoDigitale.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/AnagraficaStato.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Carrello.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/CarrelloMultiBeneficiario.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Avviso.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/AvvisoDigitale.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Utente.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Operatore.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/ExportDovuti.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/ImportDovuti.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Comune.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Nazione.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/AvvisoAnonimo.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/SpontaneoAnonimo.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/IdentificativoUnivoco.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Provincia.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/Giornale.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/DatiMarcaBolloDigitale.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/EnteSil.hbm.xml
+				</value>
+				<value>it/regioneveneto/mygov/payment/pa/domain/po/PushEsitoSil.hbm.xml
+				</value>                
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.bytecode.use_reflection_optimizer">true</prop>
+				<prop key="hibernate.cache.use_second_level_cache">false</prop>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.format_sql">false</prop>
+				<prop key="hibernate.show_sql">__TAG_HIBERNATE_SHOW_SQL__</prop>
+				<prop key="hibernate.use_sql_comments">false</prop>
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="username" value="${jdbc.connection.username}" />
+		<property name="password" value="${jdbc.connection.password}" />
+		<property name="url" value="${jdbc.connection.url}" />
+		<property name="driverClassName" value="${jdbc.connection.driver_class_name}" />
+		<property name="defaultTransactionIsolation"
+			value="${jdbc.connection.default_transaction_isolation}" />
+		<property name="maxActive" value="${jdbc.connection.max_active}" />
+		<property name="maxIdle" value="${jdbc.connection.max_idle}" />
+		<property name="minIdle" value="${jdbc.connection.min_idle}" />
+		<property name="maxWait" value="${jdbc.connection.max_wait}" />
+		<property name="validationQuery" value="${jdbc.connection.validation_query}" />
+		<property name="testOnBorrow" value="${jdbc.connection.test_on_borrow}" />
+		<property name="removeAbandoned" value="${jdbc.connection.remove_abandoned}" />
+		<property name="removeAbandonedTimeout" value="${jdbc.connection.remove_abandoned_timeout}" />
+		<property name="logAbandoned" value="${jdbc.connection.log_abandoned}" />
+	</bean>
+</beans>

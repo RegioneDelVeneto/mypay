@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:talendfile="platform:/resource/org.talend.model/model/TalendFile.xsd">
+  <talendfile:ContextType confirmationNeeded="false" name="Default">
+    <contextParameter comment="" name="directory_root_enti" prompt="directory_root_enti?" promptNeeded="false" type="id_Directory" value="null"/>
+    <contextParameter comment="" name="secondi_trigger_batch" prompt="secondi_trigger_batch?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter comment="" name="directory_talend" prompt="directory_talend?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="numero_minuti_avviso" prompt="numero_minuti_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter comment="" name="mybox_context_URL" prompt="mybox_context_URL?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="mybox_port_endpoint_URL" prompt="mybox_port_endpoint_URL?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="id_intermediario" prompt="id_intermediario?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="versione_oggetto" prompt="versione_oggetto?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="cod_ipa_ente_mybox" prompt="cod_ipa_ente_mybox?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="cartella_mybox_out" prompt="cartella_mybox_out?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="cartella_mybox_in" prompt="cartella_mybox_in?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+  <talendfile:ContextType confirmationNeeded="false" name="locale">
+    <contextParameter comment="" name="directory_root_enti" prompt="directory_root_enti?" promptNeeded="false" type="id_Directory" value="null"/>
+    <contextParameter comment="" name="secondi_trigger_batch" prompt="secondi_trigger_batch?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter comment="" name="directory_talend" prompt="directory_talend?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="numero_minuti_avviso" prompt="numero_minuti_avviso?" promptNeeded="false" type="id_Integer" value="null"/>
+    <contextParameter comment="" name="mybox_context_URL" prompt="mybox_context_URL?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="mybox_port_endpoint_URL" prompt="mybox_port_endpoint_URL?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="id_intermediario" prompt="id_intermediario?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="versione_oggetto" prompt="versione_oggetto?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="cod_ipa_ente_mybox" prompt="cod_ipa_ente_mybox?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="cartella_mybox_out" prompt="cartella_mybox_out?" promptNeeded="false" type="id_String" value="null"/>
+    <contextParameter comment="" name="cartella_mybox_in" prompt="cartella_mybox_in?" promptNeeded="false" type="id_String" value="null"/>
+  </talendfile:ContextType>
+</xmi:XMI>

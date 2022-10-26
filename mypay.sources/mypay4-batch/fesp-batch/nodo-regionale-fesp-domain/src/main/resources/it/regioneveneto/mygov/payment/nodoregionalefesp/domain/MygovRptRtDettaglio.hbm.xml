@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 15-giu-2017 10.39.57 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRptRtDettaglio" table="mygov_rpt_rt_dettaglio">
+        <id name="mygovRptRtDettaglioId" type="java.lang.Long">
+            <column name="mygov_rpt_rt_dettaglio_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_rpt_rt_dettaglio_mygov_rpt_rt_dettaglio_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <many-to-one name="mygov_rpt_rt" class="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovRptRt" fetch="select">
+            <column name="mygov_rpt_rt_id" not-null="true" />
+        </many-to-one>
+        <property name="dtCreazione" type="timestamp">
+            <column name="dt_creazione" length="29" not-null="true" />
+        </property>
+        <property name="dtUltimaModifica" type="timestamp">
+            <column name="dt_ultima_modifica" length="29" not-null="true" />
+        </property>
+        <property name="numRptDatiVersDatiSingVersImportoSingoloVersamento" type="big_decimal">
+            <column name="num_rpt_dati_vers_dati_sing_vers_importo_singolo_versamento" precision="12" not-null="true" />
+        </property>
+        <property name="numRptDatiVersDatiSingVersCommissioneCaricoPa" type="big_decimal">
+            <column name="num_rpt_dati_vers_dati_sing_vers_commissione_carico_pa" precision="12" />
+        </property>
+        <property name="deRptDatiVersDatiSingVersIbanAccredito" type="string">
+            <column name="de_rpt_dati_vers_dati_sing_vers_iban_accredito" length="35" />
+        </property>
+        <property name="deRptDatiVersDatiSingVersBicAccredito" type="string">
+            <column name="de_rpt_dati_vers_dati_sing_vers_bic_accredito" length="11" />
+        </property>
+        <property name="deRptDatiVersDatiSingVersIbanAppoggio" type="string">
+            <column name="de_rpt_dati_vers_dati_sing_vers_iban_appoggio" length="35" />
+        </property>
+        <property name="deRptDatiVersDatiSingVersBicAppoggio" type="string">
+            <column name="de_rpt_dati_vers_dati_sing_vers_bic_appoggio" length="11" />
+        </property>
+        <property name="codRptDatiVersDatiSingVersCredenzialiPagatore" type="string">
+            <column name="cod_rpt_dati_vers_dati_sing_vers_credenziali_pagatore" length="35" />
+        </property>
+        <property name="deRptDatiVersDatiSingVersCausaleVersamento" type="string">
+            <column name="de_rpt_dati_vers_dati_sing_vers_causale_versamento" length="140" not-null="true" />
+        </property>
+        <property name="deRptDatiVersDatiSingVersDatiSpecificiRiscossione" type="string">
+            <column name="de_rpt_dati_vers_dati_sing_vers_dati_specifici_riscossione" length="140" not-null="true" />
+        </property>
+        <property name="numRtDatiPagDatiSingPagSingoloImportoPagato" type="big_decimal">
+            <column name="num_rt_dati_pag_dati_sing_pag_singolo_importo_pagato" precision="12" />
+        </property>
+        <property name="deRtDatiPagDatiSingPagEsitoSingoloPagamento" type="string">
+            <column name="de_rt_dati_pag_dati_sing_pag_esito_singolo_pagamento" length="35" />
+        </property>
+        <property name="dtRtDatiPagDatiSingPagDataEsitoSingoloPagamento" type="date">
+            <column name="dt_rt_dati_pag_dati_sing_pag_data_esito_singolo_pagamento" length="13" />
+        </property>
+        <property name="codRtDatiPagDatiSingPagIdUnivocoRiscossione" type="string">
+            <column name="cod_rt_dati_pag_dati_sing_pag_id_univoco_riscossione" length="35" />
+        </property>
+        <property name="deRtDatiPagDatiSingPagCausaleVersamento" type="string">
+            <column name="de_rt_dati_pag_dati_sing_pag_causale_versamento" length="140" />
+        </property>
+        <property name="deRtDatiPagDatiSingPagDatiSpecificiRiscossione" type="string">
+            <column name="de_rt_dati_pag_dati_sing_pag_dati_specifici_riscossione" length="140" />
+        </property>
+        <property name="numRtDatiPagDatiSingPagCommissioniApplicatePsp" type="big_decimal">
+            <column name="num_rt_dati_pag_dati_sing_pag_commissioni_applicate_psp" precision="12" />
+        </property>
+        <property name="codRtDatiPagDatiSingPagAllegatoRicevutaTipo" type="string">
+            <column name="cod_rt_dati_pag_dati_sing_pag_allegato_ricevuta_tipo" length="2" />
+        </property>
+        <property name="blbRtDatiPagDatiSingPagAllegatoRicevutaTest" type="binary">
+            <column name="blb_rt_dati_pag_dati_sing_pag_allegato_ricevuta_test" />
+        </property>
+        <property name="codRptDatiVersDatiSingVersDatiMbdTipoBollo" type="string">
+            <column name="cod_rpt_dati_vers_dati_sing_vers_dati_mbd_tipo_bollo" length="2" />
+        </property>
+        <property name="codRptDatiVersDatiSingVersDatiMbdHashDocumento" type="string">
+            <column name="cod_rpt_dati_vers_dati_sing_vers_dati_mbd_hash_documento" length="70" />
+        </property>
+        <property name="codRptDatiVersDatiSingVersDatiMbdProvinciaResidenza" type="string">
+            <column name="cod_rpt_dati_vers_dati_sing_vers_dati_mbd_provincia_residenza" length="2" />
+        </property>
+    </class>
+</hibernate-mapping>

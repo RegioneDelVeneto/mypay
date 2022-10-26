@@ -1,0 +1,217 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<form fxFlex novalidate #sForm="ngForm" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+  <div class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayoutAlign="start stretch"
+    fxLayoutGap="10px">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+    </div>
+
+    <mat-form-field *ngIf="mode==='insert'" fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>Ente</mat-label>
+      <input matInput readonly formControlName="ente" placeholder="Inserire un testo">
+    </mat-form-field>
+
+    <mat-form-field fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>Tipo dovuto</mat-label>
+      <input matInput *ngIf="mode=='view'" required [value]="tipoDovutoAsReadonlyField" [readonly]="true">
+      <mat-select *ngIf="mode!='view'" formControlName="tipoDovuto" required name="tipoDovuto" (selectionChange)="tipoDovutoOnChange($event.value)">
+        <mat-option *ngFor="let tipoDovuto of tipiDovuto" [value]="tipoDovuto">
+          {{tipoDovuto.deTipo}}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="formErrors['tipoDovuto']">{{ formErrors.tipoDovuto }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="mode!=='insert'" fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>IUD</mat-label>
+      <input matInput readonly formControlName="iud">
+    </mat-form-field>
+
+    <mat-form-field *ngIf="mode!=='insert'" fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>Nome flusso</mat-label>
+      <input matInput readonly formControlName="iuf">
+    </mat-form-field>
+
+    <mat-form-field *ngIf="mode!=='insert'" fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>Stato</mat-label>
+      <input matInput readonly formControlName="stato">
+    </mat-form-field>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="58%" appearance="{{'appearance'|global}}">
+        <mat-label>Anagrafica</mat-label>
+        <input matInput [readonly]="mode=='view'" required formControlName="anagrafica" placeholder="Inserire un testo">
+        <mat-error *ngIf="formErrors['anagrafica']">{{ formErrors.anagrafica }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}">
+        <mat-label>Tipo soggetto</mat-label>
+        <input matInput *ngIf="mode=='view'" required [value]="tipoSoggettoAsReadonlyField" [readonly]="true">
+        <mat-select *ngIf="mode!='view'" required formControlName="tipoSoggetto" name="tipoSoggetto">
+          <mat-option *ngFor="let aTipo of tipiSoggetto | keyvalue" [value]="aTipo.key">
+            {{aTipo.value}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="formErrors['tipoSoggetto']">{{ formErrors.tipoSoggetto }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <mat-checkbox *ngIf="mode!='view'" fxFlex="33%" formControlName="flgAnagraficaAnonima" name="flgAnagraficaAnonima"
+          (change)="flgAnagraficaAnonimaOnChange($event.checked)">
+          Non ho codice fiscale / partita IVA
+      </mat-checkbox>
+
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="65%" appearance="{{'appearance'|global}}">
+        <mat-label>Codice fiscale / Partita IVA</mat-label>
+        <input matInput [readonly]="mode=='view'" required formControlName="codFiscale" placeholder="Inserire un testo">
+        <mat-error *ngIf="formErrors['codFiscale']">{{ formErrors.codFiscale }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>Email</mat-label>
+      <input matInput [readonly]="mode=='view'" formControlName="email" placeholder="Inserire un testo">
+      <mat-error *ngIf="formErrors['email']">{{ formErrors.email }}</mat-error>
+    </mat-form-field>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="49%" appearance="{{'appearance'|global}}">
+        <mat-label>Indirizzo</mat-label>
+        <input matInput [readonly]="mode=='view'" formControlName="indirizzo" placeholder="Inserire un testo">
+        <mat-error *ngIf="formErrors['indirizzo']">{{ formErrors.indirizzo }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="24%" appearance="{{'appearance'|global}}">
+        <mat-label>Civico</mat-label>
+        <input matInput [readonly]="mode=='view'" formControlName="numCiv" placeholder="Inserire un testo">
+        <mat-error *ngIf="formErrors['numCiv']">{{ formErrors.numCiv }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="24%" appearance="{{'appearance'|global}}">
+        <mat-label>CAP</mat-label>
+        <input matInput [readonly]="mode=='view'" formControlName="cap" placeholder="Inserire un testo">
+        <mat-error *ngIf="formErrors['cap']">{{ formErrors.cap }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+        <mat-label>Nazione</mat-label>
+        <input matInput *ngIf="mode=='view'"  [value]="nazioneAsReadonlyField" [readonly]="true">
+        <mat-select *ngIf="mode!='view'" formControlName="nazione" name="nazione" [compareWith]="compareNazione"
+            (selectionChange)="nazioneOnChange($event.value)" typeaheadDebounceInterval="800">
+          <mat-option *ngFor="let nazione of nazioni " [value]="nazione">
+            {{nazione.nomeNazione}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="formErrors['nazione']">{{ formErrors.nazione }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+        <mat-label>Provincia</mat-label>
+        <input matInput *ngIf="mode=='view'"  [value]="provAsReadonlyField" [readonly]="true">
+        <mat-select *ngIf="mode!='view'" formControlName="prov" name="prov" [compareWith]="compareProvincia"
+            (selectionChange)="provinciaOnChange($event.value)" typeaheadDebounceInterval="800">
+          <mat-option *ngFor="let provincia of province" [value]="provincia">
+            {{provincia.provincia}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="formErrors['prov']">{{ formErrors.prov }}</mat-error>
+      </mat-form-field>
+
+      <span class="flex-spacer"></span>
+      <mat-checkbox fxFlex="100%" fxFlex.gt-sm="13em" class="pl-2" *ngIf="mode!='view'" formControlName="comuneCustomFlag"
+      (change)="comuneCustomFlagOnChange($event.checked)">Inserisci valore manuale</mat-checkbox>
+
+      <div fxFlex="100%" fxFlex.gt-sm="25%" fxLayout="column">
+        <mat-label id="sr-Comune" class="sr-only">Località</mat-label>
+        <mat-form-field class="cod-fiscale" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+          <mat-label aria-hidden="true">Località</mat-label>
+          <input matInput *ngIf="mode=='view'"  [value]="comuneAsReadonlyField" [readonly]="true">
+          <input *ngIf="mode!='view' && form.get('comuneCustomFlag').value" aria-labelledby="sr-Comune" matInput formControlName="comuneCustom">
+          <mat-select *ngIf="mode!='view' && !form.get('comuneCustomFlag').value" aria-labelledby="sr-Comune" formControlName="comune" name="comune" [compareWith]="compareComune"
+              (selectionChange)="comuneOnChange($event.value)" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let comune of comuni" [value]="comune">
+              {{comune.comune}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formErrors['comuneCustom'] && form.get('comuneCustomFlag').value">{{ formErrors.comuneCustom }}</mat-error>
+          <mat-error *ngIf="formErrors['comune'] && !form.get('comuneCustomFlag').value">{{ formErrors.comune }}</mat-error>
+        </mat-form-field>
+      </div>
+
+    </div>
+
+    <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="49%" appearance="{{'appearance'|global}}">
+        <mat-label>Importo</mat-label>
+        <input matInput #importoView type="text" [readonly]="mode=='view'" required formControlName="importo" placeholder="Inserire un testo">
+        <mat-error *ngIf="formErrors['importo']">{{ formErrors.importo }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field fxFlex="100%" fxFlex.gt-sm="49%" appearance="{{'appearance'|global}}">
+        <mat-label>Data di scadenza</mat-label>
+        <input matInput [readonly]="mode=='view'"
+            formControlName="dataScadenza" placeholder="Inserire una data"
+            [required]="flgScadenzaObbligatoria" [matDatepicker]="pickerScadenza">
+        <mat-datepicker-toggle *ngIf="mode!='view'" matSuffix [for]="pickerScadenza"></mat-datepicker-toggle>
+        <mat-datepicker #pickerScadenza></mat-datepicker>
+        <mat-error *ngIf="formErrors['dataScadenza']">{{ formErrors.dataScadenza }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field fxFlex="100%" appearance="{{'appearance'|global}}">
+      <mat-label>Causale</mat-label>
+      <input matInput [readonly]="mode=='view'" required formControlName="causale" placeholder="Inserire un testo">
+      <mat-error *ngIf="formErrors['causale']">{{ formErrors.causale }}</mat-error>
+    </mat-form-field>
+
+    <div fxFlex="100%" fxLayout="row" fxLayoutAlign="center center" *ngIf="mode=='view' || (mode=='edit' && existIuv)" >
+      <mat-form-field fxFlex="75%" appearance="{{'appearance'|global}}">
+        <mat-label>Iuv</mat-label>
+        <input matInput readonly formControlName="iuv">
+      </mat-form-field>
+      <button fxFlex *ngIf="mode=='view' && this.form.get('stato').value != 'SCADUTO' && existIuv" type="button"
+          mat-icon-button (click)="downloadAvviso()" matTooltip="Scarica avviso di pagamento">
+        <fa-icon [icon]="iconReceipt" size="2x"></fa-icon>
+      </button>
+      <div fxFlex="auto"></div>
+    </div>
+
+    <mat-checkbox *ngIf="mode=='insert' || (mode=='edit' && !existIuv)" fxFlex="100%" formControlName="flgGenerateIuv" name="flgGenerateIuv">
+      Genera avviso
+    </mat-checkbox>
+
+    <div class="container" fxFlex fxLayout="row" fxLayoutGap="10px" class="mt-3">
+      <button type="button" mat-flat-button (click)="goBack()" color="primary">Torna indietro</button>
+      <span class="flex-spacer"></span>
+      <button type="button" *ngIf="mode!=='view'" mat-flat-button
+          [disabled]="form.invalid" (click)="onSubmit()" color="accent">Salva</button>
+    </div>
+
+  </div>
+</form>

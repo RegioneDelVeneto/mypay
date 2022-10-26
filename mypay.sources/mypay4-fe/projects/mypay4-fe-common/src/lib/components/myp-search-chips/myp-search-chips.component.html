@@ -1,0 +1,44 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<mat-expansion-panel class="mat-elevation-z0 mypay-search-chips"
+[expanded]="searchOpenState"
+(opened)="setSearchPanelState(true)"
+(closed)="setSearchPanelState(false)">
+
+<mat-expansion-panel-header>
+  <mat-panel-title>
+    Parametri della ricerca
+  </mat-panel-title>
+  <mat-panel-description *ngIf="!searchOpenState">
+    <mat-chip-list aria-label="Filtri di ricerca" selectable="false">
+      <mat-chip *ngFor="let chip of chips; last as isLast" ngClass="{'chip-multiline-last' : isLast}" class="chip-multiline" [removable]="chip.removable" (removed)="removeSearchFilter(chip)">
+        <span>
+          <span class="chip-content chip-label">{{chip.label}}</span><br>
+          <span class="chip-content chip-value">{{chip.value}}</span>
+        </span>
+        <fa-icon *ngIf="chip.removable" aria-label="Elimina" [icon]="iconTrash" matChipRemove (click)="doNothing()"></fa-icon>
+      </mat-chip>
+    </mat-chip-list>
+  </mat-panel-description>
+</mat-expansion-panel-header>
+
+<ng-content></ng-content>
+
+</mat-expansion-panel>

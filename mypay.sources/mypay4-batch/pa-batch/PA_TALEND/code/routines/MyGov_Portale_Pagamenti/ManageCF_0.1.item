@@ -1,0 +1,175 @@
+package routines;
+
+
+public class ManageCF {
+
+	public static String calcoloCodiceFiscale(String cognome, String nome,
+			String dataNascita /*gg-mm-yyyy*/, int sesso /* 0 Maschio 1 Femmina*/, String codCatastaleComunNascita) {
+		String codFis = "";
+		String cognomecf = cognome.toUpperCase();
+		String nomecf = nome.toUpperCase();
+		String dataNascitacf = dataNascita;
+		/* calcolo prime 3 lettere */
+		int cont = 0;
+		/* caso cognome minore di 3 lettere */
+		if (cognomecf.length() < 3) {
+			codFis += cognomecf;
+			while (codFis.length() < 3)
+				codFis += "X";
+			cont = 3;
+		}
+		/* caso normale */
+		for (int i = 0; i < cognomecf.length(); i++) {
+			if (cont == 3)
+				break;
+			if (cognomecf.charAt(i) != 'A' && cognomecf.charAt(i) != 'E'
+					&& cognomecf.charAt(i) != 'I' && cognomecf.charAt(i) != 'O'
+					&& cognomecf.charAt(i) != 'U') {
+				codFis += Character.toString(cognomecf.charAt(i));
+				cont++;
+			}
+		}
+		/* nel casoci siano meno di 3 consonanti */
+		while (cont < 3) {
+			for (int i = 0; i < cognomecf.length(); i++) {
+				if (cont == 3)
+					break;
+				if (cognomecf.charAt(i) == 'A' || cognomecf.charAt(i) == 'E'
+						|| cognomecf.charAt(i) == 'I'
+						|| cognomecf.charAt(i) == 'O'
+						|| cognomecf.charAt(i) == 'U') {
+					codFis += Character.toString(cognomecf.charAt(i));
+					cont++;
+				}
+			}
+		}
+		/* lettere nome */
+		cont = 0;
+		/* caso nome minore di 3 lettere */
+		if (nomecf.length() < 3) {
+			codFis += nomecf;
+			while (codFis.length() < 6)
+				codFis += "X";
+			cont = 3;
+		}
+		/* caso normale */
+		for (int i = 0; i < nomecf.length(); i++) {
+			if (cont == 3)
+				break;
+			if (nomecf.charAt(i) != 'A' && nomecf.charAt(i) != 'E'
+					&& nomecf.charAt(i) != 'I' && nomecf.charAt(i) != 'O'
+					&& nomecf.charAt(i) != 'U') {
+				codFis += Character.toString(nomecf.charAt(i));
+				cont++;
+			}
+		}
+		/* nel casoci siano meno di 3 consonanti */
+		while (cont < 3) {
+			for (int i = 0; i < nomecf.length(); i++) {
+				if (cont == 3)
+					break;
+				if (nomecf.charAt(i) == 'A' || nomecf.charAt(i) == 'E'
+						|| nomecf.charAt(i) == 'I' || nomecf.charAt(i) == 'O'
+						|| nomecf.charAt(i) == 'U') {
+					codFis += Character.toString(nomecf.charAt(i));
+					cont++;
+				}
+			}
+		}
+		/* anno */   
+		codFis += dataNascitacf.substring(8, 10);
+		/* Mese */
+		int mese = 0;
+		if (dataNascitacf.charAt(3) == '0')
+			mese = Integer.parseInt(dataNascitacf.substring(4, 5));
+		else
+			mese = Integer.parseInt(dataNascitacf.substring(3, 5));
+		switch (mese) {
+		case 1: {
+			codFis += "A";
+			break;
+		}
+		case 2: {
+			codFis += "B";
+			break;
+		}
+		case 3: {
+			codFis += "C";
+			break;
+		}
+		case 4: {
+			codFis += "D";
+			break;
+		}
+		case 5: {
+			codFis += "E";
+			break;
+		}
+		case 6: {
+			codFis += "H";
+			break;
+		}
+		case 7: {
+			codFis += "L";
+			break;
+		}
+		case 8: {
+			codFis += "M";
+			break;
+		}
+		case 9: {
+			codFis += "P";
+			break;
+		}
+		case 10: {
+			codFis += "R";
+			break;
+		}
+		case 11: {
+			codFis += "S";
+			break;
+		}
+		case 12: {
+			codFis += "T";
+			break;
+		}
+		}
+		/* giorno */
+		int giorno = 0;
+		if (dataNascitacf.charAt(0) == '0')
+			giorno = Integer.parseInt(dataNascitacf.substring(0, 1));
+		else
+			giorno = Integer.parseInt(dataNascitacf.substring(0, 2));
+		if (sesso == 0)
+			codFis += giorno;
+		else {
+			giorno += 40;
+			codFis += Integer.toString(giorno);
+		}
+		/* comune nascita */
+//		correttoComuneNascita = controlloComuneNascita();
+//		if (!correttoComuneNascita) {
+//			javax.swing.JOptionPane.showMessageDialog(null,
+//					"Impossibile calcolare codice fiscale");
+//			return;
+//		}
+//		try {
+//			Statement cmd = dbconn.createStatement();
+//			ResultSet comuni = cmd
+//					.executeQuery("SELECT COMUNE,CODFIS FROM COMUNI WHERE (COMUNE = '"
+//							+ jTextFieldComuneNascita.getText().toUpperCase()
+//							+ "')");
+//			if (comuni.next()) {
+//				String codReg = comuni.getString("CODFIS");
+		codFis += codCatastaleComunNascita;
+//			}
+//		} catch (SQLException exc) {
+//			JOptionPane.showMessageDialog(null, exc.getMessage());
+//		}
+		/* Carattere di controllo */
+		
+		codFis += "I";
+		return codFis;
+	}
+
+}

@@ -1,0 +1,43 @@
+package routines;
+
+import java.util.List;
+
+
+public class XML_NS_RMV_tFileInputXML_1 {
+	
+	public void removeNamespace(org.dom4j.Document reader,
+			org.dom4j.Document writer) {
+		org.dom4j.Element elemReader = reader.getRootElement();
+		org.dom4j.Element elemTo = writer.addElement(elemReader
+				.getName());
+		if (elemReader != null && elemReader.getText() != null
+				&& !"".equals(elemReader.getText())) {
+			elemTo.setText(elemReader.getText());
+		}
+		for (org.dom4j.Attribute attri : (List<org.dom4j.Attribute>) elemReader
+				.attributes()) {
+			elemTo.addAttribute(attri.getName(),
+					attri.getText());
+		}
+		removeSubNamespace(elemReader, elemTo);
+	}
+
+	public void removeSubNamespace(org.dom4j.Element elemFrom,
+			org.dom4j.Element elemTo) {
+		for (org.dom4j.Element subFrom : (List<org.dom4j.Element>) elemFrom
+				.elements()) {
+			org.dom4j.Element tmpElemTo = elemTo
+					.addElement(subFrom.getName());
+			if (subFrom != null && subFrom.getText() != null
+					&& !"".equals(subFrom.getText())) {
+				tmpElemTo.setText(subFrom.getText());
+			}
+			for (org.dom4j.Attribute attri : (List<org.dom4j.Attribute>) subFrom
+					.attributes()) {
+				tmpElemTo.addAttribute(attri.getName(),
+						attri.getText());
+			}
+			removeSubNamespace(subFrom, tmpElemTo);
+		}
+	}
+}

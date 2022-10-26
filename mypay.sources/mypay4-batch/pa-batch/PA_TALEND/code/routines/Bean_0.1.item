@@ -1,0 +1,39 @@
+package routines;
+
+
+public class Bean {
+
+    private String nomeFile;
+    private String latitude;
+    private String longitude;
+    private String altitude;
+    
+    
+    
+	public String getNomeFile() {
+		return nomeFile;
+	}
+	public void setNomeFile(String nomeFile) {
+		this.nomeFile = nomeFile;
+	}
+	public String getLatitude() {
+		return latitude;
+	}
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+	public String getLongitude() {
+		return longitude;
+	}
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+	public String getAltitude() {
+		return altitude;
+	}
+	public void setAltitude(String altitude) {
+		this.altitude = altitude;
+	}
+    
+    
+}

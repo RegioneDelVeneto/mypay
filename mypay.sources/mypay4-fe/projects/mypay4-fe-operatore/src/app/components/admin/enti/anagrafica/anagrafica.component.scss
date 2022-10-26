@@ -1,0 +1,48 @@
+/**
+ *     MyPay - Payment portal of Regione Veneto.
+ *     Copyright (C) 2022  Regione Veneto
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Affero General Public License as
+ *     published by the Free Software Foundation, either version 3 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Affero General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Affero General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+@import '../../../../../_variables';
+
+.mat-card {
+  background-color: $primary-lightest;
+}
+
+mat-card.with-margin-top {
+  margin-top: 30px;
+}
+
+::ng-deep .mat-form-field-disabled {
+  .mat-input-element {
+    color: rgba(0, 0, 0, 0.45);
+  }
+  .mat-form-field-label {
+    color: rgba(0, 0, 0, 0.45);
+  }
+  .mat-form-field-underline {
+     color: rgba(0, 0, 0, 0.45);
+  }
+  .mat-form-field-ripple {
+     color: rgba(0, 0, 0, 0.45);
+  }
+  .mat-form-field-required-marker {
+     color: rgba(0, 0, 0, 0.45);
+  }
+}
+
+::ng-deep .mat-tab-label {
+  opacity: 0.8 !important;
+}

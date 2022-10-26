@@ -1,0 +1,13 @@
+package routines;
+
+import java.util.Random;
+
+
+public class Prove {
+
+    public static void main(String[] args) {
+    	Random r = new Random();
+    	Integer val = r.nextInt((3 - 1) + 1) + 1;
+    	System.out.println(val);
+	}
+}

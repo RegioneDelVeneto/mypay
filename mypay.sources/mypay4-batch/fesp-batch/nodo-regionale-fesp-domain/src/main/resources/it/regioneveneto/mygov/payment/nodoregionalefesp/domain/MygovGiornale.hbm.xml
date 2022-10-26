@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 15-giu-2017 10.39.57 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovGiornale" table="mygov_giornale">
+        <id name="mygovGiornaleId" type="java.lang.Long">
+            <column name="mygov_giornale_id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_giornale_mygov_giornale_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="dataOraEvento" type="timestamp">
+            <column name="data_ora_evento" length="29" not-null="true" />
+        </property>
+        <property name="identificativoDominio" type="string">
+            <column name="identificativo_dominio" length="35" not-null="true" />
+        </property>
+        <property name="identificativoUnivocoVersamento" type="string">
+            <column name="identificativo_univoco_versamento" length="35" not-null="true" />
+        </property>
+        <property name="codiceContestoPagamento" type="string">
+            <column name="codice_contesto_pagamento" length="35" not-null="true" />
+        </property>
+        <property name="identificativoPrestatoreServiziPagamento" type="string">
+            <column name="identificativo_prestatore_servizi_pagamento" length="35" not-null="true" />
+        </property>
+        <property name="tipoVersamento" type="string">
+            <column name="tipo_versamento" length="35" />
+        </property>
+        <property name="componente" type="string">
+            <column name="componente" length="35" not-null="true" />
+        </property>
+        <property name="categoriaEvento" type="string">
+            <column name="categoria_evento" length="35" not-null="true" />
+        </property>
+        <property name="tipoEvento" type="string">
+            <column name="tipo_evento" length="35" not-null="true" />
+        </property>
+        <property name="sottoTipoEvento" type="string">
+            <column name="sotto_tipo_evento" length="35" not-null="true" />
+        </property>
+        <property name="identificativoFruitore" type="string">
+            <column name="identificativo_fruitore" length="50" not-null="true" />
+        </property>
+        <property name="identificativoErogatore" type="string">
+            <column name="identificativo_erogatore" length="35" not-null="true" />
+        </property>
+        <property name="identificativoStazioneIntermediarioPa" type="string">
+            <column name="identificativo_stazione_intermediario_pa" length="50" />
+        </property>
+        <property name="canalePagamento" type="string">
+            <column name="canale_pagamento" length="35" />
+        </property>
+        <property name="parametriSpecificiInterfaccia" type="string">
+            <column name="parametri_specifici_interfaccia" length="16384" />
+        </property>
+        <property name="esito" type="string">
+            <column name="esito" length="35" />
+        </property>
+    </class>
+</hibernate-mapping>

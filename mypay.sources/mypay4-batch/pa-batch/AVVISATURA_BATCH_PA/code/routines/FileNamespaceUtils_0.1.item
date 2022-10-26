@@ -1,0 +1,112 @@
+package routines;
+
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+
+import routines.system.UnicodeReader;
+
+public class FileNamespaceUtils {
+	
+	Logger log = org.apache.log4j.Logger.getLogger(this.getClass());
+	
+	public static void main(String[] args) throws Exception {
+		FileNamespaceUtils a = new FileNamespaceUtils();
+		System.out.println("inizio: " + new Date());
+		a.removeNamespace("_USER_REPO_", "_USER_REPO_");
+
+		System.out.println("fine: " + new Date());
+	}
+
+	public void removeNamespace(String fileOri, String fileDest) throws Exception {
+		
+		log.info("Init removeNamespace ");
+		log.info("Parametri: ");
+		log.info("fileOri " + fileOri);
+		log.info("fileDest " + fileDest);
+		
+		String os_tFileInputXML_1 = System.getProperty("os.name").toLowerCase();
+		boolean isWindows_tFileInputXML_1 = false;
+		if (os_tFileInputXML_1.indexOf("windows") > -1
+				|| os_tFileInputXML_1.indexOf("nt") > -1) {
+			isWindows_tFileInputXML_1 = true;
+		}
+		org.dom4j.io.SAXReader reader_tFileInputXML_1 = new org.dom4j.io.SAXReader();
+		Object filename_tFileInputXML_1 = fileOri; //;
+
+		if (filename_tFileInputXML_1 != null
+				&& filename_tFileInputXML_1 instanceof String
+				&& filename_tFileInputXML_1.toString().startsWith("//")) {
+			if (!isWindows_tFileInputXML_1) {
+				filename_tFileInputXML_1 = filename_tFileInputXML_1.toString()
+						.replaceFirst("//", "/");
+			}
+		}
+
+		org.dom4j.Document doc_reader_tFileInputXML_1 = null;
+		org.dom4j.Document doc_tmp_tFileInputXML_1 = org.dom4j.DocumentHelper
+				.createDocument();
+		org.dom4j.io.OutputFormat format_tFileInputXML_1 = org.dom4j.io.OutputFormat
+				.createPrettyPrint();
+		try {
+			if (filename_tFileInputXML_1 instanceof java.io.InputStream) {
+				doc_reader_tFileInputXML_1 = reader_tFileInputXML_1
+						.read((java.io.InputStream) filename_tFileInputXML_1);
+			} else {
+				doc_reader_tFileInputXML_1 = reader_tFileInputXML_1
+						.read(new java.io.File(String
+								.valueOf(filename_tFileInputXML_1)).toURI()
+								.toString());
+			}
+			format_tFileInputXML_1.setTrimText(false);
+			format_tFileInputXML_1.setEncoding("UTF-8");
+			new XML_NS_RMV_tFileInputXML_1().removeNamespace(
+					doc_reader_tFileInputXML_1, doc_tmp_tFileInputXML_1);
+			doc_reader_tFileInputXML_1.clearContent();
+			doc_reader_tFileInputXML_1 = null;
+			java.io.FileOutputStream stream_tFileInputXML_1 = new java.io.FileOutputStream(
+					fileDest);//);
+			org.dom4j.io.XMLWriter output_tFileInputXML_1 = new org.dom4j.io.XMLWriter(
+					stream_tFileInputXML_1, format_tFileInputXML_1);
+			output_tFileInputXML_1.write(doc_tmp_tFileInputXML_1);
+			output_tFileInputXML_1.close();
+		} catch (java.lang.Exception e) {
+
+			throw (e);
+
+		} finally {
+			if (filename_tFileInputXML_1 instanceof java.io.InputStream
+					&& filename_tFileInputXML_1 != null) {
+				((java.io.InputStream) filename_tFileInputXML_1).close();
+			}
+		}
+		filename_tFileInputXML_1 = fileDest;
+		org.dom4j.Document doc_tFileInputXML_1 = null;
+		java.io.Closeable toClose_tFileInputXML_1 = null;
+		try {
+			if (filename_tFileInputXML_1 instanceof java.io.InputStream) {
+				java.io.InputStream inputStream_tFileInputXML_1 = (java.io.InputStream) filename_tFileInputXML_1;
+				toClose_tFileInputXML_1 = inputStream_tFileInputXML_1;
+				doc_tFileInputXML_1 = reader_tFileInputXML_1
+						.read(inputStream_tFileInputXML_1);
+			} else {
+				java.io.Reader unicodeReader_tFileInputXML_1 = new UnicodeReader(
+						new java.io.FileInputStream(
+								String.valueOf(filename_tFileInputXML_1)),
+						"UTF-8");
+				toClose_tFileInputXML_1 = unicodeReader_tFileInputXML_1;
+				org.xml.sax.InputSource in_tFileInputXML_1 = new org.xml.sax.InputSource(
+						unicodeReader_tFileInputXML_1);
+				doc_tFileInputXML_1 = reader_tFileInputXML_1
+						.read(in_tFileInputXML_1);
+			}
+		} catch (java.lang.Exception e) {
+			throw (e);
+		} finally {
+			if (toClose_tFileInputXML_1 != null) {
+				toClose_tFileInputXML_1.close();
+			}
+		}
+
+	}
+}

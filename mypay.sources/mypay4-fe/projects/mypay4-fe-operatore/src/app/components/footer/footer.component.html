@@ -1,0 +1,51 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<footer class="footer py-3" role="contentinfo">
+<div class="container"
+    fxFlex
+    fxLayout="column"
+    fxLayout.lt-md="column"
+    fxLayoutGap="10px">
+
+  <div fxFlex fxLayout="row wrap" fxLayoutAlign="center center" fxLayoutGap="0">
+    <div fxLayout="row wrap" fxFlex="100%" fxFlex.gt-xs="60%">
+      <div fxFlex="nogrow"><img src="assets/images/logo-MyPay-white.png" alt="Logo MyPa" height="50"></div>
+    </div>
+    <div fxFlex="grow" ngClass="text-right my-0" ngClass.xs="text-left my-3" fxFlex="100%" fxFlex.gt-xs="40%">
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div fxFlex fxLayout="row wrap" fxLayoutAlign="start top" fxLayoutGap="0">
+    <div fxFlex="100%" fxFlex.gt-sm="25%"><p>© 2020</p></div>
+    <div fxFlex="100%" fxFlex.gt-sm="75%" ngClass="text-right my-0" ngClass.xs="text-left my-3">
+      <a class="ml-0" [routerLink]="" (click)="showAppInfo()">Versione</a>
+      <a class="ml-2" href="#">Accessibilità</a>
+      <a class="ml-2" href="#">Privacy</a>
+      <a class="ml-2" target="_blank" href="#">Note Legali</a>
+      <a class="ml-2" target="_blank" href="#">Informativa Cookie</a>
+      <a class="ml-2" [routerLink]="" (click)="resetCookieConsent()">Rimuovi preferenze cookie</a>
+    </div>
+  </div>
+
+
+</div>
+</footer>

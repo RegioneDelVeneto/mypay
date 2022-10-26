@@ -1,0 +1,312 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpInfoEnte>
+  <div>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p>
+    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. </p>
+    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </div>
+</ng-template>
+
+<div [class.container]="modeAnag==='insert'" >
+
+  <div *ngIf="modeAnag==='insert'" class="title-row">
+    <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
+  </div>
+
+<form novalidate #sForm="ngForm" [formGroup]="formAnag" (ngSubmit)="onSubmit()">
+
+  <div fxFlex fxLayout="column" class="w100 mypay-search-form">
+
+    <anagrafica-logo-ente [mygovEnteId]="mygovEnteId" [enabled]="isUserAdmin" ></anagrafica-logo-ente>
+
+    <div fxLayout="row wrap" fxLayoutAlign="center center" fxLayoutGap="10px">
+      <mat-form-field [class.mat-form-field-disabled]="modeAnag!='insert'" fxFlex="100%" fxFlex.gt-sm="17%" appearance="{{'appearance'|global}}">
+        <mat-label>{{fields['codIpaEnte']}}</mat-label>
+        <input matInput [readonly]="modeAnag!='insert'" required formControlName="codIpaEnte"
+          placeholder="Inserire un testo">
+        <mat-error *ngIf="formAnagErrors['codIpaEnte']">{{ formAnagErrors.codIpaEnte }}</mat-error>
+      </mat-form-field>
+      <mat-form-field *ngIf="modeAnag!='insert'" mat-form-field-disabled fxFlex="100%" fxFlex.gt-sm="17%" appearance="{{'appearance'|global}}">
+        <mat-label>{{fields['dtUltimaModifica']}}</mat-label>
+        <input matInput readonly formControlName="dtUltimaModifica" placeholder="Inserire un testo">
+      </mat-form-field>
+      <mat-form-field *ngIf="modeAnag!='insert' && isUserAdmin" mat-form-field-disabled fxFlex="100%" fxFlex.gt-sm="17%" appearance="{{'appearance'|global}}">
+        <mat-label>{{fields['dePassword']}}</mat-label>
+        <input matInput readonly formControlName="dePassword" placeholder="Inserire un testo" [type]="showDePassword ? 'text' : 'password'">
+        <fa-icon matSuffix (click)="showDePassword = !showDePassword" [icon]="getPwdIcon(showDePassword)" [title]="getPwdTooltip(showDePassword)"></fa-icon>
+      </mat-form-field>
+      <mat-form-field *ngIf="modeAnag!='insert' && isUserAdmin" mat-form-field-disabled fxFlex="100%" fxFlex.gt-sm="44%" appearance="{{'appearance'|global}}">
+        <mat-label>{{fields['paaSILInviaCarrelloDovutiHash']}}</mat-label>
+        <input matInput readonly formControlName="paaSILInviaCarrelloDovutiHash" style="font-size: 85%;" [type]="showPaaSILInviaCarrelloDovutiHash ? 'text' : 'password'">
+        <fa-icon matSuffix (click)="showPaaSILInviaCarrelloDovutiHash = !showPaaSILInviaCarrelloDovutiHash"
+          [icon]="getPwdIcon(showPaaSILInviaCarrelloDovutiHash)" [title]="getPwdTooltip(showPaaSILInviaCarrelloDovutiHash)"></fa-icon>
+      </mat-form-field>
+    </div>
+
+    <mat-card class="mat-elevation-z0" fxLayout="column" fxLayoutAlign="center" fxLayoutGap="0px">
+      <div fxLayout="row wrap" fxLayoutAlign="center center" fxLayoutGap="10px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag=='view' || !isUserAdmin" fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deNomeEnte']}}</mat-label>
+          <input matInput [readonly]="modeAnag=='view' || !isUserAdmin" required formControlName="deNomeEnte"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deNomeEnte']">{{ formAnagErrors.deNomeEnte }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit' || !isUserAdmin" fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['cdStatoEnte']}}</mat-label>
+          <input matInput *ngIf="modeAnag!='edit' || !isUserAdmin" required [value]="cdStatoEnteAsReadonlyField" [readonly]="true">
+          <mat-select *ngIf="modeAnag=='edit' && isUserAdmin" required formControlName="cdStatoEnte" name="cdStatoEnte" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let stato of anagraficaStati" [value]="stato">
+              {{ stato.deStato }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formAnagErrors['cdStatoEnte']">{{ formAnagErrors.cdStatoEnte }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag=='view' || !isUserAdmin" fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['dtAvvio']}}</mat-label>
+          <input matInput formControlName="dtAvvio" [readonly]="modeAnag=='view' || !isUserAdmin" [matDatepicker]="pickerAvvio">
+          <mat-datepicker-toggle matSuffix [disabled]="modeAnag=='view' || !isUserAdmin" [for]="pickerAvvio"></mat-datepicker-toggle>
+          <mat-datepicker #pickerAvvio></mat-datepicker>
+          <mat-error *ngIf="formAnagErrors['dtAvvio']">{{ formAnagErrors.dtAvvio }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag=='view' || !isUserAdmin" fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['codTipoEnte']}}</mat-label>
+          <input matInput *ngIf="modeAnag=='view' || !isUserAdmin" required [value]="codTipoEnteAsReadonlyField" [readonly]="true">
+          <mat-select *ngIf="modeAnag!='view' && isUserAdmin" required formControlName="codTipoEnte" name="codTipoEnte" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let tipoEnte of tipiEnte" [value]="tipoEnte">
+              {{tipoEnte.description}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formAnagErrors['codTipoEnte']">{{ formAnagErrors.codTipoEnte }}</mat-error>
+        </mat-form-field>
+
+      </div>
+
+      <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag=='view' || !isUserAdmin" fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['codCodiceInterbancarioCbill']}}</mat-label>
+          <input matInput [readonly]="modeAnag=='view' || !isUserAdmin"  formControlName="codCodiceInterbancarioCbill"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['codCodiceInterbancarioCbill']">{{ formAnagErrors.codCodiceInterbancarioCbill
+            }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag=='view'" fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['emailAmministratore']}}</mat-label>
+          <input matInput [readonly]="modeAnag=='view'" required formControlName="emailAmministratore"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['emailAmministratore']">{{ formAnagErrors.emailAmministratore }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='insert'" fxFlex="100%" fxFlex.gt-sm="15%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['applicationCode']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='insert'" required formControlName="applicationCode"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['applicationCode']">{{ formAnagErrors.applicationCode }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='insert'" fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['codiceFiscaleEnte']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='insert'" required formControlName="codiceFiscaleEnte"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['codiceFiscaleEnte']">{{ formAnagErrors.codiceFiscaleEnte }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='insert'" fxFlex="100%"  fxFlex.gt-sm="48%"appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['enteSilInviaRispostaPagamentoUrl']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='insert'" formControlName="enteSilInviaRispostaPagamentoUrl"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['enteSilInviaRispostaPagamentoUrl']">{{
+            formAnagErrors.enteSilInviaRispostaPagamentoUrl }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'"  fxFlex="100%" fxFlex.gt-sm="48%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['codRpDatiVersDatiSingVersIbanAccredito']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="codRpDatiVersDatiSingVersIbanAccredito"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['codRpDatiVersDatiSingVersIbanAccredito']">{{
+            formAnagErrors.codRpDatiVersDatiSingVersIbanAccredito }}</mat-error>
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    <mat-card class="mat-elevation-z0 with-margin-top" fxLayout="column" fxLayoutAlign="center" fxLayoutGap="10px">
+      <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="0px">
+        <mat-card-title style="font-size: 1.2em;">Altre informazioni Ente Beneficiario</mat-card-title>
+      </div>
+      <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="0px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deRpEnteBenefDenominazioneBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="deRpEnteBenefDenominazioneBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deRpEnteBenefDenominazioneBeneficiario']">{{
+            formAnagErrors.deRpEnteBenefDenominazioneBeneficiario }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['linguaAggiuntiva']}}</mat-label>
+          <input matInput *ngIf="modeAnag!='edit'" [value]="linguaAggiuntivaAsReadonlyField" [readonly]="true">
+          <mat-select *ngIf="modeAnag=='edit'" formControlName="linguaAggiuntiva" name="linguaAggiuntiva" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let lingua of lingueAggiuntive" [value]="lingua">
+              {{lingua.description}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formAnagErrors['linguaAggiuntiva']">{{ formAnagErrors.linguaAggiuntiva }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="0px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deRpEnteBenefIndirizzoBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="deRpEnteBenefIndirizzoBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deRpEnteBenefIndirizzoBeneficiario']">{{
+            formAnagErrors.deRpEnteBenefIndirizzoBeneficiario }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deRpEnteBenefCivicoBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="deRpEnteBenefCivicoBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deRpEnteBenefCivicoBeneficiario']">{{
+            formAnagErrors.deRpEnteBenefCivicoBeneficiario }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['codRpEnteBenefCapBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="codRpEnteBenefCapBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['codRpEnteBenefCapBeneficiario']">{{
+            formAnagErrors.codRpEnteBenefCapBeneficiario }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="0px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['nazione']}}</mat-label>
+          <input matInput *ngIf="modeAnag!='edit'" [value]="nazioneAsReadonlyField" [readonly]="true">
+          <mat-select *ngIf="modeAnag=='edit'" formControlName="nazione" name="nazione" [compareWith]="compareNazione"
+            (selectionChange)="nazioneOnChange($event.value)" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let nazione of nazioni " [value]="nazione">
+              {{nazione.nomeNazione}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formAnagErrors['nazione']">{{ formAnagErrors.nazione }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['prov']}}</mat-label>
+          <input matInput *ngIf="modeAnag!='edit'" [value]="provAsReadonlyField" [readonly]="true">
+          <mat-select *ngIf="modeAnag=='edit'" formControlName="prov" name="prov" [compareWith]="compareProvincia"
+            (selectionChange)="provinciaOnChange($event.value)" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let provincia of province" [value]="provincia">
+              {{provincia.provincia}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formAnagErrors['prov']">{{ formAnagErrors.prov }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['comune']}}</mat-label>
+          <input matInput *ngIf="modeAnag!='edit'" [value]="comuneAsReadonlyField" [readonly]="true">
+          <mat-select *ngIf="modeAnag=='edit'" formControlName="comune" name="comune" [compareWith]="compareComune"
+            (selectionChange)="comuneOnChange($event.value)" typeaheadDebounceInterval="800">
+            <mat-option *ngFor="let comune of comuni" [value]="comune">
+              {{comune.comune}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formAnagErrors['comune']">{{ formAnagErrors.comune }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="20px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="48%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deRpEnteBenefTelefonoBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="deRpEnteBenefTelefonoBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deRpEnteBenefTelefonoBeneficiario']">{{
+            formAnagErrors.deRpEnteBenefTelefonoBeneficiario }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="48%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deRpEnteBenefSitoWebBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="deRpEnteBenefSitoWebBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deRpEnteBenefSitoWebBeneficiario']">{{
+            formAnagErrors.deRpEnteBenefSitoWebBeneficiario }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row wrap" fxLayoutAlign="center" fxLayoutGap="20px">
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="48%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deRpEnteBenefEmailBeneficiario']}}</mat-label>
+          <input matInput [readonly]="modeAnag!='edit'" formControlName="deRpEnteBenefEmailBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deRpEnteBenefEmailBeneficiario']">{{
+            formAnagErrors.deRpEnteBenefEmailBeneficiario }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field [class.mat-form-field-disabled]="modeAnag=='view' || !isUserAdmin" fxFlex="100%" fxFlex.gt-sm="48%" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['deAutorizzazione']}}</mat-label>
+          <input matInput [readonly]="modeAnag=='view' || !isUserAdmin" formControlName="deAutorizzazione"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formAnagErrors['deAutorizzazione']">{{ formAnagErrors.deAutorizzazione }}</mat-error>
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    <div fxLayout="row wrap" fxLayoutAlign="center center" fxLayoutGap="0px">
+      <mat-form-field [class.mat-form-field-disabled]="modeAnag!='edit'" fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}">
+        <mat-label>{{fields['deInformazioniEnte']}} <my-pay-help [template]="helpInfoEnte"></my-pay-help></mat-label>
+        <textarea matInput [readonly]="modeAnag!='edit'" formControlName="deInformazioniEnte"
+          placeholder="Inserire un testo">
+              </textarea>
+        <mat-error *ngIf="formAnagErrors['deInformazioniEnte']">{{ formAnagErrors.deInformazioniEnte }}</mat-error>
+      </mat-form-field>
+      <div fxFlex></div>
+      <div *ngIf="modeAnag=='insert'" fxLayout="row wrap" fxLayoutGap="0px" class="mat-checkbox-flg">
+        <mat-checkbox *ngIf="modeAnag=='insert'" fxFlex="100%" fxFlex.gt-sm="25%"
+          formControlName="flagInsertDefaultSet" name="flagInsertDefaultSet" appearance="{{'appearance'|global}}">
+          <mat-label>{{fields['flagInsertDefaultSet']}}</mat-label>
+        </mat-checkbox>
+      </div>
+    </div>
+
+
+    <div class="container" fxFlex fxLayout="row" fxLayoutGap="10px">
+    <button fxFlex="10" type="button" mat-flat-button (click)="goBack()" color="primary">Indietro</button>
+      <span class="flex-spacer"></span>
+      <button fxFlex="10" type="button" mat-flat-button *ngIf="modeAnag==='view'" (click)="enableEdit()"
+        color="accent">Modifica</button>
+      <button fxFlex="10" type="button" mat-flat-button *ngIf="modeAnag==='edit'" (click)="onReset()"
+        color="primary">Annulla</button>
+      <button fxFlex="10" type="button" mat-flat-button *ngIf="modeAnag!=='view'" [app-confirm]="saveConfirmMsg(this)"
+        [disabled]="formAnag.invalid || blockingError" color="accent" (clickConfirmed)="onSubmit()">Salva</button>
+    </div>
+
+  </div>
+</form>
+</div>

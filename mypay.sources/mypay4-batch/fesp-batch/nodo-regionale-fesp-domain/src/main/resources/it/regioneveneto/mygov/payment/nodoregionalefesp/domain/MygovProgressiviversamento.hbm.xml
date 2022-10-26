@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 15-giu-2017 10.39.57 by Hibernate Tools 3.2.4.GA -->
+<hibernate-mapping>
+    <class name="it.regioneveneto.mygov.payment.nodoregionalefesp.domain.MygovProgressiviversamento" table="mygov_progressiviversamento">
+        <id name="id" type="java.lang.Long">
+            <column name="id" />
+            <generator class="sequence">
+                <param name="sequence">mygov_progressiviversamento_id_seq</param>
+            </generator>
+        </id>
+        <version name="version" type="int">
+            <column name="version" not-null="true" />
+        </version>
+        <property name="codIpaEnte" type="string">
+            <column name="cod_ipa_ente" length="80" not-null="true" />
+        </property>
+        <property name="tipoGeneratore" type="string">
+            <column name="tipo_generatore" length="5" not-null="true" />
+        </property>
+        <property name="tipoVersamento" type="string">
+            <column name="tipo_versamento" length="5" not-null="true" />
+        </property>
+        <property name="progressivoVersamento" type="long">
+            <column name="progressivo_versamento" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    k8tz.io/injected: "true"
+    k8tz.io/timezone: Europe/Rome
+  name: mypay4-batch-import
+spec:
+  selector:
+    matchLabels:
+      app: mypay4
+      job: batch
+      run: mypay4-batch-import
+  template:
+    metadata:
+      annotations:
+        k8tz.io/injected: "true"
+        k8tz.io/timezone: Europe/Rome
+        kubectl.kubernetes.io/default-container: mypay4-batch-import
+      labels:
+        app: mypay4
+        job: batch
+        run: mypay4-batch-import
+    spec:
+      containers:
+      - env:
+        - name: FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX
+          value: mypay4_batch_import.access
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: e45-fluent-config-secret
+        image: _REGISTRY_ENTE_/common/mypay4-fluentd:latest
+        imagePullPolicy: Always
+        name: fluentd-agent
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 1Gi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /var/log/batch
+          name: access-logs
+        - mountPath: /fluentd/etc
+          name: mypay4-batch-fluent-config
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      - command:
+        - /batch/bin/Main_Import_Queue_run.sh
+        env:
+        - name: TZ
+          value: Europe/Rome
+        envFrom:
+        - secretRef:
+            name: mypay4-user-creds-secret
+        - secretRef:
+            name: artemis-user-creds-secret
+        image: _REGISTRY_ENTE_/mypay4/mypay4-batch-import:latest
+        imagePullPolicy: Always
+        name: mypay4-batch-import
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1.5Gi
+          requests:
+            cpu: "0.1"
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /E45
+          name: conf
+        - mountPath: /var/log/batch
+          name: access-logs
+        - mountPath: /conf/import-properties_1.0.properties
+          name: mypay4-batch-import-configs
+          subPath: import-properties_1.0.properties
+        - mountPath: /conf/log4j.xml
+          name: mypay4-batch-import-configs
+          subPath: log4j.xml
+        - mountPath: /etc/localtime
+          name: k8tz
+          readOnly: true
+          subPath: Europe/Rome
+        - mountPath: /usr/share/zoneinfo
+          name: k8tz
+          readOnly: true
+      imagePullSecrets:
+      - name: registry-_ENTE_-secret
+      volumes:
+      - name: conf
+        persistentVolumeClaim:
+          claimName: mypay4-claim
+      - configMap:
+          name: mypay4-batch-import-configs
+        name: mypay4-batch-import-configs
+      - emptyDir: {}
+        name: access-logs
+      - configMap:
+          name: mypay4-batch-fluent-config
+        name: mypay4-batch-fluent-config
+      - hostPath:
+          path: /usr/share/zoneinfo
+        name: k8tz
