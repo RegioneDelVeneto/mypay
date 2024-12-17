@@ -19,9 +19,10 @@
 
 -->
 <xsd:schema xmlns:pay_i="http://www.regione.veneto.it/schemas/2012/Pagamenti/"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.regione.veneto.it/schemas/2012/Pagamenti/"
-	elementFormDefault="qualified" attributeFormDefault="unqualified"
-	version="6.0.2">
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			targetNamespace="http://www.regione.veneto.it/schemas/2012/Pagamenti/"
+			elementFormDefault="qualified" attributeFormDefault="unqualified"
+			version="6.0.2">
 	<xsd:annotation>
 		<xsd:documentation>Richiesta Pagamento (RP) ed Esito
 		</xsd:documentation>
@@ -30,8 +31,17 @@
 		</xsd:documentation>
 	</xsd:annotation>
 
+	<xsd:import namespace="http://www.regione.veneto.it/schemas/2012/Pagamenti/Ente/" schemaLocation="PagInf_Dovuti_Pagati_6_2_0.xsd"  />
+
 
 	<!-- **** BEGIN: tipi semplici **** -->
+
+	<xsd:simpleType name="stIBAN">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1" />
+			<xsd:maxLength value="35" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:simpleType name="stISODate">
 		<xsd:restriction base="xsd:date" />
@@ -45,6 +55,13 @@
 		<xsd:restriction base="xsd:string">
 			<xsd:minLength value="1" />
 			<xsd:maxLength value="16" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stText20">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1" />
+			<xsd:maxLength value="20" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -68,7 +85,14 @@
 			<xsd:maxLength value="140" />
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
+	<xsd:simpleType name="stText210">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1" />
+			<xsd:maxLength value="210" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:simpleType name="stText512">
 		<xsd:restriction base="xsd:string">
 			<xsd:minLength value="1" />
@@ -80,6 +104,14 @@
 		<xsd:restriction base="xsd:string">
 			<xsd:minLength value="1" />
 			<xsd:maxLength value="1024" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stBoolean">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="T" /> <!-- True -->
+			<xsd:enumeration value="F" /> <!--- False -->
+			<xsd:maxLength value="1" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -108,7 +140,7 @@
 	<xsd:simpleType name="stImporto">
 		<xsd:restriction base="xsd:decimal">
 			<xsd:minInclusive value="0.00" />
-			<xsd:maxInclusive value="99999999.99" />
+			<xsd:maxInclusive value="999999999.99" />
 			<xsd:fractionDigits value="2" />
 			<xsd:totalDigits value="12" />
 		</xsd:restriction>
@@ -183,7 +215,7 @@
 	<xsd:simpleType name="stEMail">
 		<xsd:restriction base="xsd:string">
 			<xsd:pattern
-				value="[A-Za-z0-9_]+([\-\+\.'][A-Za-z0-9_]+)*@[A-Za-z0-9_]+([\-\.][A-Za-z0-9_]+)*\.[A-Za-z0-9_]+([\-\.][A-Za-z0-9_]+)*" />
+				value="[a-zA-Z0-9_!#$%&amp;'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+" />
 			<xsd:maxLength value="256" />
 		</xsd:restriction>
 	</xsd:simpleType>
@@ -203,6 +235,68 @@
 	</xsd:simpleType>
 	<xsd:simpleType name="stBase64">
 		<xsd:restriction base="xsd:base64Binary">
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stTransferType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="POSTAL"></xsd:enumeration>
+			<xsd:enumeration value="PAGOPA"></xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stOutcome">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="OK" />
+			<xsd:enumeration value="KO" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stNoticeNumber">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[0-9]{18}" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stFiscalCodePA">
+		<xsd:restriction base="xsd:string">
+			<xsd:length value="11" />
+			<xsd:pattern value="[0-9]{11}" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stAmount">
+		<xsd:restriction base="xsd:decimal">
+			<xsd:pattern value="\d+\.\d{2}" />
+			<xsd:maxInclusive value="999999999.99" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stEntityUniqueIdentifierValue">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="2" />
+			<xsd:maxLength value="16" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stEntityUniqueIdentifierType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="F" />
+			<xsd:enumeration value="G" />
+			<xsd:length value="1" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stBase64Binary72">
+		<xsd:restriction base="xsd:base64Binary">
+			<xsd:pattern value=".{4,72}" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stTipoBolloDigitale">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="01" />
+			<xsd:length value="2" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -1096,6 +1190,84 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="rpEnteSecondario" type="pay_i:ctRichiestaPagamento" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Eventuale RP ente secondario.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="datiEnteSecondario" type="xsd:base64Binary" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Eventuale dati ente secondario (Ente fesp base64 encoded).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<!-- Richiesta Pagamento (RP) per Enti secondari relativamente alla gestione multibeneficiario -->
+	<xsd:complexType name="ctEntiSecondariRichiestaPagamento">
+		<xsd:sequence>
+			<xsd:element name="codiceFiscaleBeneficiario" type="pay_i:stText35" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica il codice fiscale dell'Ente
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="denominazioneBeneficiario" type="pay_i:stText35" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica la denominazione dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ibanAccreditoBeneficiario" type="pay_i:stText35" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica IBAN dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="indirizzoBeneficiario" type="pay_i:stText70" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica l'indirizzo dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="civicoBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica il civico dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="capBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica il cap dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localitaBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica la località dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="provinciaBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica la provincia dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="nazioneBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica la nazione dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="importoSingoloVersamento" type="pay_i:stImporto" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica importo da pagare per l'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -1205,6 +1377,126 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="ctTransferPAReceipt">
+		<xsd:sequence>
+			<xsd:element name="idTransfer" type="xsd:int"/>
+			<xsd:element name="transferAmount" type="pay_i:stImporto"/>
+			<xsd:element name="fiscalCodePA" type="xsd:string"/>
+			<xsd:element name="companyName" type="pay_i:stText140" minOccurs="0"/>
+			<xsd:choice>
+				<xsd:element name="IBAN" type="pay_i:stIBAN" />
+				<xsd:element name="MBDAttachment" type="xsd:base64Binary" />
+			</xsd:choice>
+			<xsd:element name="remittanceInformation" type="pay_i:stText140"/>
+			<xsd:element name="transferCategory" type="pay_i:stText140"/>
+			<xsd:element name="metadata" type="pay_i:ctMetadata" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctTransferPA">
+		<xsd:sequence>
+			<xsd:element name="idTransfer" type="xsd:int"/>
+			<xsd:element name="transferAmount" type="pay_i:stImporto"/>
+			<xsd:element name="fiscalCodePA" type="xsd:string"/>
+			<xsd:element name="richiestaMarcaDaBollo" type="pay_i:CtRichiestaMarcaDaBollo" minOccurs="0" />
+			<xsd:element name="IBAN" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="remittanceInformation" type="pay_i:stText140"/>
+			<xsd:element name="transferCategory" type="pay_i:stText140"/>
+			<xsd:element name="metadata" type="pay_i:ctMetadata" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctReceipt">
+		<xsd:sequence>
+			<xsd:element name="receiptId" type="xsd:string" />
+			<xsd:element name="noticeNumber" type="pay_i:stNoticeNumber" />
+			<xsd:element name="fiscalCode" type="pay_i:stFiscalCodePA" />
+			<xsd:element name="outcome" type="pay_i:stOutcome" />
+			<xsd:element name="creditorReferenceId" type="pay_i:stText35" />
+			<xsd:element name="paymentAmount" type="pay_i:stAmount" />
+			<xsd:element name="description" type="pay_i:stText140" />
+
+			<xsd:element name="companyName" type="pay_i:stText140" />
+			<xsd:element name="officeName" type="pay_i:stText140" minOccurs="0" />
+
+			<xsd:element name="debtor" type="pay_i:ctSubject" />
+			<xsd:element name="transferList" type="pay_i:ctTransferListPAReceipt" />
+			<xsd:element name="idPSP" type="pay_i:stText35" />
+			<xsd:element name="pspFiscalCode" type="pay_i:stText70" minOccurs="0" />
+			<xsd:element name="pspPartitaIVA" type="pay_i:stText20" minOccurs="0" />
+			<xsd:element name="PSPCompanyName" type="pay_i:stText70" />
+			<xsd:element name="idChannel" type="pay_i:stText35" />
+			<xsd:element name="channelDescription" type="pay_i:stText35" />
+
+			<xsd:element name="payer" type="pay_i:ctSubject" minOccurs="0" />
+			<xsd:element name="paymentMethod" type="pay_i:stText35" minOccurs="0" />
+			<xsd:element name="paymentNote" type="pay_i:stText210" minOccurs="0" />
+
+			<xsd:element name="fee" type="pay_i:stAmount" minOccurs="0" />
+			<xsd:element name="primaryCiIncurredFee" type="pay_i:stAmount" minOccurs="0" />
+			<xsd:element name="idBundle" type="pay_i:stText70" minOccurs="0" />
+			<xsd:element name="idCiBundle" type="pay_i:stText70" minOccurs="0" />
+			<xsd:element name="paymentDateTime" type="pay_i:stISODateTime" minOccurs="0" />
+			<xsd:element name="applicationDate" type="pay_i:stISODate" minOccurs="0" />
+			<xsd:element name="transferDate" type="pay_i:stISODate" minOccurs="0" />
+			<xsd:element name="metadata" type="pay_i:ctMetadata" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctSubject">
+		<xsd:sequence>
+			<xsd:element name="uniqueIdentifier" type="pay_i:ctEntityUniqueIdentifier" />
+			<xsd:element name="fullName" type="pay_i:stText70" />
+			<xsd:element name="streetName" type="pay_i:stText70" minOccurs="0" />
+			<xsd:element name="civicNumber" type="pay_i:stText16" minOccurs="0" />
+			<xsd:element name="postalCode" type="pay_i:stText16" minOccurs="0" />
+			<xsd:element name="city" type="pay_i:stText35" minOccurs="0" />
+			<xsd:element name="stateProvinceRegion" type="pay_i:stText35" minOccurs="0" />
+			<xsd:element name="country" type="pay_i:stNazioneProvincia" minOccurs="0" />
+			<xsd:element name="e-mail" type="pay_i:stEMail" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctTransferListPAReceipt">
+		<xsd:sequence>
+			<xsd:element name="transfer" type="pay_i:ctTransferPAReceipt" maxOccurs="5" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctTransferListPA">
+		<xsd:sequence>
+			<xsd:element name="transfer" type="pay_i:ctTransferPA" maxOccurs="5" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctMapEntry">
+		<xsd:sequence>
+			<xsd:element name="key" type="pay_i:stText140" />
+			<xsd:element name="value" type="pay_i:stText140" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctMetadata">
+		<xsd:sequence>
+			<xsd:element name="mapEntry" type="pay_i:ctMapEntry" minOccurs="1" maxOccurs="10"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ctEntityUniqueIdentifier">
+		<xsd:sequence>
+			<xsd:element name="entityUniqueIdentifierType" type="pay_i:stEntityUniqueIdentifierType" />
+			<xsd:element name="entityUniqueIdentifierValue" type="pay_i:stEntityUniqueIdentifierValue" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="CtRichiestaMarcaDaBollo">
+		<xsd:sequence>
+			<xsd:element name="hashDocumento" type="pay_i:stBase64Binary72" />
+			<xsd:element name="tipoBollo" type="pay_i:stTipoBolloDigitale" />
+			<xsd:element name="provinciaResidenza" type="pay_i:stNazioneProvincia" />
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<!-- **** END: tipi complessi **** -->
 
 
@@ -1212,6 +1504,12 @@
 	<xsd:element name="RP" type="pay_i:ctRichiestaPagamento">
 		<xsd:annotation>
 			<xsd:documentation>Richiesta Pagamento (RP)</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="entiSecondariRP" type="pay_i:ctEntiSecondariRichiestaPagamento">
+		<xsd:annotation>
+			<xsd:documentation>Richiesta Pagamento (RP) per Enti secondari relativamente alla gestione multibeneficiario</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
 

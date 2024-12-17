@@ -64,6 +64,10 @@ public class UserWithAdditionalInfo implements UserDetails {
   //authorized list of "ente" (key) and roles for each "ente" (value)
   private final Map<String, Set<String>> entiRoles;
 
+  //used for a2a call
+  private final String app;
+  private final String ente;
+
   private final Collection<GrantedAuthority> authorities = Collections.emptyList();
 
   @Override
@@ -73,6 +77,7 @@ public class UserWithAdditionalInfo implements UserDetails {
 
   @Override
   public String getPassword() {
+    //use it.regioneveneto.mygov.payment.mypay4.config.MyPay4RestTemplateCustomizer.main() to generate a new password
     return "$2a$10$Y8zuzAtbwHbVacVLLBK/ve3Fb0veCvNBJppMUG9XtOLky5SaGLyHq"; //password: "thePassword"
   }
 

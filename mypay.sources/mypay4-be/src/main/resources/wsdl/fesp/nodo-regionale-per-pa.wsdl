@@ -112,6 +112,8 @@
 			<xsd:element name="nodoSILChiediInformativaPSPRisposta" type="ppt:nodoSILChiediInformativaPSPRisposta"/>
 			<xsd:element name="nodoSILChiediIUV" type="ppt:nodoSILChiediIUV"/>
 			<xsd:element name="nodoSILChiediIUVRisposta" type="ppt:nodoSILChiediIUVRisposta"/>
+			<xsd:element name="nodoSILChiediCCP" type="ppt:nodoSILChiediCCP"/>
+			<xsd:element name="nodoSILChiediCCPRisposta" type="ppt:nodoSILChiediCCPRisposta"/>
 			<xsd:element name="chiediFlussoSPCPage" type="ppt:chiediFlussoSPCPage"/>
 			<xsd:element name="chiediFlussoSPCPageRisposta" type="ppt:chiediFlussoSPCPageRisposta"/>
 			<xsd:element name="chiediListaFlussiSPC" type="ppt:chiediListaFlussiSPC"/>
@@ -151,6 +153,7 @@
         <xsd:sequence>
           <xsd:element name="identificativoDominioEnteChiamante" type="ppthead:stText35"/>
           <xsd:element name="listaRP" type="ppt:listaRP"/>
+		  <xsd:element name="listaEntiSecondariRP" type="ppt:listaEntiSecondariRP" form="unqualified" minOccurs="0"/>
         </xsd:sequence>
       </xsd:complexType>
        <xsd:complexType name="listaRP">
@@ -166,6 +169,16 @@
             <xsd:element name="rp" type="xsd:base64Binary"/>
           </xsd:sequence>
       </xsd:complexType>
+		<xsd:complexType name="listaEntiSecondariRP">
+			<xsd:sequence>
+				<xsd:element name="elementoEntiSecondariRP" type="ppt:elementoEntiSecondariRP" minOccurs="0" maxOccurs="unbounded" />
+			</xsd:sequence>
+		</xsd:complexType>
+		<xsd:complexType name="elementoEntiSecondariRP">
+			<xsd:sequence>
+				<xsd:element name="entiSecondariRP" type="xsd:base64Binary"/>
+			</xsd:sequence>
+		</xsd:complexType>
       <xsd:complexType name="nodoSILInviaCarrelloRPRisposta">
         <xsd:complexContent>
           <xsd:extension base="ppt:risposta">
@@ -253,6 +266,21 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="identificativoUnivocoVersamento" type="ppt:stText35" minOccurs="1"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="nodoSILChiediCCP">
+				<xsd:sequence>
+					<xsd:element name="idDominio" type="ppt:stText35"/>
+					<xsd:element name="iuv" type="ppt:stText35"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="nodoSILChiediCCPRisposta">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="ccp" type="ppt:stText35" minOccurs="1"/>
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -435,6 +463,12 @@
 	<wsdl:message name="nodoSILChiediIUVResponse">
 		<wsdl:part name="bodyrisposta" element="ppt:nodoSILChiediIUVRisposta"/>
 	</wsdl:message>
+	<wsdl:message name="nodoSILChiediCCP">
+		<wsdl:part name="bodyrichiesta" element="ppt:nodoSILChiediCCP"/>
+	</wsdl:message>
+	<wsdl:message name="nodoSILChiediCCPResponse">
+		<wsdl:part name="bodyrisposta" element="ppt:nodoSILChiediCCPRisposta"/>
+	</wsdl:message>
 	<wsdl:message name="chiediFlussoSPCPage">
 		<wsdl:part name="bodyrichiesta" element="ppt:chiediFlussoSPCPage"/>
 	</wsdl:message>
@@ -507,6 +541,12 @@
 				wsaw:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediIUVRichiesta" />
 			<wsdl:output name="nodoSILChiediIUVResponse" message="tns:nodoSILChiediIUVResponse" wsam:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediIUVRisposta"
 				wsaw:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediIUVRisposta" />
+		</wsdl:operation>
+		<wsdl:operation name="nodoSILChiediCCP">
+			<wsdl:input name="nodoSILChiediCCP" message="tns:nodoSILChiediCCP" wsam:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediCCPRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediCCPRichiesta" />
+			<wsdl:output name="nodoSILChiediCCPResponse" message="tns:nodoSILChiediCCPResponse" wsam:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediCCPRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/nodoSILChiediCCPRisposta" />
 		</wsdl:operation>
 		<wsdl:operation name="chiediFlussoSPCPage">
 			<wsdl:input name="chiediFlussoSPCPage" message="tns:chiediFlussoSPCPage" wsam:Action="http://www.regione.veneto.it/pagamenti/nodoregionalefesp/PPT/chiediFlussoSPCPageRichiesta"
@@ -598,6 +638,15 @@
 				<soap:body use="literal"/>
 			</wsdl:input>
 			<wsdl:output name="nodoSILChiediIUVResponse">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="nodoSILChiediCCP">
+			<soap:operation soapAction="nodoSILChiediCCP" style="document"/>
+			<wsdl:input name="nodoSILChiediCCP">
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="nodoSILChiediCCPResponse">
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>

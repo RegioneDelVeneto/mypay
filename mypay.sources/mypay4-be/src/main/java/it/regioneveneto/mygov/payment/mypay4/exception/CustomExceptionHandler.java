@@ -32,8 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public class CustomExceptionHandler {
 
-  private final String ERROR_MESSAGE_TAG = "_ERROR_MESSAGE_";
-  private final String HTML_TEMPLATE = String.join("\n"
+  private final static String ERROR_MESSAGE_TAG = "_ERROR_MESSAGE_";
+  private final static String HTML_TEMPLATE = String.join("\n"
       , "<html>"
       , "  <head>"
       , "    <style>"
@@ -48,7 +48,7 @@ public class CustomExceptionHandler {
       , "</html>");
 
   @ExceptionHandler(value = { InsufficientAuthenticationException.class })
-  public ResponseEntity<?> handleInsufficientAuthenticationException(InsufficientAuthenticationException ex, final HttpServletRequest httpServletRequest) {
+  public ResponseEntity handleInsufficientAuthenticationException(InsufficientAuthenticationException ex, final HttpServletRequest httpServletRequest) {
     String errorMessage = StringUtils.firstNonBlank(ex.getMessage(),
         "L'utente usato per accedere non ha i diritti per accedere a questa applicazione.");
 
@@ -57,6 +57,14 @@ public class CustomExceptionHandler {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .contentType(MediaType.TEXT_HTML)
         .body(StringUtils.replace(HTML_TEMPLATE, ERROR_MESSAGE_TAG, errorMessage));
+  }
+
+  @ExceptionHandler(value = { RecaptchaFallbackException.class })
+  public ResponseEntity<?> handleRecaptchaFallbackException(RecaptchaFallbackException ex, final HttpServletRequest httpServletRequest) {
+  log.error("handleException RecaptchaFallbackException score[{}]", ex.getScore(), ex);
+    return ResponseEntity.status(471)
+        .contentType(MediaType.TEXT_HTML)
+        .body("recaptcha_low_score");
   }
 
 }

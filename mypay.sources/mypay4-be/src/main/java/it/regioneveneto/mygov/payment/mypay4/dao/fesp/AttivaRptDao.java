@@ -123,8 +123,8 @@ public interface AttivaRptDao extends BaseDao {
           ":r.deAttivarptSoggPagProvinciaPagatore, "+
           ":r.codAttivarptSoggPagNazionePagatore, "+
           ":r.deAttivarptSoggPagEmailPagatore )")
-  @GetGeneratedKeys("mygov_attiva_rpt_e_id")
-  long insertForAttivaRPT(@BindBean("r") AttivaRptE attivaRptE);
+  @GetGeneratedKeys
+  AttivaRptE insertForAttivaRPT(@BindBean("r") AttivaRptE attivaRptE);
 
   @SqlUpdate(
       "update mygov_attiva_rpt_e set "+

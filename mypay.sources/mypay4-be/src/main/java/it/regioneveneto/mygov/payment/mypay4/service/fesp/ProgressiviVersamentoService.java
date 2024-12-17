@@ -32,7 +32,6 @@ public class ProgressiviVersamentoService {
   @Autowired
   private ProgressiviVersamentoDao progressiviVersamentoDao;
 
-  @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
   long getNextProgressivoVersamento(final String codIpaEnte, final String tipoGeneratore,
                                     final String tipoVersamento) {
     long nextProgressivo;

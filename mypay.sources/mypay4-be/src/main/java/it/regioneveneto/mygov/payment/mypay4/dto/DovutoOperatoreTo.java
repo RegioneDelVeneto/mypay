@@ -17,6 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dto;
 
+import it.regioneveneto.mygov.payment.mypay4.dto.fesp.DovutoEntePrimarioTo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -71,4 +72,16 @@ public class DovutoOperatoreTo extends BaseTo implements Serializable {
   private String dovutoType; // "debito" or "pagato"
 
   private String invalidDesc; // Message thrown by ValidatorException when insertion, update.
+  
+  private boolean flgMultibeneficiario;
+  private boolean flgIuvVolatile;
+
+  //Ente primario detail
+  private DovutoEntePrimarioTo entePrimarioDetail;
+  private DovutoElaboratoEntePrimarioTo entePrimarioElaboratoDetail;
+  
+  //dovuto multibeneficiario
+  private DovutoMultibeneficiarioTo dovutoMultibeneficiario;
+  private DovutoMultibeneficiarioElaboratoTo dovutoMultibeneficiarioElaborato;
+  
 }

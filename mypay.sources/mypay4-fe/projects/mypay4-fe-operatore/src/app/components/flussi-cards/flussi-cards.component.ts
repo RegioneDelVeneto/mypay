@@ -17,9 +17,9 @@
  */
 import { WithTitle } from 'projects/mypay4-fe-common/src/public-api';
 
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {
-    faAngleRight, faCloudDownloadAlt, faCloudUploadAlt, faRandom, faReceipt
+  faAngleRight, faCloudDownloadAlt, faCloudUploadAlt, faRandom, faReceipt
 } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -27,7 +27,7 @@ import {
   templateUrl: './flussi-cards.component.html',
   styleUrls: ['./flussi-cards.component.scss']
 })
-export class FlussiCardsComponent implements OnInit, WithTitle {
+export class FlussiCardsComponent implements WithTitle {
 
   get titleLabel(){ return "Gestione flussi" }
   get titleIcon(){ return faRandom }
@@ -37,9 +37,8 @@ export class FlussiCardsComponent implements OnInit, WithTitle {
   iconSpc = faReceipt;
   iconAngleRight = faAngleRight;
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor() { 
+    //This is intentionally empty
   }
 
 }

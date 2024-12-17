@@ -20,6 +20,7 @@ package it.regioneveneto.mygov.payment.mypay4.ws.impl;
 import it.regioneveneto.mygov.payment.mypay4.bo.IdentificativoUnivocoEnte;
 import it.regioneveneto.mygov.payment.mypay4.controller.FlussoController;
 import it.regioneveneto.mygov.payment.mypay4.controller.MyBoxController;
+import it.regioneveneto.mygov.payment.mypay4.dao.DovutoMultibeneficiarioDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.FlussoDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.*;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
@@ -27,6 +28,7 @@ import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.security.JwtTokenUtil;
 import it.regioneveneto.mygov.payment.mypay4.service.*;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
+import it.regioneveneto.mygov.payment.mypay4.service.pagopa.GpdService;
 import it.regioneveneto.mygov.payment.mypay4.storage.ContentStorage;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
@@ -60,7 +62,6 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static it.regioneveneto.mygov.payment.mypay4.ws.helper.PagamentiTelematiciDovutiPagatiHelper.*;
@@ -78,23 +79,26 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
   @Value("${app.be.absolute-path}")
   private String appBeAbsolutePath;
 
-  @Value("${pa.identificativoStazioneIntermediarioPA}")
-  private String propIdStazioneIntermediarioPa;
+  @Value("${pa.codIpaEntePredefinito}")
+  private String adminEnteCodIpa;
+
+  @Value("${pa.modelloUnico}")
+  private boolean modelloUnico;
+
+  @Value("${pa.gpd.enabled}")
+  private boolean gpdEnabled;
+
+  @Value("${pa.gpd.preload}")
+  private boolean gpdPreload;
 
   @Autowired
   private AnagraficaStatoService anagraficaStatoService;
-
-  @Autowired
-  private AvvisoService avvisoService;
 
   @Autowired
   private FlussoDao flussoDao;
 
   @Autowired
   private EnteService enteService;
-
-  @Autowired
-  private UtenteService utenteService;
 
   @Autowired
   private CarrelloService carrelloService;
@@ -116,9 +120,6 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
   @Autowired
   private EnteTipoDovutoService enteTipoDovutoService;
-
-  @Autowired
-  private GiornaleService giornalePaService;
 
   @Autowired
   private OperatoreEnteTipoDovutoService operatoreEnteTipoDovutoService;
@@ -154,10 +155,32 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
   private AnagraficaSoggettoService anagraficaSoggettoService;
 
   @Autowired
-  private FlussoService flussoService;
+  private PrenotazioneFlussoService prenotazioneFlussoService;
 
   @Autowired
-  private PrenotazioneFlussoService prenotazioneFlussoService;
+  private FlussoExportScadutiService flussoExportScadutiService;
+
+  @Autowired
+  private DovutoMultibeneficiarioDao dovutoMultibeneficiarioDao;
+
+  @Autowired
+  private TassonomiaService tassonomiaService;
+
+  @Autowired
+  private EsitoService esitoService;
+
+  @Autowired(required = false)
+  private GpdService gpdService;
+
+  @Override
+  public PaaSILImportaDovutoRisposta paaSILImportaDovuto(PaaSILImportaDovuto body, IntestazionePPT header) {
+    return dovutoService.importDovuto(
+      Boolean.TRUE.equals(body.isFlagGeneraIuv()),
+      header.getCodIpaEnte(),
+      body.getPassword(),
+      body.getDovuto(),
+      body.getListaDovutiEntiSecondari());
+  }
 
   @Override
   public PaaSILAutorizzaImportFlussoRisposta paaSILAutorizzaImportFlusso(PaaSILAutorizzaImportFlusso bodyrichiesta, IntestazionePPT header) {
@@ -191,9 +214,9 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     }
 
     listaCarrelli.value = new ListaCarrelli();
-    CarrelloMultiBeneficiario carrelloMultiEnte = carrelloMultiBeneficiarioService.getByIdSession(idSessionCarrello);
+    var carrelloMultiEnte = carrelloMultiBeneficiarioService.getByIdSession(idSessionCarrello);
 
-    if (carrelloMultiEnte == null) {
+    if (carrelloMultiEnte.isEmpty()) {
       //check on storage if carrello has been initialized, but not yet persisted
       if(storageService.getString(StorageService.WS_USER, idSessionCarrello).map(idToken -> storageService.getObject(StorageService.WS_USER, idToken, BasketTo.class).map(basketTo -> {
         log.info("idSessionCarrello [{}] is on storage and associated to idToken [{}] but not yet on DB", idSessionCarrello, idToken);
@@ -215,70 +238,76 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
         return;
       }
 
-      FaultBean faultBean = VerificationUtils.getFaultBean("n/a",
+      fault.value = VerificationUtils.getFaultBean("n/a",
         CODE_PAA_ID_SESSION_NON_VALIDO,
         "idSession [" + idSessionCarrello + "] non valido", null);
-      fault.value = faultBean;
       return;
     }
 
-    List<Carrello> listaCarrelliDB = carrelloService.getByMultiBeneficarioId(carrelloMultiEnte.getMygovCarrelloMultiBeneficiarioId());
-
-    for (Carrello carrello : listaCarrelliDB) {
-      PagatiConRicevuta pagatiConRicevutaDocument = null;
-
-      RispostaCarrello rispostaCarrello = new RispostaCarrello();
-      String statoCarrello = carrello.getMygovAnagraficaStatoId().getCodStato();
-      String idDominio = carrello.getCodRpSilinviarpIdDominio();
-      Ente enteCarrello = enteService.getEnteByCodFiscale(idDominio);
-      String codIpa = enteCarrello.getCodIpaEnte();
-
-      rispostaCarrello.setCodIpaEnte(codIpa);
-      rispostaCarrello.setEsito(carrello.getMygovAnagraficaStatoId().getDeStato());
-
-      if (statoCarrello.equals(Constants.STATO_CARRELLO_PAGATO)
-        || statoCarrello.equals(Constants.STATO_CARRELLO_NON_PAGATO)
-        || statoCarrello.equals(Constants.STATO_CARRELLO_DECORRENZA_TERMINI)
-        || statoCarrello.equals(Constants.STATO_CARRELLO_DECORRENZA_TERMINI_PARZIALE)) {
-
-        List<DovutoElaborato> listaDovuti = dovutoElaboratoService.getByCarrello(carrello);
-
-        pagatiConRicevutaDocument = creaPagatiDocumentConRicevuta(carrello, listaDovuti);
-
-        String pagatiConRicevutaString = jaxbTransformService.marshalling(pagatiConRicevutaDocument, PagatiConRicevuta.class);
-
-        log.debug("paaSILChiediEsitoCarrelloDovuti per dominio ["
-          + pagatiConRicevutaDocument.getDominio().getIdentificativoDominio()
-          + "] e IUV [" + pagatiConRicevutaDocument.getDatiPagamento()
-          .getIdentificativoUnivocoVersamento()
-          + "]: " + pagatiConRicevutaString);
-
-        // se usi soapUI
-        // DataHandler pagatiValue = new DataHandler(new
-        // ByteArrayDataSource(pagatiString.getBytes(),
-        // "application/octet-stream"));
-
-        byte[] encodedPagatiConRicevuta;
-        encodedPagatiConRicevuta = Base64.encodeBase64(pagatiConRicevutaString.getBytes(StandardCharsets.UTF_8));
-        DataHandler pagatiConRicevutaValue = new DataHandler(
-          new ByteArrayDataSource(encodedPagatiConRicevuta, "application/octet-stream"));
-
-        rispostaCarrello.setPagati(pagatiConRicevutaValue);
-
-        if (listaDovuti.size() > 0) {
-          DovutoElaborato pagato = listaDovuti.get(0);
-          DataHandler rtValue = new DataHandler(
-            new ByteArrayDataSource(pagato.getBlbRtPayload(), "application/octet-stream"));
-          rispostaCarrello.setRt(rtValue);
-
-        } else {
-          log.error(
-            "paaSILChiediEsitoCarrelloDovuti error listaDovuti non contiene alcun dovuto elaborato per IUV:" + pagatiConRicevutaDocument.getDatiPagamento()
-              .getIdentificativoUnivocoVersamento());
-        }
+    Optional<Carrello> carrello = carrelloService.getByMultiBeneficarioId(carrelloMultiEnte.get().getMygovCarrelloMultiBeneficiarioId());
+    if (carrello.isEmpty()) {
+      if(modelloUnico) {
+        RispostaCarrello rispostaCarrello = new RispostaCarrello();
+        rispostaCarrello.setEsito(carrelloMultiEnte.get().getMygovAnagraficaStatoId().getCodStato());
+        rispostaCarrello.setCodIpaEnte(codIpaEnte);
+        listaCarrelli.value.getRispostaCarrellos().add(rispostaCarrello);
+      } else {
+        fault.value = VerificationUtils.getFaultBean("n/a",
+            CODE_PAA_ID_SESSION_NON_VALIDO,
+            "idSession [" + idSessionCarrello + "] non valido", null);
       }
-      listaCarrelli.value.getRispostaCarrellos().add(rispostaCarrello);
+      return;
     }
+
+    PagatiConRicevuta pagatiConRicevutaDocument;
+
+    RispostaCarrello rispostaCarrello = new RispostaCarrello();
+    String statoCarrello = carrello.get().getMygovAnagraficaStatoId().getCodStato();
+    String idDominio = carrello.get().getCodRpSilinviarpIdDominio();
+    Ente enteCarrello = enteService.getEnteByCodFiscale(idDominio);
+    String codIpa = enteCarrello.getCodIpaEnte();
+
+    rispostaCarrello.setCodIpaEnte(codIpa);
+    rispostaCarrello.setEsito(carrello.get().getMygovAnagraficaStatoId().getDeStato());
+
+    if (statoCarrello.equals(Constants.STATO_CARRELLO_PAGATO)
+      || statoCarrello.equals(Constants.STATO_CARRELLO_NON_PAGATO)
+      || statoCarrello.equals(Constants.STATO_CARRELLO_DECORRENZA_TERMINI)
+      || statoCarrello.equals(Constants.STATO_CARRELLO_DECORRENZA_TERMINI_PARZIALE)) {
+
+      List<DovutoElaborato> listaDovuti = dovutoElaboratoService.getByCarrello(carrello.get());
+
+      pagatiConRicevutaDocument = creaPagatiDocumentConRicevuta(carrello.get(), listaDovuti);
+
+      String pagatiConRicevutaString = jaxbTransformService.marshalling(pagatiConRicevutaDocument, PagatiConRicevuta.class);
+
+      log.debug("paaSILChiediEsitoCarrelloDovuti per dominio [{}] e IUV [{}]: {}", pagatiConRicevutaDocument.getDominio().getIdentificativoDominio(), pagatiConRicevutaDocument.getDatiPagamento()
+        .getIdentificativoUnivocoVersamento(), pagatiConRicevutaString);
+
+      // se usi soapUI
+      // DataHandler pagatiValue = new DataHandler(new
+      // ByteArrayDataSource(pagatiString.getBytes(),
+      // "application/octet-stream"));
+
+      byte[] encodedPagatiConRicevuta;
+      encodedPagatiConRicevuta = Base64.encodeBase64(pagatiConRicevutaString.getBytes(StandardCharsets.UTF_8));
+      DataHandler pagatiConRicevutaValue = new DataHandler(
+        new ByteArrayDataSource(encodedPagatiConRicevuta, "application/octet-stream"));
+
+      rispostaCarrello.setPagati(pagatiConRicevutaValue);
+
+      if (!listaDovuti.isEmpty()) {
+        DovutoElaborato pagato = listaDovuti.get(0);
+        DataHandler rtValue = new DataHandler(
+          new ByteArrayDataSource(pagato.getBlbRtPayload(), "application/octet-stream"));
+        rispostaCarrello.setRt(rtValue);
+
+      } else {
+        log.error("paaSILChiediEsitoCarrelloDovuti error listaDovuti non contiene alcun dovuto elaborato per IUV:{}", pagatiConRicevutaDocument.getDatiPagamento()
+          .getIdentificativoUnivocoVersamento());
+      }
+    }
+    listaCarrelli.value.getRispostaCarrellos().add(rispostaCarrello);
   }
 
   @Override
@@ -291,9 +320,13 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       return;
     }
     Pagati pagatiDocument;
-    Ente ente = enteService.getEnteByCodIpa(codIpaEnte);
-    Carrello carrello = carrelloService.getByIdSession(idSession);
-
+    Carrello carrello;
+    var multiCart = carrelloMultiBeneficiarioService.getByIdSession(idSession);
+    if (multiCart.isPresent()) {
+      carrello = carrelloService.getByMultiBeneficarioId(multiCart.get().getMygovCarrelloMultiBeneficiarioId()).orElse(null);
+    } else {
+      carrello = carrelloService.getByIdSession(idSession);
+    }
     if (carrello == null) {
       FaultBean faultBean;
       if(storageService.getString(StorageService.WS_USER, idSession).map(idToken ->
@@ -318,87 +351,27 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
     if (statoCarrello.equals(Constants.STATO_CARRELLO_NUOVO)
       || statoCarrello.equals(Constants.STATO_CARRELLO_PREDISPOSTO)) {
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_NON_INIZIATO,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_NON_INIZIATO,
         "Pagamento non iniziato per idSession specificato [" + idSession + "]", null);
-      fault.value = faultBean;
       return;
     }
 
     if (statoCarrello.equals(Constants.STATO_CARRELLO_PAGAMENTO_IN_CORSO)) {
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_IN_CORSO,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_IN_CORSO,
         "Pagamento in corso per idSession specificato [" + idSession + "]", null);
-      fault.value = faultBean;
       return;
     }
 
     if (statoCarrello.equals(Constants.STATO_CARRELLO_ABORT)) {
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_ANNULLATO,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_ANNULLATO,
         "Pagamento annullato per idSession specificato [" + idSession + "]", null);
-      fault.value = faultBean;
-
-      // LOG NEL GIORNALE DEGLI EVENTI - chiedi pagati
-      Date dataOraEvento = new Date();
-      String identificativoDominio = ente.getCodiceFiscaleEnte();
-      String identificativoUnivocoVersamento = carrello.getCodRpDatiVersIdUnivocoVersamento() != null
-        ? carrello.getCodRpDatiVersIdUnivocoVersamento() : "";
-      String codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-        ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-      String identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp() != null
-        ? carrello.getCodRpSilinviarpIdPsp() : "";
-      String tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-      String componente = Constants.COMPONENTE_PA;
-      String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-      String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagati.toString();
-      String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-      String identificativoFruitore = Constants.SIL;
-      String identificativoErogatore = ente.getCodiceFiscaleEnte();
-      String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-      String canalePagamento = "";
-      String parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-        + " Pagamento annullato per idSession specificato [" + idSession + "]";
-      String esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-      giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-        codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-        categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-        identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
       return;
     }
 
     if (statoCarrello.equals(Constants.STATO_CARRELLO_SCADUTO)
       || statoCarrello.equals(Constants.STATO_CARRELLO_SCADUTO_ELABORATO)) {
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_SCADUTO,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_SCADUTO,
         "Pagamento scaduto per idSession specificato [" + idSession + "]", null);
-      fault.value = faultBean;
-
-      // LOG NEL GIORNALE DEGLI EVENTI - chiedi pagati
-      Date dataOraEvento = new Date();
-      String identificativoDominio = ente.getCodiceFiscaleEnte();
-      String identificativoUnivocoVersamento = carrello.getCodRpDatiVersIdUnivocoVersamento() != null
-        ? carrello.getCodRpDatiVersIdUnivocoVersamento() : "";
-      String codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-        ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-      String identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp() != null
-        ? carrello.getCodRpSilinviarpIdPsp() : "";
-      String tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-      String componente = Constants.COMPONENTE_PA;
-      String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString();
-      String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagati.toString();
-      String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-      String identificativoFruitore = Constants.SIL;
-      String identificativoErogatore = ente.getCodiceFiscaleEnte();
-      String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-      String canalePagamento = "";
-      String parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-        + " Pagamento scaduto per idSession specificato [" + idSession + "]";
-      String esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-      giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-        codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-        categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-        identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
       return;
     }
     if (List.of(Constants.STATO_CARRELLO_PAGATO,
@@ -417,40 +390,12 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
       byte[] encodedPagati;
       encodedPagati = Base64.encodeBase64(pagatiString.getBytes(StandardCharsets.UTF_8));
-      DataHandler pagatiValue = new DataHandler(new ByteArrayDataSource(encodedPagati, "application/octet-stream"));
 
-      pagati.value = pagatiValue;
-
-      // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi pagati
-      Date dataOraEvento = new Date();
-      String identificativoDominio = ente.getCodiceFiscaleEnte();
-      String identificativoUnivocoVersamento = carrello.getCodRpDatiVersIdUnivocoVersamento();
-      String codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-        ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-      String identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-      String tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-      String componente = Constants.COMPONENTE_PA;
-      String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-      String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagati.toString();
-      String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-      String identificativoFruitore = Constants.SIL;
-      String identificativoErogatore = ente.getCodiceFiscaleEnte();
-      String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-      String canalePagamento = "";
-      String parametriSpecificiInterfaccia = pagatiString;
-      String esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-      giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-        codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-        categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-        identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
+      pagati.value = new DataHandler(new ByteArrayDataSource(encodedPagati, "application/octet-stream"));
     } else {
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR,
         "Errore interno per idSession: " + idSession);
-      fault.value = faultBean;
     }
-    return;
   }
 
   @Override
@@ -472,7 +417,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
     var faultBean = enteService.verificaEnte(codIpaEnte, password, false);
     if (faultBean.isEmpty()) {
-      faultBean = verificaExportDovuti(codIpaEnte, exportDovuti);
+      faultBean = verificaExportDovuti(codIpaEnte, exportDovuti, bodyrichiesta.getRequestToken());
     }
     if (faultBean.isPresent()) {
       paaSILChiediStatoExportFlussoRisposta.setFault(faultBean.get());
@@ -502,6 +447,184 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     return paaSILChiediStatoExportFlussoRisposta;
   }
 
+  public PaaSILPrenotaExportFlussoScadutiRisposta paaSILPrenotaExportFlussoScaduti(
+          PaaSILPrenotaExportFlussoScaduti bodyRichiesta, IntestazionePPT header) {
+    PaaSILPrenotaExportFlussoScadutiRisposta paaSILPrenotaExportFlussoScadutiRisposta = new PaaSILPrenotaExportFlussoScadutiRisposta();
+
+    log.info("paaSILPrenotaExportFlussoScaduti: start");
+    String codIpaEnte = header.getCodIpaEnte();
+    Ente ente = enteService.getEnteByCodIpa(codIpaEnte);
+    if (ente == null) {
+      log.error("paaSILPrenotaExportFlussoScaduti: Ente non valido: {}", codIpaEnte);
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO,
+              "codice IPA Ente [" + codIpaEnte + "] non valido o password errata", null);
+
+      paaSILPrenotaExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILPrenotaExportFlussoScadutiRisposta;
+    }
+
+    boolean passwordValidaPerEnte = enteService.verificaPassword(ente.getCodIpaEnte(), bodyRichiesta.getPassword());
+    if (!passwordValidaPerEnte) {
+      log.error("paaSILPrenotaExportFlussoScaduti: Password non valida per ente: {}", header.getCodIpaEnte());
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(header.getCodIpaEnte(), CODE_PAA_ENTE_NON_VALIDO,
+              "Password non valida per ente [" + header.getCodIpaEnte() + "]", null);
+
+      paaSILPrenotaExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILPrenotaExportFlussoScadutiRisposta;
+    }
+
+    String tipiDovuto = bodyRichiesta.getTipiDovuto();
+    XMLGregorianCalendar calendarDataScadenza = bodyRichiesta.getDataScadenza();
+
+    /*
+     * *******  CONTROLLO SULLA CORRETTEZZA DELLA DATA SCADENZA  *******
+     */
+
+    if (calendarDataScadenza == null) {
+      log.error("paaSILPrenotaExportFlussoScaduti: Data di scadenza non valida");
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_DATE_FROM_NON_VALIDO, "Data inizio non valida",
+              null);
+
+      paaSILPrenotaExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILPrenotaExportFlussoScadutiRisposta;
+    }
+
+    calendarDataScadenza.setTime(0,0,0);
+    Date dataScadenza = Utilities.toDate(calendarDataScadenza);
+
+    // //TIPO DOVUTO
+    if (StringUtils.isNotBlank(tipiDovuto))
+    {
+      List<String> tipoDovutoList = new ArrayList<String>(Arrays.asList(tipiDovuto.split("\\s*;\\s*")));
+      for (String tipoDovuto : tipoDovutoList)
+      {
+        EnteTipoDovuto enteTipoDovuto = enteTipoDovutoService.getByCodTipo(tipoDovuto,codIpaEnte);
+
+        if (enteTipoDovuto == null)
+        {
+          log.error("paaSILPrenotaExportFlussoScaduti: Identificativo tipo dovuto non valido: {}", tipoDovuto);
+
+          FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_IDENTIFICATIVO_TIPO_DOVUTO_NON_VALIDO,
+                  "identificativoTipoDovuto [" + tipoDovuto + "] non valido", null);
+          paaSILPrenotaExportFlussoScadutiRisposta.setFault(faultBean);
+          return paaSILPrenotaExportFlussoScadutiRisposta;
+        }
+      }
+    }
+    else
+    {
+      log.error("paaSILPrenotaExportFlussoScaduti: Nessun Identificativo tipo dovuto inserito");
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_IDENTIFICATIVO_TIPO_DOVUTO_NON_INSERITO,
+              "identificativoTipoDovuto non valido", null);
+      paaSILPrenotaExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILPrenotaExportFlussoScadutiRisposta;
+    }
+
+    String requestToken = UUID.randomUUID().toString();
+    String iuf = "EXP_SCADUTI_"+requestToken;
+
+    flussoExportScadutiService.insertWithRefresh(iuf, ente, tipiDovuto, dataScadenza, Constants.STATO_EXPORT_LOAD, requestToken);
+
+    paaSILPrenotaExportFlussoScadutiRisposta.setRequestToken(requestToken);
+    log.info("paaSILPrenotaExportFlussoScaduti: end");
+    return paaSILPrenotaExportFlussoScadutiRisposta;
+  }
+
+  public PaaSILChiediStatoExportFlussoScadutiRisposta paaSILChiediStatoExportFlussoScaduti(PaaSILChiediStatoExportFlussoScaduti bodyrichiesta, IntestazionePPT header) {
+    PaaSILChiediStatoExportFlussoScadutiRisposta paaSILChiediStatoExportFlussoScadutiRisposta = new PaaSILChiediStatoExportFlussoScadutiRisposta();
+    log.info("paaSILChiediStatoExportFlussoScaduti: start");
+    String codIpaEnte = header.getCodIpaEnte();
+    Ente ente = enteService.getEnteByCodIpa(codIpaEnte);
+    if (ente == null) {
+      log.error("paaSILChiediStatoExportFlussoScaduti: Ente non valido: {}", codIpaEnte);
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO,
+              "codice IPA Ente [" + codIpaEnte + "] non valido o password errata", null);
+
+      paaSILChiediStatoExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILChiediStatoExportFlussoScadutiRisposta;
+    }
+
+    boolean passwordValidaPerEnte = enteService.verificaPassword(ente.getCodIpaEnte(), bodyrichiesta.getPassword());
+    if (!passwordValidaPerEnte) {
+      log.error("paaSILChiediStatoExportFlussoScaduti: Password non valida per ente: {}", header.getCodIpaEnte());
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(header.getCodIpaEnte(), CODE_PAA_ENTE_NON_VALIDO,
+              "Password non valida per ente [" + header.getCodIpaEnte() + "]", null);
+
+      paaSILChiediStatoExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILChiediStatoExportFlussoScadutiRisposta;
+    }
+
+    List<FlussoExportScaduti> scaduti = flussoExportScadutiService.getByRequestToken(bodyrichiesta.getRequestToken());
+    if (scaduti.size() > 1) {
+      log.error("paaSILChiediStatoExportFlussoScaduti: flusso duplicato per Ente [{}] e requestToken [{}]", codIpaEnte, bodyrichiesta.getRequestToken());
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO,
+              "requestToken [" + bodyrichiesta.getRequestToken() + "] duplicato per ente [" + codIpaEnte + "] ",
+              null);
+
+      paaSILChiediStatoExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILChiediStatoExportFlussoScadutiRisposta;
+    }
+    if (scaduti.isEmpty()) {
+      log.error("paaSILChiediStatoExportFlussoScaduti: Ente [{}] non valido per requestToken [{}]", codIpaEnte, bodyrichiesta.getRequestToken());
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO,
+              "requestToken [" + bodyrichiesta.getRequestToken() + "] non valido per ente [" + codIpaEnte + "] ",
+              null);
+
+      paaSILChiediStatoExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILChiediStatoExportFlussoScadutiRisposta;
+    }
+    FlussoExportScaduti scaduto =  scaduti.get(0);
+    if (!codIpaEnte.equals(scaduto.getMygovEnteId().getCodIpaEnte())) {
+      log.error("paaSILChiediStatoExportFlussoScaduti: Ente [{}] non autorizzato per requestToken [{}]", codIpaEnte, bodyrichiesta.getRequestToken());
+
+      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO,
+              "requestToken [" + bodyrichiesta.getRequestToken() + "] non valido per ente [" + codIpaEnte + "] ",
+              null);
+
+      paaSILChiediStatoExportFlussoScadutiRisposta.setFault(faultBean);
+      return paaSILChiediStatoExportFlussoScadutiRisposta;
+    }
+
+    AnagraficaStato stato = scaduto.getMygovAnagraficaStatoId();
+    paaSILChiediStatoExportFlussoScadutiRisposta.setStato(stato.getCodStato());
+
+    if (stato.getCodStato().equals(Constants.STATO_EXPORT_ESEGUITO))
+    {
+      if (StringUtils.isBlank(scaduto.getDeNomeFile()))
+      {
+        paaSILChiediStatoExportFlussoScadutiRisposta.setStato(Constants.STATO_EXPORT_ESEGUITO_NESSUN_DOVUTO_TROVATO);
+        return paaSILChiediStatoExportFlussoScadutiRisposta;
+      }
+      else
+      {
+        String type = FlussoController.FILE_TYPE_FLUSSI_EXPORT_SCADUTI;
+        String filename = scaduto.getDePercorsoFile();
+        Long idEnte = scaduto.getMygovEnteId().getMygovEnteId();
+        String securityToken = jwtTokenUtil.generateSecurityToken(null, type + "|" + idEnte + "|" + filename);
+        String urlDownload = UriComponentsBuilder
+                .fromUriString(appBeAbsolutePath + MyBoxController.DOWNLOAD_FLUSSO_PATH + File.separator + idEnte)
+                .queryParam("type", type)
+                .queryParam("securityToken", URLEncoder.encode(securityToken, StandardCharsets.UTF_8))
+                .queryParam("filename", filename)
+                .encode()
+                .toUriString();
+        paaSILChiediStatoExportFlussoScadutiRisposta.setNomeFile(scaduto.getDeNomeFile());
+        paaSILChiediStatoExportFlussoScadutiRisposta.setPathFile(scaduto.getDePercorsoFile());
+        paaSILChiediStatoExportFlussoScadutiRisposta.setDownloadUrl(urlDownload);
+      }
+    }
+    log.info("paaSILChiediStatoExportFlussoScaduti: end");
+    return paaSILChiediStatoExportFlussoScadutiRisposta;
+  }
+
   @Override
   public PaaSILChiediStatoImportFlussoRisposta paaSILChiediStatoImportFlusso(PaaSILChiediStatoImportFlusso bodyrichiesta, IntestazionePPT header) {
     PaaSILChiediStatoImportFlussoRisposta paaSILChiediStatoImportFlussoRisposta = new PaaSILChiediStatoImportFlussoRisposta();
@@ -513,7 +636,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
     var faultBean = enteService.verificaEnte(codIpaEnte, password, false);
     if (faultBean.isEmpty()) {
-      faultBean = verificaImportDovuti(codIpaEnte, importDovuti);
+      faultBean = verificaImportDovuti(codIpaEnte, importDovuti, bodyrichiesta.getRequestToken());
     }
     if (faultBean.isPresent()) {
       paaSILChiediStatoImportFlussoRisposta.setFault(faultBean.get());
@@ -527,7 +650,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     String codRequestToken = importDovuti.getCodRequestToken();
     Flusso flusso = flussoDao.getByCodRequestToken(codRequestToken);
     if(flusso == null)
-      log.error("paaSILChiediStatoImportFlusso error flusso uguale a null. codRequestToken : %s",codRequestToken);
+      log.info("paaSILChiediStatoImportFlusso flusso uguale a null. codRequestToken : {}",codRequestToken);
 
     if (Constants.STATO_IMPORT_ESEGUITO.equals(importDovuti.getMygovAnagraficaStatoId().getCodStato())) {
       Long idEnte = importDovuti.getMygovEnteId().getMygovEnteId();
@@ -590,6 +713,15 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
   public PaaSILChiediStoricoPagamentiRisposta paaSILChiediStoricoPagamenti(PaaSILChiediStoricoPagamenti bodyrichiesta) {
     log.debug("Executing operation paaSILChiediStoricoPagamenti");
     PaaSILChiediStoricoPagamentiRisposta response = new PaaSILChiediStoricoPagamentiRisposta();
+
+    boolean passwordValidaPerEnte = enteService.verificaPassword(adminEnteCodIpa, bodyrichiesta.getPassword());
+    if (!passwordValidaPerEnte) {
+      log.error("paaSILChiediPosizioniAperte: Password non valida per ente: {} ", adminEnteCodIpa);
+      String msg = String.format("Password non valida per ente [%s]", adminEnteCodIpa);
+      response.setFault(VerificationUtils.getFaultBean(adminEnteCodIpa, CODE_PAA_ENTE_NON_VALIDO, msg, null));
+      return response;
+    }
+
     String codIpaEnte = bodyrichiesta.getCodIpaEnte();
     CtIdentificativoUnivocoPersonaFG identificativoUnivocoPersonaFG = bodyrichiesta.getIdentificativoUnivocoPersonaFG();
 
@@ -597,7 +729,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       Ente ente = enteService.getEnteByCodIpa(codIpaEnte);
       if (ente == null) {
         String msg = String.format("codice IPA Ente [%s] non valido", codIpaEnte);
-        log.error("paaSILChiediStoricoPagamenti: %s", msg);
+        log.error("paaSILChiediStoricoPagamenti: {}", msg);
         response.setFault(VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO, msg, null));
         return response;
       }
@@ -620,7 +752,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     // controllo correttezza intervallo data
     if (dtExtractionTo.before(dtExtractionFrom)) {
       String faultString = String.format("Data di inizio [%s] successiva alla data di fine [%s]", dtExtractionFrom, dtExtractionTo);
-      log.error("paaSILChiediStoricoPagamenti: %s", faultString);
+      log.error("paaSILChiediStoricoPagamenti: {}", faultString);
       response.setFault(VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_INTERVALLO_DATE_NON_VALIDO, faultString, null));
       return response;
     }
@@ -642,7 +774,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
         if (listaDovuti.isEmpty()) {
           String error = String.format("paaSILChiediStoricoPagamenti error carrello con id [%d]  non contiene alcun dovuto elaborato.", carrello.getMygovCarrelloId());
           log.error(error);
-          throw new RuntimeException(error);
+          throw new MyPayException(error);
         } else {
           DataSource rtDataSource = new ByteArrayDataSource(listaDovuti.get(0).getBlbRtPayload(), MediaType.APPLICATION_OCTET_STREAM_VALUE);
           DataHandler rtDataHandler = new DataHandler(rtDataSource);
@@ -666,68 +798,16 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       response.getPaaSILStoricoPagamentis().addAll(paaSILStoricoPagamentiList);
       return response;
     } catch (Exception e) {
-      String error = String.format("paaSILChiediPosizioniAperte error: [{}]", e.getMessage());
-      log.error(error);
-      throw new RuntimeException(error);
+      String error = String.format("paaSILChiediPosizioniAperte error: [%s]", e.getMessage());
+      throw new MyPayException(error, e);
     }
-  }
-
-  @Override
-  public PaaSILImportaDovutoRisposta paaSILImportaDovuto(PaaSILImportaDovuto bodyrichiesta, IntestazionePPT header) {
-    return dovutoService.importDovuto(
-      Constants.GIORNALE_TIPO_EVENTO_PA.paaSILImportaDovuto.toString(),
-      bodyrichiesta.isFlagGeneraIuv()!= null && bodyrichiesta.isFlagGeneraIuv(),
-      header.getCodIpaEnte(),
-      bodyrichiesta.getPassword(),
-      bodyrichiesta.getDovuto());
   }
 
   @Override
   public PaaSILInviaCarrelloDovutiRisposta paaSILInviaCarrelloDovuti(PaaSILInviaCarrelloDovuti bodyrichiesta, IntestazionePPT header) {
 
-    Giornale dati = Giornale.builder()
-      .identificativoDominio(Constants.EMPTY)
-      .identificativoUnivocoVersamento(Constants.EMPTY)
-      .codiceContestoPagamento(Constants.CODICE_CONTESTO_PAGAMENTO_NA)
-      .identificativoPrestatoreServiziPagamento(Constants.EMPTY)
-      .tipoVersamento(Constants.EMPTY)
-      .componente(Constants.COMPONENTE_PA)
-      .categoriaEvento(Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString())
-      .tipoEvento(Constants.GIORNALE_TIPO_EVENTO_PA.paaSILInviaCarrelloDovuti.toString())
-      .sottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString())
-      .identificativoFruitore(Constants.SIL)
-      .identificativoErogatore(Constants.EMPTY)
-      .identificativoStazioneIntermediarioPa(propIdStazioneIntermediarioPa)
-      .canalePagamento(Constants.EMPTY)
-      .build();
-
-    BiConsumer<String, String> registraGiornale = (parametriSpecificiInterfaccia, esito) -> {
-      try {
-        giornalePaService.registraEvento(
-          new Date(),
-          dati.getIdentificativoDominio(),
-          dati.getIdentificativoUnivocoVersamento(),
-          dati.getCodiceContestoPagamento(),
-          dati.getIdentificativoPrestatoreServiziPagamento(),
-          dati.getTipoVersamento(),
-          dati.getComponente(),
-          dati.getCategoriaEvento(),
-          dati.getTipoEvento(),
-          dati.getSottoTipoEvento(),
-          dati.getIdentificativoFruitore(),
-          dati.getIdentificativoErogatore(),
-          dati.getIdentificativoStazioneIntermediarioPa(),
-          dati.getCanalePagamento(),
-          parametriSpecificiInterfaccia,
-          esito
-        );
-      } catch (Exception e) {
-        log.warn("paaSILInviaCarrelloDovuti [" + dati.getSottoTipoEvento() + "] impossible to insert in the event log", e);
-      }
-    };
     ManageWsFault<PaaSILInviaCarrelloDovutiRisposta> manageFault = (codeFault, faultString, faultDescr, error) -> {
       log.error(faultString, error);
-      registraGiornale.accept(faultString + (StringUtils.isBlank(faultDescr)?"":(" - "+faultDescr)), Constants.GIORNALE_ESITO_EVENTO.KO.toString());
       PaaSILInviaCarrelloDovutiRisposta paaSILInviaCarrelloDovutiRisposta = new PaaSILInviaCarrelloDovutiRisposta();
       FaultBean faultBean = VerificationUtils.getFaultBean(header.getCodIpaEnte(),
         codeFault, faultString, faultDescr);
@@ -736,26 +816,18 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       return paaSILInviaCarrelloDovutiRisposta;
     };
     Ente enteHeader = enteService.getEnteByCodIpa(header.getCodIpaEnte());
-    Optional.ofNullable(enteHeader).map(Ente::getCodiceFiscaleEnte).ifPresent(dati::setIdentificativoDominio);
-    try {
-      String xmlBodyString = jaxbTransformService.marshalling(bodyrichiesta, PaaSILInviaCarrelloDovuti.class);
-      String xmlHeaderString = jaxbTransformService.marshalling(header, IntestazionePPT.class);
-      registraGiornale.accept(xmlHeaderString + xmlBodyString, Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-    } catch (Exception e) {
-      log.warn("paaSILInviaCarrelloDovuti [REQUEST] impossible to insert in the event log", e);
-    }
 
-    /// Verifico persenza ente
+    // Verifico persenza ente
     if (enteHeader == null)
       return manageFault.apply(CODE_PAA_ENTE_NON_VALIDO, "codice IPA Ente [" + header.getCodIpaEnte() + "] non valido");
 
-    /// Verifico password per ente principale
-    Boolean passwordValidaPerEnte = enteService.verificaPassword(enteHeader.getCodIpaEnte(), bodyrichiesta.getPassword());
+    // Verifico password per ente principale
+    boolean passwordValidaPerEnte = enteService.verificaPassword(enteHeader.getCodIpaEnte(), bodyrichiesta.getPassword());
     if (!passwordValidaPerEnte)
       return manageFault.apply(CODE_PAA_ENTE_NON_VALIDO, "Password non valida per ente [" + header.getCodIpaEnte() + "]");
 
     // Verifico per ogni carrello presenza ente ,relativa password e presenza codice IUC
-    List<ElementoListaDovuti> listaCarrelloDovuti =bodyrichiesta.getListaDovuti().getElementoListaDovutis();
+    List<ElementoListaDovuti> listaCarrelloDovuti = bodyrichiesta.getListaDovuti().getElementoListaDovutis();
     for (ElementoListaDovuti elemento: listaCarrelloDovuti) {
       String enteListaCodIpa = elemento.getCodIpaEnte();
       Ente enteLista = enteService.getEnteByCodIpa(enteListaCodIpa);
@@ -771,57 +843,41 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
     List<CartItem> cartItemList = new ArrayList<>();
     List<IdentificativoUnivocoEnte> listaIdentificativoUnivocoEnte = new ArrayList<>();
-    /// Ciclo ancora tutti i dovuti andando ad esaminare i dovuti base64
+    Dovuti dovutoEntePrimario = null;
+    // Ciclo ancora tutti i dovuti andando a esaminare i dovuti base64
     for (ElementoListaDovuti elemento: listaCarrelloDovuti) {
       String enteListaCodIpa = elemento.getCodIpaEnte();
       Ente enteLista = enteService.getEnteByCodIpa(enteListaCodIpa);
 
-      Dovuti dovuti = null;
-
+      Dovuti dovuti;
       try {
         dovuti = jaxbTransformService.unmarshalling(elemento.getDovuti(), Dovuti.class, "/wsdl/pa/PagInf_Dovuti_Pagati_6_2_0.xsd");
-      } catch (MyPayException e) {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("XML ricevuto per paaSILInviaCarrelloDovuti non conforme all' XSD per ente [" + header.getCodIpaEnte() + "]");
-        buffer.append("XML Error: \n").append(e.getMessage());
-        return manageFault.apply(PAA_XML_NON_VALIDO_CODE, "XML dei dovuti non valido", buffer.toString(), e);
+      } catch (MyPayException unmarshallingException) {
+        String errorMessage = "XML ricevuto per paaSILInviaCarrelloDovuti non conforme all' XSD per ente [" + header.getCodIpaEnte() + "]  XML Error: \n" +
+            jaxbTransformService.getDetailUnmarshalExceptionMessage(unmarshallingException, elemento.getDovuti());
+        return manageFault.apply(PAA_XML_NON_VALIDO_CODE, "XML dei dovuti non valido", errorMessage, unmarshallingException);
       }
 
       // #45: Bonifica provincia pagatore case insensitive in import
-      dovuti = bonificaProvinciaPagatore(dovuti);
+      bonificaProvinciaPagatore(dovuti);
+      dovutoEntePrimario = dovuti;
 
       String IUV = dovuti.getDatiVersamento().getIdentificativoUnivocoVersamento();
-      if (StringUtils.isNotBlank(IUV))
-        dati.setIdentificativoUnivocoVersamento(IUV);
 
-      dati.setTipoVersamento(dovuti.getDatiVersamento().getTipoVersamento());
+      String tipoVersamento = dovuti.getDatiVersamento().getTipoVersamento();
 
       List<CtDatiSingoloVersamentoDovuti> listaDovuti = dovuti.getDatiVersamento().getDatiSingoloVersamentos();
 
-      if (StringUtils.isNotBlank(IUV)) {
-        IdentificativoUnivocoEnte iuvEnte = new IdentificativoUnivocoEnte("IUV", enteLista.getCodIpaEnte(), IUV);
-        if (listaIdentificativoUnivocoEnte.contains(iuvEnte))
-          return manageFault.apply(CODE_PAA_IUV_DUPLICATO, "IUV [" + IUV + "] duplicato in input per ente [" + enteLista.getCodIpaEnte() + "]");
-
-        listaIdentificativoUnivocoEnte.add(iuvEnte);
-        List<IdentificativoUnivoco> identificativoUnivocos = identificativoUnivocoService.getByEnteAndCodTipoIdAndId(enteLista.getMygovEnteId(), "IUV", IUV);
-        if (identificativoUnivocos.size() > 0)
-          return manageFault.apply(CODE_PAA_IUV_DUPLICATO,"IUV [" + IUV + "] gia'inviato per ente [" + enteLista.getCodIpaEnte() + "]");
-
-        if (listaDovuti.size() > 1)
-          return manageFault.apply(CODE_PAA_NUMERO_DOVUTI_PER_IUV_NON_VALIDO,"Numero dovuti [" + listaDovuti.size() + "] per lo stesso IUV [" + IUV + "] non valido");
-
-        if (!Utilities.validaIUV(IUV, false, enteLista.getApplicationCode()))
-          return manageFault.apply(CODE_PAA_IUV_NON_VALIDO,"IdentificativoUnivocoVersamento non valido [" + IUV + "]");
-
+      if(listaDovuti.isEmpty()){
+        return manageFault.apply(CODE_PAA_XML_NON_VALIDO, "dati singolo versamento mancanti");
       }
 
-      if (!Utilities.validaTipoVersamento(dati.getTipoVersamento()))
-        return manageFault.apply(CODE_PAA_TIPO_VERSAMENTO_NON_VALIDO, "Tipo versamento non valido [" + dati.getTipoVersamento() + "]");
+      if (StringUtils.isNotBlank(IUV)) {
+        return manageFault.apply(CODE_PAA_IUV_NON_VALIDO,"l'inserimento dello IUV è deprecato");
+      }
 
-      // DEFAULT TIPO VERSAMENTO
-      if (StringUtils.isBlank(dati.getTipoVersamento()))
-        dati.setTipoVersamento(Constants.ALL_PAGAMENTI);
+      if (!Utilities.validaTipoVersamento(tipoVersamento))
+        return manageFault.apply(CODE_PAA_TIPO_VERSAMENTO_NON_VALIDO, "Tipo versamento non valido [" + tipoVersamento + "]");
 
       String tipoIdentificativoUnivoco = dovuti.getSoggettoPagatore()
         .getIdentificativoUnivocoPagatore().getTipoIdentificativoUnivoco().toString();
@@ -835,7 +891,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
         .allMatch(idTipoDovuto ->
           enteTipoDovutoService.getOptionalByCodTipo(idTipoDovuto, enteLista.getCodIpaEnte(), true)
             .map(EnteTipoDovuto::isFlgCfAnonimo).orElse(false) );
-      log.debug("flag CF " + Constants.CODICE_FISCALE_ANONIMO + "[" + isFlagCfAnonimo + "]");
+      log.debug("flag CF " + Constants.CODICE_FISCALE_ANONIMO + "[{}]", isFlagCfAnonimo);
       if (!Utilities.isValidCodIdUnivocoConAnonimo(isFlagCfAnonimo, tipoIdentificativoUnivoco, codiceIdentificativoUnivoco)) {
         String faultForAnonimo = codiceIdentificativoUnivoco.equals(Constants.CODICE_FISCALE_ANONIMO)? "Funzionalita CF ANONIMO non valida" : null;
         if (tipoIdentificativoUnivoco.equals(Constants.TIPOIDENTIFICATIVOUNIVOCO_F))
@@ -860,7 +916,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
         List<IdentificativoUnivoco> identificativoUnivocos = identificativoUnivocoService.getByEnteAndCodTipoIdAndId(enteLista.getMygovEnteId(), "IUD", IUD);
 
-        if (identificativoUnivocos.size() > 0)
+        if (!identificativoUnivocos.isEmpty())
           return manageFault.apply(CODE_PAA_IUD_DUPLICATO,"IUD [" + IUD + "] gia' inviato");
 
         String codTipo = ctDatiSingoloVersamentoDovuti.getIdentificativoTipoDovuto();
@@ -873,38 +929,47 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
         if (codTipo.equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
           BigDecimal importo = ctDatiSingoloVersamentoDovuti.getImportoSingoloVersamento();
-          if (!importo.equals(enteTipoDovuto.getImporto()))
+          if (importo.compareTo(enteTipoDovuto.getImporto())!=0)
             return manageFault.apply(CODE_PAA_IMPORTO_MARCA_BOLLO_DIGITALE_NON_VALIDA,
-              "importoSingoloVersamento " + "non valido per tipo dovuto " + Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE);
-        }
+                "importoSingoloVersamento non valido per tipo dovuto " + Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE);
+          if(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale()==null
+              || StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getTipoBollo())
+              || StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getHashDocumento())
+              || StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getProvinciaResidenza()) )
+            return manageFault.apply(CODE_PAA_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+                "dati marca da bollo mancanti o non validi");
+          //check hash documento length <= 72 due to a constraint of PagoPA
+          if(StringUtils.length(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getHashDocumento())>72){
+            return manageFault.apply(CODE_PAA_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+              "hashDocumento non può contenere più di 72 caratteri");
+          }
+        } else if(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale()!=null
+            && (StringUtils.isNotBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getTipoBollo())
+            || StringUtils.isNotBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getHashDocumento())
+            || StringUtils.isNotBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getProvinciaResidenza())))
+          return manageFault.apply(CODE_PAA_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+              "dati marca da bollo non supportati su tipo dovuto diverso da marca da bollo");
 
         String datiSpecificiRiscossione = ctDatiSingoloVersamentoDovuti.getDatiSpecificiRiscossione();
         if (!Utilities.validaDatiSpecificiRiscossione(datiSpecificiRiscossione))
           return manageFault.apply(CODE_PAA_DATI_SPECIFICI_RISCOSSIONE_NON_VALIDO,"DatiSpecificiRiscossione non valido [" + datiSpecificiRiscossione + "]");
-
 
         // CONTROLLO IMPORTO DOVUTO DIVERSO DA ZERO
         BigDecimal importoSingoloVersamento = ctDatiSingoloVersamentoDovuti.getImportoSingoloVersamento();
         if (importoSingoloVersamento.compareTo(BigDecimal.ZERO) == 0)
           return manageFault.apply(CODE_PAA_IMPORTO_SINGOLO_VERSAMENTO_NON_VALIDO,"ImportoSingoloVersamento non valido [" + importoSingoloVersamento + "]");
 
-
-
-//				MODIFICHE ACCERTAMENTO PER CAPITOLI PREDETERMINATI
+        // MODIFICHE ACCERTAMENTO PER CAPITOLI PREDETERMINATI
         Bilancio bilancio = ctDatiSingoloVersamentoDovuti.getBilancio();
         if(bilancio != null && !Utilities.verificaImportoBilancio(bilancio, importoSingoloVersamento))
           return manageFault.apply(CODE_PAA_IMPORTO_BILANCIO_NON_VALIDO,
             "Importo bilancio non congruente per dovuto con importo [" + importoSingoloVersamento + "]");
+
+        if (StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getCausaleVersamento()))
+          return manageFault.apply(PAA_CAUSALE_NON_PRESENTE_CODE,
+            "Causale versamento obbligatoria mancante");
       }
 
-      try {
-        String xmlString = jaxbTransformService.marshalling(dovuti, Dovuti.class);
-        registraGiornale.accept(xmlString, Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-      } catch (Exception e) {
-        log.warn("paaSILInviaCarrelloDovuti [REQUEST] impossible to insert in the event log", e);
-      }
-
-      final String tipoVersamento = dovuti.getDatiVersamento().getTipoVersamento();
       final AnagraficaPagatore anagraficaPagatore = anagraficaSoggettoService.fromSoggettoPagatore(dovuti.getSoggettoPagatore());
       String nomeFlusso = "_" + enteLista.getCodIpaEnte() + "_ESTERNO-ANONIMO_MULTIENTE";
       cartItemList.addAll(dovuti.getDatiVersamento().getDatiSingoloVersamentos().stream().map(dovuto ->
@@ -922,14 +987,128 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
           .build()).collect(toList()));
     }
 
+    /*
+     * Multi-beneficiary IUV management if defined (IUV_MULTI_09)
+     * Controllo se il dovuto è un dovuto multibeneficiario, perchè è solo per questi che devo controllare
+     * le informazioni degli Enti secondari, rappresentate dall'elemento "DovutiEntiSecondari".
+     * NOTA: Un dovuto è multibeneficiario se listaDovutiEntiSecondari.getElementoListaDovutiEntiSecondaris() è diverso da null e size 1.
+     */
+    DovutiEntiSecondari dovutiEntiSecondari = null;
+    if (null!=bodyrichiesta.getListaDovutiEntiSecondari()) {
+
+      //String codIpaEntePrimario = listaCarrelloDovuti.get(0).getCodIpaEnte();
+      //Ente entePrimario = enteService.getEnteByCodIpa(codIpaEntePrimario);
+      //BigDecimal importoDovutoEntePrimario = dovutoEntePrimario.getDatiVersamento().getDatiSingoloVersamentos().get(0).getImportoSingoloVersamento();
+      int numeroDatiSingoloVersamentoEntePrimario = dovutoEntePrimario.getDatiVersamento().getDatiSingoloVersamentos().size();
+
+      if (listaCarrelloDovuti.size() > 1)
+        return manageFault.apply(CODE_PAA_LIMITE_MASSIMO_DOVUTI_MULTIBENEFICIARI,"Numero dovuti Ente primario [" + listaCarrelloDovuti.size() + "] non valido");
+
+      if (numeroDatiSingoloVersamentoEntePrimario > 1)
+        return manageFault.apply(CODE_PAA_LIMITE_MASSIMO_DOVUTI_MULTIBENEFICIARI,"Numero dati singolo versamento Ente primario [" + numeroDatiSingoloVersamentoEntePrimario + "] non valido");
+
+      List<ElementoListaDovutiEntiSecondari> listaDovutiEntiSecondari = bodyrichiesta.getListaDovutiEntiSecondari().getElementoListaDovutiEntiSecondaris();
+      try {
+
+        if (null != listaDovutiEntiSecondari &&
+                listaDovutiEntiSecondari.size() == 1) {   /* Verifico che sia presente un solo dovuto per Ente secondario */
+
+          for (ElementoListaDovutiEntiSecondari elementoListaDovutiEntiSecondari : listaDovutiEntiSecondari) {
+            try {
+              dovutiEntiSecondari = jaxbTransformService.unmarshalling(elementoListaDovutiEntiSecondari.getDovutiEntiSecondari(), DovutiEntiSecondari.class, "/wsdl/pa/PagInf_Dovuti_Pagati_6_2_0.xsd");
+            } catch (MyPayException unmarshallingException) {
+              String errorMessage = "XML ricevuto per paaSILInviaCarrelloDovuti non conforme all' XSD per ente [" + header.getCodIpaEnte() + "]  XML Error: \n" +
+                  jaxbTransformService.getDetailUnmarshalExceptionMessage(unmarshallingException, elementoListaDovutiEntiSecondari.getDovutiEntiSecondari());
+              return manageFault.apply(PAA_XML_NON_VALIDO_CODE, "XML dei dovuti non valido", errorMessage, unmarshallingException);
+            }
+
+            CtDatiVersamentoDovutiEntiSecondari ctDatiVersamentoDovutiEntiSecondari = dovutiEntiSecondari.getDatiVersamentoEntiSecondari();
+
+            String codiceFiscaleBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getCodiceFiscaleBeneficiario();
+            if (!Utilities.isValidCFOrPIVA(codiceFiscaleBeneficiario))
+              return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Codice Fiscale o Partita Iva Ente secondario non valido [" + codiceFiscaleBeneficiario + "]");
+
+            String ibanAccreditoBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getIbanAccreditoBeneficiario();
+            if (!Utilities.isValidIban(ibanAccreditoBeneficiario))
+              return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"IBAN accredito Ente secondario non valido [" + ibanAccreditoBeneficiario + "]");
+
+            String indirizzoBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getIndirizzoBeneficiario();
+            if (StringUtils.isNotBlank(ctDatiVersamentoDovutiEntiSecondari.getIndirizzoBeneficiario())
+                    && !Utilities.validaIndirizzoAnagrafica(indirizzoBeneficiario, false))
+              return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Indirizzo Ente secondario non valido [" + indirizzoBeneficiario + "]");
+
+            String civicoBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getCivicoBeneficiario();
+            if (StringUtils.isNotBlank(civicoBeneficiario)
+                    && !Utilities.validaCivicoAnagrafica(Utilities.bonificaCivicoAnagrafica(civicoBeneficiario), false))
+              return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Civico Ente secondario non valido [" + civicoBeneficiario + "]");
+            ctDatiVersamentoDovutiEntiSecondari.setCivicoBeneficiario(civicoBeneficiario);
+
+            String nazioneBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getNazioneBeneficiario();
+            NazioneTo nazione = null;
+            if (StringUtils.isNotBlank(nazioneBeneficiario)) {
+              nazione = locationService.getNazioneByCodIso(nazioneBeneficiario);
+              if (nazione == null)
+                return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Nazione Ente secondario non valida [" + nazioneBeneficiario + "]");
+            }
+
+            String capBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getCapBeneficiario();
+            if (StringUtils.isNotBlank(capBeneficiario)) {
+              if ((null != nazione && !Utilities.isValidCAP(capBeneficiario, nazione.getCodiceIsoAlpha2()))
+                      || !Utilities.isValidCAP(capBeneficiario))
+                return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"CAP Ente secondario non valido [" + capBeneficiario + "]");
+            }
+
+            String provinciaBeneficiario = ctDatiVersamentoDovutiEntiSecondari.getProvinciaBeneficiario();
+            ProvinciaTo provincia = null;
+            if (StringUtils.isNotBlank(provinciaBeneficiario)
+                    && null != nazione && nazione.getCodiceIsoAlpha2().equalsIgnoreCase("IT")) {
+              provincia = locationService.getProvinciaBySigla(provinciaBeneficiario);
+              if (provincia == null)
+                return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Provincia Ente secondario non valida [" + provinciaBeneficiario + "]");
+            }
+
+            String localita = ctDatiVersamentoDovutiEntiSecondari.getLocalitaBeneficiario();
+            if (StringUtils.isNotBlank(localita)
+                    && null != nazione && nazione.getCodiceIsoAlpha2().equalsIgnoreCase("IT")
+                    && null != provincia) {
+              String comune = locationService.getComuneByNameAndSiglaProvincia(localita, provincia.getSigla())
+                      .map(ComuneTo::getComune).orElse("");
+              if (StringUtils.isBlank(comune))
+                return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Località Ente secondario non valida [" + localita + "]");
+            }
+
+            String datiSpecificiRiscossione = ctDatiVersamentoDovutiEntiSecondari.getDatiSpecificiRiscossione();
+            if (StringUtils.isNotBlank(datiSpecificiRiscossione)) {
+              String codiceTassonomicoEnteSec = StringUtils.substringBeforeLast(datiSpecificiRiscossione, "/" ) + "/";
+              if (!tassonomiaService.ifExitsCodiceTassonomico(codiceTassonomicoEnteSec)) {
+                return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"Codice tassonomico dei dati specifici riscossione dell'Ente Secondario non presente in archivio [" + datiSpecificiRiscossione + "]");
+              }
+            }
+
+            BigDecimal importoSingoloVersamento = ctDatiVersamentoDovutiEntiSecondari.getImportoSingoloVersamento();
+            if (importoSingoloVersamento.compareTo(BigDecimal.ZERO) == 0)
+              return manageFault.apply(CODE_PAA_ENTE_SECONDARIO_NON_VALIDO,"ImportoSingoloVersamento Ente secondario non valido [" + importoSingoloVersamento + "]");
+          }
+        } else if (listaDovutiEntiSecondari.size() > 1) {
+          return manageFault.apply(CODE_PAA_LIMITE_MASSIMO_DOVUTI_ENTI_SECONDARI,
+                  "Numero di Dovuti Ente Secondario superiore ai consentiti da pagopa [" + listaDovutiEntiSecondari.size() + "]");
+        }
+      } catch (Exception e) {
+        String buffer = "Errore durante la lettura dei dovuti Enti secondari per ente [" + header.getCodIpaEnte() + "]" +
+          "Errore: \n" + e.getMessage();
+        return manageFault.apply(CODE_PAA_ERRORE_RECUPERO_DOVUTI_ENTI_SECONDARI, "Errore durante la lettura dei dovuti Enti secondari", buffer, e);
+      }
+    }
+
     BasketTo basketTo = BasketTo.builder()
       .enteCaller(header.getCodIpaEnte())
       .idSession(Utilities.getRandomUUIDWithTimestamp())
-      .showMyPay(StShowMyPay.NONE.value())
+        .showMyPay(StShowMyPay.SHORT.value())
       .versante(null)
       .tipoCarrello(Constants.TIPO_CARRELLO_ESTERNO_ANONIMO_MULTIENTE)
       .backUrlInviaEsito(bodyrichiesta.getEnteSILInviaRispostaPagamentoUrl())
       .items(cartItemList)
+        .dovutiEntiSecondari(dovutiEntiSecondari)
       .build();
 
     PaaSILInviaCarrelloDovutiRisposta paaSILInviaCarrelloDovutiRisposta = new PaaSILInviaCarrelloDovutiRisposta();
@@ -940,7 +1119,6 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     paaSILInviaCarrelloDovutiRisposta.setIdSessionCarrello(basketTo.getIdSession());
     paaSILInviaCarrelloDovutiRisposta.setRedirect(1);
     paaSILInviaCarrelloDovutiRisposta.setUrl(landingService.getUrlInviaDovuti(storageToken.getId()));
-    registraGiornale.accept(paaSILInviaCarrelloDovutiRisposta.getUrl(), Constants.GIORNALE_ESITO_EVENTO.OK.toString());
 
     return paaSILInviaCarrelloDovutiRisposta;
   }
@@ -948,50 +1126,8 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
   @Override
   public PaaSILInviaDovutiRisposta paaSILInviaDovuti(PaaSILInviaDovuti bodyrichiesta, IntestazionePPT header) {
 
-    Giornale dati = Giornale.builder()
-      .identificativoDominio(Constants.EMPTY)
-      .identificativoUnivocoVersamento(Constants.EMPTY)
-      .codiceContestoPagamento(Constants.CODICE_CONTESTO_PAGAMENTO_NA)
-      .identificativoPrestatoreServiziPagamento(Constants.EMPTY)
-      .tipoVersamento(Constants.EMPTY)
-      .componente(Constants.COMPONENTE_PA)
-      .categoriaEvento(Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString())
-      .tipoEvento(Constants.GIORNALE_TIPO_EVENTO_PA.paaSILInviaDovuti.toString())
-      .sottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString())
-      .identificativoFruitore(Constants.SIL)
-      .identificativoErogatore(Constants.EMPTY)
-      .identificativoStazioneIntermediarioPa(propIdStazioneIntermediarioPa)
-      .canalePagamento(Constants.EMPTY)
-      .build();
-
-    BiConsumer<String, String> registraGiornale = (parametriSpecificiInterfaccia, esito) -> {
-      try {
-        giornalePaService.registraEvento(
-          new Date(),
-          dati.getIdentificativoDominio(),
-          dati.getIdentificativoUnivocoVersamento(),
-          dati.getCodiceContestoPagamento(),
-          dati.getIdentificativoPrestatoreServiziPagamento(),
-          dati.getTipoVersamento(),
-          dati.getComponente(),
-          dati.getCategoriaEvento(),
-          dati.getTipoEvento(),
-          dati.getSottoTipoEvento(),
-          dati.getIdentificativoFruitore(),
-          dati.getIdentificativoErogatore(),
-          dati.getIdentificativoStazioneIntermediarioPa(),
-          dati.getCanalePagamento(),
-          parametriSpecificiInterfaccia,
-          esito
-        );
-      } catch (Exception e) {
-        log.warn("paaSILInviaDovuti [" + dati.getSottoTipoEvento() + "] impossible to insert in the event log", e);
-      }
-    };
-
     ManageWsFault<PaaSILInviaDovutiRisposta> manageFault = (codeFault, faultString, faultDescr, error) -> {
       log.error(faultString, error);
-      registraGiornale.accept(faultString + (StringUtils.isBlank(faultDescr)?"":(" - "+faultDescr)), Constants.GIORNALE_ESITO_EVENTO.KO.toString());
       PaaSILInviaDovutiRisposta paaSILInviaDovutiRisposta = new PaaSILInviaDovutiRisposta();
       FaultBean faultBean = VerificationUtils.getFaultBean(header.getCodIpaEnte(),
         codeFault, faultString, faultDescr);
@@ -1001,16 +1137,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     };
 
     Ente ente = enteService.getEnteByCodIpa(header.getCodIpaEnte());
-    Optional.ofNullable(ente).map(Ente::getCodiceFiscaleEnte).ifPresent(dati::setIdentificativoDominio);
-    try {
-      String xmlBodyString = jaxbTransformService.marshalling(bodyrichiesta, PaaSILInviaDovuti.class);
-      String xmlHeaderString = jaxbTransformService.marshalling(header, IntestazionePPT.class);
-      registraGiornale.accept(xmlHeaderString + xmlBodyString, Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-    } catch (Exception e) {
-      log.warn("paaSILInviaDovuti [REQUEST] impossible to insert in the event log", e);
-    }
 
-    dati.setSottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString());
     if (ente == null)
       return manageFault.apply(CODE_PAA_ENTE_NON_VALIDO, "codice IPA Ente [" + header.getCodIpaEnte() + "] non valido");
 
@@ -1018,55 +1145,37 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     if (isStatoInserito)
       return manageFault.apply(CODE_PAA_STATO_ENTE_NON_VALIDO, "Stato Ente Non Valido");
 
-    Boolean passwordValidaPerEnte = enteService.verificaPassword(ente.getCodIpaEnte(), bodyrichiesta.getPassword());
+    boolean passwordValidaPerEnte = enteService.verificaPassword(ente.getCodIpaEnte(), bodyrichiesta.getPassword());
     if (!passwordValidaPerEnte)
       return manageFault.apply(CODE_PAA_ENTE_NON_VALIDO, "Password non valida per ente [" + header.getCodIpaEnte() + "]");
 
-    Dovuti dovuti = null;
+    Dovuti dovuti;
     try {
       dovuti = jaxbTransformService.unmarshalling(bodyrichiesta.getDovuti(), Dovuti.class, "/wsdl/pa/PagInf_Dovuti_Pagati_6_2_0.xsd");
-    } catch (MyPayException e) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("XML ricevuto per paaSILInviaDovuti non conforme all' XSD per ente [" + header.getCodIpaEnte() + "]");
-      buffer.append("XML Error: \n").append(e.getMessage());
-      return manageFault.apply(PAA_XML_NON_VALIDO_CODE, "XML dei dovuti non valido",buffer.toString(),e);
+    } catch (MyPayException unmarshallingException) {
+      String errorMessage = "XML ricevuto per paaSILInviaDovuti non conforme all' XSD per ente [" + header.getCodIpaEnte() + "]  XML Error: \n" +
+          jaxbTransformService.getDetailUnmarshalExceptionMessage(unmarshallingException, bodyrichiesta.getDovuti());
+      return manageFault.apply(PAA_XML_NON_VALIDO_CODE, "XML dei dovuti non valido", errorMessage, unmarshallingException);
     }
 
     // #45: Bonifica provincia pagatore case insensitive in import
-    dovuti = bonificaProvinciaPagatore(dovuti);
-
-    if (StringUtils.isNotBlank(dovuti.getDatiVersamento().getIdentificativoUnivocoVersamento())) {
-      dati.setIdentificativoUnivocoVersamento(dovuti.getDatiVersamento().getIdentificativoUnivocoVersamento());
-    }
-    dati.setTipoVersamento(dovuti.getDatiVersamento().getTipoVersamento());
+    bonificaProvinciaPagatore(dovuti);
 
     List<CtDatiSingoloVersamentoDovuti> listaDovuti = dovuti.getDatiVersamento().getDatiSingoloVersamentos();
 
+    if(listaDovuti.isEmpty()){
+      return manageFault.apply(CODE_PAA_XML_NON_VALIDO, "dati singolo versamento mancanti");
+    }
+
     String IUV = dovuti.getDatiVersamento().getIdentificativoUnivocoVersamento();
     if (StringUtils.isNotBlank(IUV)) {
-      List<IdentificativoUnivoco> identificativoUnivocos = identificativoUnivocoService
-        .getByEnteAndCodTipoIdAndId(ente.getMygovEnteId(), "IUV", IUV);
-      if (identificativoUnivocos.size() > 0)
-        return manageFault.apply(CODE_PAA_IUV_DUPLICATO, "IUV [" + IUV + "] già inviato");
-
-      if (listaDovuti.size() > 1)
-        return manageFault.apply(CODE_PAA_NUMERO_DOVUTI_PER_IUV_NON_VALIDO,
-          "Numero dovuti [" + listaDovuti.size() + "] per lo stesso IUV [" + IUV + "] non valido");
-
-      if (!Utilities.validaIUV(IUV, false, ente.getApplicationCode()))
-        return manageFault.apply(CODE_PAA_IUV_NON_VALIDO,
-          "IdentificativoUnivocoVersamento non valido [" + IUV + "] per ente [" + header.getCodIpaEnte() + "]");
+      return manageFault.apply(CODE_PAA_IUV_NON_VALIDO,"l'inserimento dello IUV è deprecato");
     }
 
-    dati.setTipoVersamento(dovuti.getDatiVersamento().getTipoVersamento());
+    String tipoVersamento = dovuti.getDatiVersamento().getTipoVersamento();
 
-    if (!Utilities.validaTipoVersamento(dati.getTipoVersamento()))
-      return manageFault.apply(CODE_PAA_TIPO_VERSAMENTO_NON_VALIDO,"Tipo versamento non valido [" + dati.getTipoVersamento() + "]");
-
-    // DEFAULT TIPO VERSAMENTO
-    if (StringUtils.isBlank(dati.getTipoVersamento())) {
-      dati.setTipoVersamento(Constants.ALL_PAGAMENTI);
-    }
+    if (!Utilities.validaTipoVersamento(tipoVersamento))
+      return manageFault.apply(CODE_PAA_TIPO_VERSAMENTO_NON_VALIDO,"Tipo versamento non valido [" + tipoVersamento + "]");
 
     String tipoIdentificativoUnivoco = dovuti.getSoggettoPagatore()
       .getIdentificativoUnivocoPagatore().getTipoIdentificativoUnivoco().toString();
@@ -1081,7 +1190,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       .allMatch(codTipoDovuto ->
         enteTipoDovutoService.getOptionalByCodTipo(codTipoDovuto, ente.getCodIpaEnte(), true)
           .map(EnteTipoDovuto::isFlgCfAnonimo).orElse(false) );
-    log.debug("flag CF " + Constants.CODICE_FISCALE_ANONIMO + "[" + isFlagCfAnonimo + "]");
+    log.debug("flag CF " + Constants.CODICE_FISCALE_ANONIMO + "[{}]", isFlagCfAnonimo);
     if (!Utilities.isValidCodIdUnivocoConAnonimo(isFlagCfAnonimo, tipoIdentificativoUnivoco, codiceIdentificativoUnivoco)) {
       String faultForAnonimo = codiceIdentificativoUnivoco.equals(Constants.CODICE_FISCALE_ANONIMO)? "Funzionalita CF ANONIMO non valida" : null;
       if (tipoIdentificativoUnivoco.equals("F"))
@@ -1093,8 +1202,6 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       }
     }
 
-    CtSoggettoPagatore ctSoggettoPagatore = dovuti.getSoggettoPagatore();
-
     for (CtDatiSingoloVersamentoDovuti ctDatiSingoloVersamentoDovuti : listaDovuti) {
 
       String IUD = ctDatiSingoloVersamentoDovuti.getIdentificativoUnivocoDovuto();
@@ -1103,7 +1210,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
       List<IdentificativoUnivoco> identificativoUnivocos = identificativoUnivocoService
         .getByEnteAndCodTipoIdAndId(ente.getMygovEnteId(), "IUD", IUD);
-      if (identificativoUnivocos.size() > 0)
+      if (!identificativoUnivocos.isEmpty())
         return manageFault.apply(CODE_PAA_IUD_DUPLICATO,"IUD [" + IUD + "] già inviato");
 
       String codTipo = ctDatiSingoloVersamentoDovuti.getIdentificativoTipoDovuto();
@@ -1116,9 +1223,26 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
 
       if (codTipo.equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
         BigDecimal importo = ctDatiSingoloVersamentoDovuti.getImportoSingoloVersamento();
-        if (!importo.equals(enteTipoDovuto.getImporto()))
-          return manageFault.apply(CODE_PAA_IMPORTO_MARCA_BOLLO_DIGITALE_NON_VALIDA,"importoSingoloVersamento non valido per tipo dovuto " + Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE);
-      }
+        if (importo.compareTo(enteTipoDovuto.getImporto())!=0)
+          return manageFault.apply(CODE_PAA_IMPORTO_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+              "importoSingoloVersamento non valido per tipo dovuto " + Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE);
+        if(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale()==null
+            || StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getTipoBollo())
+            || StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getHashDocumento())
+            || StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getProvinciaResidenza()) )
+          return manageFault.apply(CODE_PAA_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+              "dati marca da bollo mancanti o non validi");
+        //check hash documento length <= 72 due to a constraint of PagoPA
+        if(StringUtils.length(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getHashDocumento())>72){
+          return manageFault.apply(CODE_PAA_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+            "hashDocumento non può contenere più di 72 caratteri");
+        }
+      } else if(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale()!=null
+          && (StringUtils.isNotBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getTipoBollo())
+          || StringUtils.isNotBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getHashDocumento())
+          || StringUtils.isNotBlank(ctDatiSingoloVersamentoDovuti.getDatiMarcaBolloDigitale().getProvinciaResidenza())))
+        return manageFault.apply(CODE_PAA_MARCA_BOLLO_DIGITALE_NON_VALIDA,
+            "dati marca da bollo non supportati su tipo dovuto diverso da marca da bollo");
 
       String datiSpecificiRiscossione = ctDatiSingoloVersamentoDovuti.getDatiSpecificiRiscossione();
       if (!Utilities.validaDatiSpecificiRiscossione(datiSpecificiRiscossione))
@@ -1129,12 +1253,15 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       if (importoSingoloVersamento.compareTo(BigDecimal.ZERO) == 0)
         return manageFault.apply(CODE_PAA_IMPORTO_SINGOLO_VERSAMENTO_NON_VALIDO,"ImportoSingoloVersamento non valido [" + importoSingoloVersamento + "]");
 
-//			MODIFICHE ACCERTAMENTO PER CAPITOLI PREDETERMINATI
+      // MODIFICHE ACCERTAMENTO PER CAPITOLI PREDETERMINATI
       Bilancio bilancio = ctDatiSingoloVersamentoDovuti.getBilancio();
       if (bilancio != null) {
         if (!Utilities.verificaImportoBilancio(bilancio, importoSingoloVersamento))
           return manageFault.apply(CODE_PAA_IMPORTO_BILANCIO_NON_VALIDO,"Importo bilancio non congruente per dovuto con importo [" + importoSingoloVersamento + "]");
       }
+
+      if (StringUtils.isBlank(ctDatiSingoloVersamentoDovuti.getCausaleVersamento()))
+        return manageFault.apply(PAA_CAUSALE_NON_PRESENTE_CODE, "Causale versamento obbligatoria mancante");
     }
     log.debug("Param showMyPay is: {} - if is null it get SHORT as default", bodyrichiesta.getShowMyPay());
     var showMyPay = Optional.ofNullable(bodyrichiesta.getShowMyPay()).map(StShowMyPay::value).orElse(StShowMyPay.SHORT.value());
@@ -1219,7 +1346,6 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     paaSILInviaDovutiRisposta.setIdSession(basketTo.getIdSession());
     paaSILInviaDovutiRisposta.setRedirect(1);
     paaSILInviaDovutiRisposta.setUrl(landingService.getUrlInviaDovuti(storageToken.getId()));
-    registraGiornale.accept(paaSILInviaDovutiRisposta.getUrl(), Constants.GIORNALE_ESITO_EVENTO.OK.toString());
 
     return paaSILInviaDovutiRisposta;
   }
@@ -1238,7 +1364,11 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       .build();
     WsExportFlussoOutcomeTo outcomeTo = prenotazioneFlussoService.handlePrenotazioneFlussoExport(incomeTo);
     var response = new PaaSILPrenotaExportFlussoRisposta();
-    response.setRequestToken(outcomeTo.getRequestToken());
+    if(outcomeTo.getFaultBean()!=null) {
+      response.setFault(outcomeTo.getFaultBean());
+    } else {
+      response.setRequestToken(outcomeTo.getRequestToken());
+    }
     return response;
   }
 
@@ -1254,120 +1384,80 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       .ricevuta(body.isRicevuta())
       .incrementale(body.isIncrementale())
       .versioneTracciato(body.getVersioneTracciato())
+      .passwordMypivot(body.getPasswordMypivot())
       .build();
     WsExportFlussoOutcomeTo outcomeTo = prenotazioneFlussoService.handlePrenotazioneFlussoExport(incomeTo);
     var response = new PaaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta();
-    response.setDateTo(Utilities.toXMLGregorianCalendar(outcomeTo.getDateTo()));
-    response.setRequestToken(outcomeTo.getRequestToken());
+    if(outcomeTo.getFaultBean()!=null) {
+      response.setFault(outcomeTo.getFaultBean());
+    } else {
+      response.setDateTo(Utilities.toXMLGregorianCalendar(outcomeTo.getDateTo()));
+      response.setRequestToken(outcomeTo.getRequestToken());
+    }
     return response;
   }
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRED)
   public void paaSILRegistraPagamento(String codIpaEnte, String password, String identificativoUnivocoVersamento, String codiceContestoPagamento, BigDecimal singoloImportoPagato, XMLGregorianCalendar dataEsitoSingoloPagamento, Integer indiceDatiSingoloPagamento, String identificativoUnivocoRiscossione, String tipoIstitutoAttestante, String codiceIstitutiAttestante, String denominazioneAttestante, Holder<FaultBean> fault, Holder<String> esito) {
 
-    log.info("Executing operation paaSILRegistraPagamento: IUV: " + identificativoUnivocoVersamento + " Ente: " + codIpaEnte);
+    if (gpdEnabled || gpdPreload) {
+      String iupd = null;
+      String cfEnte = null;
+      List<Dovuto> listDovuti = dovutoService.getByIuvEnte(identificativoUnivocoVersamento, codIpaEnte);
+      Dovuto d = null;
+      if (!listDovuti.isEmpty()) {
+        d = listDovuti.get(0);
+        iupd = d.getGpdIupd();
+        cfEnte = d.getNestedEnte().getCodiceFiscaleEnte();
+      } else {
+        List<DovutoElaborato> listDovutiElaborati = dovutoElaboratoService.getByIuvEnte(identificativoUnivocoVersamento, codIpaEnte);
+        if (!listDovutiElaborati.isEmpty()) {
+          DovutoElaborato de = listDovutiElaborati.get(0);
+          iupd = de.getGpdIupd();
+          cfEnte = de.getNestedEnte().getCodiceFiscaleEnte();
+        }
+
+      }
+      if (gpdEnabled && StringUtils.isNotBlank(iupd)) {
+        gpdService.deleteDebtPositionForCodice9(cfEnte, iupd, identificativoUnivocoVersamento);
+      } else if (gpdPreload && d != null) {
+        gpdService.managePreload('A', d, null);
+      }
+    }
+    log.info("Executing operation paaSILRegistraPagamento: IUV: {} Ente: {}", identificativoUnivocoVersamento, codIpaEnte);
     Ente ente = enteService.getEnteByCodIpa(codIpaEnte);
-
-    // 1) LOG NEL GIORNALE DEGLI EVENTI
-    Date dataOraEvento = new Date();
-    String identificativoDominio = Optional.ofNullable(ente).map(Ente::getCodiceFiscaleEnte).orElse("");
-    String identificativoPrestatoreServiziPagamento = "";
-    String tipoVersamento = "";
-    String componente = Constants.COMPONENTE_PA;
-    String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString();
-    String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILRegistraPagamento.toString();
-    String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString();
-    String identificativoFruitore = "NodoDeiPagamentiRVE";
-    String identificativoErogatore = propIdStazioneIntermediarioPa;
-    String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-    String canalePagamento = "";
-    String parametriSpecificiInterfaccia = "";
-    if (null == codiceContestoPagamento || codiceContestoPagamento.isEmpty()) {
-      codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-    }
-
-    String body = "";
-
-    if (StringUtils.isNotBlank(codIpaEnte)) {
-      body = body + " codIpaEnte: " + codIpaEnte
-        + " identificativoUnivocoVersamento: " + identificativoUnivocoVersamento
-        + " codiceContestoPagamento: " + codiceContestoPagamento
-        + " singoloImportoPagato: " + singoloImportoPagato
-        + " dataEsitoSingoloPagamento: " + dataEsitoSingoloPagamento
-        + " indiceDatiSingoloPagamento: " + indiceDatiSingoloPagamento
-        + " identificativoUnivocoRiscossione: " + identificativoUnivocoRiscossione
-        + " tipoIstitutoAttestante: " + tipoIstitutoAttestante
-        + " codiceIstitutiAttestante: " + codiceIstitutiAttestante
-        + " denominazioneAttestante: " + denominazioneAttestante;
-    }
-
-    parametriSpecificiInterfaccia = body;
-    log.debug("Body richiesta: " + body);
+    DovutoElaborato dovutoElaborato;
     esito.value = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
 
-    giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-      codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-      categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-      identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito.toString());
-
-    sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-
     if (ente == null) {
-      log.error("paaSILRegistraPagamento: Ente non valido: " + codIpaEnte);
-
-      parametriSpecificiInterfaccia = "paaSILRegistraPagamento: Ente non valido: " + codIpaEnte;
+      log.error("paaSILRegistraPagamento: Ente non valido: {}", codIpaEnte);
       esito.value = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-      giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-        codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-        categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-        identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito.toString());
-
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO,
         "codice IPA Ente [" + codIpaEnte + "] non valido", null);
-      fault.value = faultBean;
-      log.info("paaSILRegistraPagamento: esito = " + esito.value);
+      log.info("paaSILRegistraPagamento: esito = {}", esito.value);
       return;
     }
 
     boolean isStatoInserito = Utilities.checkIfStatoInserito(ente);
 
     if (isStatoInserito) {
-      log.error("paaSILRegistraPagamento: Ente non inserito: " + codIpaEnte);
-
+      log.error("paaSILRegistraPagamento: Ente non inserito: {}", codIpaEnte);
       FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_STATO_ENTE_NON_VALIDO, "Stato Ente Non Valido", null);
       faultBean.setSerial(0);
-
-      parametriSpecificiInterfaccia = faultBean.getDescription();
-
       esito.value = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
       fault.value = faultBean;
-
-      giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-        codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-        categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-        identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito.toString());
-      log.info("paaSILRegistraPagamento: esito = " + esito.value);
+      log.info("paaSILRegistraPagamento: esito = {}", esito.value);
       return;
-
     }
 
-    Boolean passwordValidaPerEnte = enteService.verificaPassword(ente.getCodIpaEnte(), password);
+    boolean passwordValidaPerEnte = enteService.verificaPassword(ente.getCodIpaEnte(), password);
     if (!passwordValidaPerEnte) {
-      log.error("paaSILRegistraPagamento: Password non valida per ente: " + codIpaEnte);
-
-      parametriSpecificiInterfaccia = "paaSILRegistraPagamento: Password non valida per ente: "
-        + codIpaEnte;
+      log.error("paaSILRegistraPagamento: Password non valida per ente: {}", codIpaEnte);
       esito.value = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-      giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-        codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-        categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-        identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito.toString());
-
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO,
         "Password non valida per ente [" + codIpaEnte + "]", null);
-
-      fault.value = faultBean;
-      log.info("paaSILRegistraPagamento: esito = " + esito.value);
+      log.info("paaSILRegistraPagamento: esito = {}", esito.value);
       return;
     }
 
@@ -1385,14 +1475,13 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     istAtt.setDenominazioneAttestante(denominazioneAttestante);
     datiRendicontazioneCod9.setIstitutoAttestante(istAtt);
 
-    List<Dovuto> listaDovuti = new ArrayList<Dovuto>();
+    List<Dovuto> listaDovuti = new ArrayList<>();
     //Differenzio la ricerca per modello
     //Cerco dovuto in mygov_dovuto dato IUV e codIpa
     if (Utilities.isAvviso(datiRendicontazioneCod9.getIdentificativoUnivocoVersamento()))
       listaDovuti = dovutoService.getByIuvEnte(datiRendicontazioneCod9.getIdentificativoUnivocoVersamento(), ente.getCodIpaEnte());
     else {
-      Carrello carrelloDatoIuv = new Carrello();
-      carrelloDatoIuv = carrelloService.getByIdDominioIUV(ente.getCodiceFiscaleEnte(), datiRendicontazioneCod9.getIdentificativoUnivocoVersamento());
+      Carrello carrelloDatoIuv = carrelloService.getByIdDominioIUV(ente.getCodiceFiscaleEnte(), datiRendicontazioneCod9.getIdentificativoUnivocoVersamento());
       if (null != carrelloDatoIuv)
         listaDovuti = dovutoService.getDovutiInCarrello(carrelloDatoIuv.getMygovCarrelloId());
     }
@@ -1401,6 +1490,12 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       log.info("paaSILRegistraPagamento: dovuto presente in mygovDovuto");
       Dovuto dovuto = listaDovuti.get(0);
       Carrello carrello = new Carrello();
+
+      /*IUV_MULTI_15 Multi-beneficiary IUV management if defined
+       * check if dovuto is dovuto multi-beneficiary
+       */
+      boolean checkExsistDovutoMultiben = dovutoMultibeneficiarioDao.checkExsistDovutoMultibeneficiarioByIdDovuto(dovuto.getMygovDovutoId()) > 0;
+
       List<DovutoElaborato> dovutoElaboratoListCompletato;
       //Se il dovuto ha il carrello, allora mi assicuro che anche l'eventuale dovuto_elaborato punti allo stesso carrello
       if (Utilities.carrelloIsPresent(dovuto)) {
@@ -1413,21 +1508,21 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
       //Controllo se è pagato
       if (!CollectionUtils.isEmpty(dovutoElaboratoListCompletato)) {
         log.info("paaSILRegistraPagamento: dovuto presente in mygovDovuto e in mygovDovutoElaborato in stato completato");
-        DovutoElaborato dovutoElaboratoCompletato = dovutoElaboratoListCompletato.get(0);
-        carrello = dovutoElaboratoCompletato.getMygovCarrelloId();
+        dovutoElaborato = dovutoElaboratoListCompletato.get(0);
+        carrello = dovutoElaborato.getMygovCarrelloId();
         if (null != carrello) {
           log.info("paaSILRegistraPagamento: esiste carrello per dovuto");
-          AnagraficaStato anagCarrello = dovutoElaboratoCompletato.getMygovCarrelloId().getMygovAnagraficaStatoId();
+          AnagraficaStato anagCarrello = dovutoElaborato.getMygovCarrelloId().getMygovAnagraficaStatoId();
           //Controllo lo stato del pagamento, se lo stato del dovuto è pagato non faccio nulla,
           //altrimenti setto lo stato a "PAGATO" ed aggiorno
           if (!(anagCarrello.getCodStato().equalsIgnoreCase(Constants.STATO_CARRELLO_PAGATO))) {
             //Diverso da PAGATO
-            carrello = dovutoElaboratoCompletato.getMygovCarrelloId();
+            carrello = dovutoElaborato.getMygovCarrelloId();
             carrello = carrelloService.aggiornaCarrelloInPagato(datiRendicontazioneCod9, carrello, ente, dovuto);
             carrello = carrelloService.upsert(carrello);
             //Aggiorno i dati del dovutoElaborato per allinearli a quello di uno in stato COMPLETATo e PAGATO
-            fillDovutoElaboratoCompletato(datiRendicontazioneCod9, dovuto, carrello, dovutoElaboratoCompletato);
-            dovutoElaboratoService.upsert(dovutoElaboratoCompletato);
+            fillDovutoElaboratoCompletato(datiRendicontazioneCod9, dovuto, carrello, dovutoElaborato);
+            dovutoElaboratoService.upsert(dovutoElaborato);
           }
         } else {
           log.info("paaSILRegistraPagamento: non esiste carrello per dovuto");
@@ -1435,8 +1530,8 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
           Carrello carrelloFittizio = carrelloService.getCarrelloFittizio(datiRendicontazioneCod9, dovuto, ente);
           carrello = carrelloService.upsert(carrelloFittizio);
           //Aggiorno i dati del dovutoElaborato per allinearli a quello di uno in stato COMPLETATo e PAGATO
-          fillDovutoElaboratoCompletato(datiRendicontazioneCod9, dovuto, carrello, dovutoElaboratoCompletato);
-          dovutoElaboratoService.upsert(dovutoElaboratoCompletato);
+          fillDovutoElaboratoCompletato(datiRendicontazioneCod9, dovuto, carrello, dovutoElaborato);
+          dovutoElaboratoService.upsert(dovutoElaborato);
         }
 
 
@@ -1451,14 +1546,14 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
         //Controllo se per il dovuto in mygov_dovuto è presente già dovuto in mygov_dovuto_elaborato in stato diverso da completato
         if (!CollectionUtils.isEmpty(dovutoElaboratoListNoCompletato)) {
           log.info("paaSILRegistraPagamento: dovuto presente in mygovDovuto e in mygovDovutoElaborato in stato diverso da completato");
-          DovutoElaborato dovutoElaboratoNoCompletato = dovutoElaboratoListNoCompletato.get(0);
-          carrello = dovutoElaboratoNoCompletato.getMygovCarrelloId();
+          dovutoElaborato = dovutoElaboratoListNoCompletato.get(0);
+          carrello = dovutoElaborato.getMygovCarrelloId();
           if (null == carrello) {
             log.info("paaSILRegistraPagamento: non esiste carrello per dovuto");
             //crea carrello fittizio
             Carrello carrelloFittizio = carrelloService.getCarrelloFittizio(datiRendicontazioneCod9, dovuto, ente);
             carrello = carrelloService.upsert(carrelloFittizio);
-            dovutoElaboratoNoCompletato.setMygovCarrelloId(carrello);
+            dovutoElaborato.setMygovCarrelloId(carrello);
           } else {
             log.info("paaSILRegistraPagamento: esiste carrello per dovuto");
             carrello = carrelloService.aggiornaCarrelloInPagato(datiRendicontazioneCod9, carrello, ente, dovuto);
@@ -1466,8 +1561,7 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
           }
           dovuto.setMygovCarrelloId(carrello);
           dovutoService.upsert(dovuto);
-          dovutoElaboratoService.elaborateDovutoNoCompletato(dovuto.getMygovDovutoId(), dovutoElaboratoNoCompletato, dovuto.getMygovAnagraficaStatoId().getCodStato(), Constants.STATO_DOVUTO_COMPLETATO, ente, datiRendicontazioneCod9);
-
+          dovutoElaboratoService.elaborateDovutoNoCompletato(dovuto.getMygovDovutoId(), dovutoElaborato, dovuto.getMygovAnagraficaStatoId().getCodStato(), Constants.STATO_DOVUTO_COMPLETATO, ente, datiRendicontazioneCod9);
         }else {
           //Il dovuto è presente solo il mygov_dovuto
           if (Utilities.carrelloIsPresent(dovuto)) {
@@ -1483,36 +1577,47 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
           }
           dovuto.setMygovCarrelloId(carrello);
           dovutoService.upsert(dovuto);
-          dovutoElaboratoService.insert(dovuto.getMygovDovutoId(), dovuto.getMygovAnagraficaStatoId().getCodStato(), Constants.STATO_DOVUTO_COMPLETATO, ente, datiRendicontazioneCod9);
+          dovutoElaborato = dovutoElaboratoService.insert(dovuto.getMygovDovutoId(), dovuto.getMygovAnagraficaStatoId().getCodStato(), Constants.STATO_DOVUTO_COMPLETATO, ente, datiRendicontazioneCod9);
+
+          // Multi-beneficiary IUV management if defined
+          if(checkExsistDovutoMultiben) {
+            DovutoMultibeneficiario dovutoMultibeneficiario = dovutoMultibeneficiarioDao.getByIdDovuto(dovuto.getMygovDovutoId());
+            dovutoElaboratoService.insertDovutoMultibenefElaborato(dovuto, dovutoMultibeneficiario, dovutoElaborato.getMygovDovutoElaboratoId());
+          }
+
         }
       }
       carrelloService.deleteDovutoCarrello(dovuto.getMygovDovutoId(), carrello.getMygovCarrelloId());
+
+      if(checkExsistDovutoMultiben) //Elimino il record da DovutoMultibeneficiario
+        dovutoService.deleteDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+
       dovutoService.delete(dovuto);
       esito.value = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-      log.info("paaSILRegistraPagamento: esito = "+ esito.value);
-      return;
-    }
-    else {//Non è presente in mygov_dovuto, cerco dovuto in mygov_dovuto_elaborato dato IUV e codIpa con stato COMPLETATO
+      log.info("paaSILRegistraPagamento: esito = {}", esito.value);
+
+    } else {
+      //Non è presente in mygov_dovuto, cerco dovuto in mygov_dovuto_elaborato dato IUV e codIpa con stato COMPLETATO
       log.info("paaSILRegistraPagamento: dovuto non presente in mygovDovuto");
       List<DovutoElaborato> dovutoElaboratoListCompletato = dovutoElaboratoService.getByIuvEnteStato(datiRendicontazioneCod9.getIdentificativoUnivocoVersamento(), ente.getCodIpaEnte(), Constants.STATO_DOVUTO_COMPLETATO, true, null);
       if (!CollectionUtils.isEmpty(dovutoElaboratoListCompletato)) {
         log.info("paaSILRegistraPagamento: dovuto presente in mygovDovuto in stato completato");
-        DovutoElaborato dovutoElaboratoCompletato = dovutoElaboratoListCompletato.get(0);
-        Carrello carrello = dovutoElaboratoCompletato.getMygovCarrelloId();
+        dovutoElaborato = dovutoElaboratoListCompletato.get(0);
+        Carrello carrello = dovutoElaborato.getMygovCarrelloId();
         if (null != carrello) {
           log.info("paaSILRegistraPagamento: esiste carrello per dovuto");
-          AnagraficaStato anagCarrello = dovutoElaboratoCompletato.getMygovCarrelloId().getMygovAnagraficaStatoId();
+          AnagraficaStato anagCarrello = dovutoElaborato.getMygovCarrelloId().getMygovAnagraficaStatoId();
           //Controllo lo stato del pagamento, se lo stato del dovuto è pagato non faccio nulla,
           //altrimenti setto lo stato a "PAGATO" ed aggiorno
           if(!(anagCarrello.getCodStato().equalsIgnoreCase(Constants.STATO_CARRELLO_PAGATO))) {
             //Diverso da PAGATO
             AnagraficaStato anagStatoCarrelloPagato = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_CARRELLO_PAGATO, Constants.STATO_TIPO_CARRELLO);
-            carrello = dovutoElaboratoCompletato.getMygovCarrelloId();
+            carrello = dovutoElaborato.getMygovCarrelloId();
             carrello.setMygovAnagraficaStatoId(anagStatoCarrelloPagato);
             carrelloService.upsert(carrello);
             //Aggiorno i dati del dovutoElaborato per allinearli a quello di uno in stato COMPLETATo e PAGATO
-            fillDovutoElaboratoWithNoDataEsito(datiRendicontazioneCod9, dovutoElaboratoCompletato, carrello);
-            dovutoElaboratoService.upsert(dovutoElaboratoCompletato);
+            fillDovutoElaboratoWithNoDataEsito(datiRendicontazioneCod9, dovutoElaborato, carrello);
+            dovutoElaboratoService.upsert(dovutoElaborato);
           }
         }else {
           log.info("paaSILRegistraPagamento: non esiste carrello per dovuto");
@@ -1520,37 +1625,34 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
           Carrello carrelloFittizio = carrelloService.getCarrelloFittizio(datiRendicontazioneCod9, null, ente);
           carrello = carrelloService.upsert(carrelloFittizio);
           //Aggiorno i dati del dovutoElaborato per allinearli a quello di uno in stato COMPLETATo e PAGATO
-          fillDovutoElaboratoWithNoDataEsito(datiRendicontazioneCod9, dovutoElaboratoCompletato, carrello);
-          dovutoElaboratoService.upsert(dovutoElaboratoCompletato);
+          fillDovutoElaboratoWithNoDataEsito(datiRendicontazioneCod9, dovutoElaborato, carrello);
+          dovutoElaboratoService.upsert(dovutoElaborato);
         }
         esito.value = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-        log.info("paaSILRegistraPagamento: esito = "+ esito.value);
-        return;
+        log.info("paaSILRegistraPagamento: esito = {}", esito.value);
       }
       else {//Non è presente in mygov_dovuto e non è presente in mygov_dovuto_elaborato con stato COMPLETATO,
-        //cerco dovuto in mygov_dovuto_elaborato dato IUV e codIpa con stato diverso da COMPLETATO
+            //cerco dovuto in mygov_dovuto_elaborato dato IUV e codIpa con stato diverso da COMPLETATO
 
         List<DovutoElaborato> dovutoElaboratoListNoCompletato = dovutoElaboratoService.getByIuvEnteStato(datiRendicontazioneCod9.getIdentificativoUnivocoVersamento(), ente.getCodIpaEnte(), Constants.STATO_DOVUTO_COMPLETATO, false, null);
         log.info("paaSILRegistraPagamento: dovuto presente in mygovDovuto in stato non completato");
         if (!CollectionUtils.isEmpty(dovutoElaboratoListNoCompletato)) {
-          DovutoElaborato dovutoElaboratoNoCompletato = dovutoElaboratoListNoCompletato.get(0);
-          Carrello carrello = dovutoElaboratoNoCompletato.getMygovCarrelloId();
+          dovutoElaborato = dovutoElaboratoListNoCompletato.get(0);
+          Carrello carrello = dovutoElaborato.getMygovCarrelloId();
           if (null == carrello) {
             log.info("paaSILRegistraPagamento: non esiste carrello per dovuto");
             //crea carrello fittizio
             Carrello carrelloFittizio = carrelloService.getCarrelloFittizio(datiRendicontazioneCod9, null, ente);
             carrello = carrelloService.upsert(carrelloFittizio);
-            dovutoElaboratoNoCompletato.setMygovCarrelloId(carrello);
+            dovutoElaborato.setMygovCarrelloId(carrello);
           } else {
             log.info("paaSILRegistraPagamento: esiste carrello per dovuto");
             carrello = carrelloService.aggiornaCarrelloInPagato(datiRendicontazioneCod9, carrello, ente, null);
-            carrello = carrelloService.upsert(carrello);
+            carrelloService.upsert(carrello);
           }
-          dovutoElaboratoService.elaborateDovutoNoCompletato(dovutoElaboratoNoCompletato, Constants.STATO_DOVUTO_COMPLETATO, ente, datiRendicontazioneCod9);
+          dovutoElaboratoService.elaborateDovutoNoCompletato(dovutoElaborato, Constants.STATO_DOVUTO_COMPLETATO, ente, datiRendicontazioneCod9);
           esito.value = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-          log.info("paaSILRegistraPagamento: esito = " + esito.value);
-          return;
-
+          log.info("paaSILRegistraPagamento: esito = {}", esito.value);
         } else {//Non è presente in mygov_dovuto, non è presente in mygov_dovuto_elaborato con stato diverso da COMPLETATO,
           //non è presente in mygov_dovuto_elaborato con stato COMPLETATO, questo indica che il dovuto non esiste su MyPay
           //Dovuto non presente su MyPay
@@ -1569,30 +1671,23 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
                 }
               }
             }
-
           } catch (Exception e) {
-            log.error("paaSILRegistraPagamento errore nel recupero del tipo dovuto: [" + e.getMessage() + "]");
-
-            parametriSpecificiInterfaccia = "paaSILRegistraPagamento errore nel recupero del tipo dovuto: [" + e.getMessage() + "]";
+            log.error("paaSILRegistraPagamento errore nel recupero del tipo dovuto: [{}]", e.getMessage());
             esito.value = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-            giornalePaService.registraEvento(dataOraEvento, identificativoDominio, identificativoUnivocoVersamento,
-              codiceContestoPagamento, identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-              categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito.toString());
-            log.error("paaSILRegistraPagamento: esito = " + esito.value);
-            throw new RuntimeException("paaSILRegistraPagamento errore nel recupero del tipo dovuto: [" + e.getMessage() + "]");
+            log.error("paaSILRegistraPagamento: esito = {}", esito.value);
+            throw new MyPayException("paaSILRegistraPagamento errore nel recupero del tipo dovuto: [" + e.getMessage() + "]", e);
           }
 
           Carrello carrello = carrelloService.getCarrelloFittizio(datiRendicontazioneCod9, null, ente);
           carrello = carrelloService.upsert(carrello);
-          DovutoElaborato dovutoElaborato = dovutoElaboratoService.getFittizio(carrello, datiRendicontazioneCod9, ente);
-          dovutoElaborato = dovutoElaboratoService.upsert(dovutoElaborato);
+          dovutoElaborato = dovutoElaboratoService.getFittizio(carrello, datiRendicontazioneCod9, ente);
+          dovutoElaboratoService.upsert(dovutoElaborato);
           esito.value = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-          log.info("paaSILRegistraPagamento: esito = " + esito.value);
-          return;
+          log.info("paaSILRegistraPagamento: esito = {}", esito.value);
         }
       }
     }
+    Optional.ofNullable(dovutoElaborato).ifPresent(esitoService::handlePushEsito);
   }
 
   @Override
@@ -1636,10 +1731,14 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     }*/
 
     for (Dovuto dovuto : dovutiAvviso) {
+      if(dovuto.isFlgIuvVolatile()){
+        log.warn("Removing dovuto volatile per IUV [{}] ed ente [{}]", codIuv, codIpaEnte);
+        dovutiAvviso.remove(dovuto);
+        continue;
+      }
       var optionalEtd = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), codIpaEnte, false);
       if (optionalEtd.map(e -> !e.isFlgAttivo()).orElse(optionalEtd.isEmpty())) {
         dovutiAvviso.remove(dovuto);
-        //dovutiAttivi.add(dovuto);
         tipoDovutoDisabilitato = StringUtils.defaultIfBlank(tipoDovutoDisabilitato,
           String.format("il dovuto [%s] associato allo IUV risulta disabilitato o non presente", dovuto.getCodTipoDovuto()));
         continue;
@@ -1651,10 +1750,10 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
           String.format("non ci sono dovuti pagabili per il dato IUV [%s]", codIuv), null));
         return paaSILVerificaAvvisoRisposta;
       }
-      if (optionalEtd.get().isFlgScadenzaObbligatoria()) {
+      if (optionalEtd.orElseThrow().isFlgScadenzaObbligatoria()) {
         LocalDate dataScadenza = new LocalDate(dovuto.getDtRpDatiVersDataEsecuzionePagamento());
         if (dataScadenza.isBefore(new LocalDate())) {
-          log.error("Error dovuto scaduto per IUV [%s] ed ente [%s]", codIuv, codIpaEnte);
+          log.error("Error dovuto scaduto per IUV [{}] ed ente [{}]", codIuv, codIpaEnte);
           paaSILVerificaAvvisoRisposta.setEsito("KO");
           paaSILVerificaAvvisoRisposta.setFault(VerificationUtils.getFaultBean(header.getCodIpaEnte(), CODE_PAA_IUV_SCADUTO,
             String.format("alcuni dovuti sono scaduti per il dato IUV [%s]", codIuv), null));
@@ -1704,44 +1803,43 @@ public class PagamentiTelematiciDovutiPagatiImpl implements PagamentiTelematiciD
     return paaSILVerificaAvvisoRisposta;
   }
 
-  private Dovuti bonificaProvinciaPagatore(Dovuti dovuti) {
+  private void bonificaProvinciaPagatore(Dovuti dovuti) {
     log.debug("bonificaProvinciaPagatore");
     if (dovuti != null && dovuti.getSoggettoPagatore() != null) {
       String provinciaPagatore = dovuti.getSoggettoPagatore().getProvinciaPagatore();
-      log.debug("provincia pagatore: %s", provinciaPagatore);
+      log.debug("provincia pagatore: {}", provinciaPagatore);
       // provincia pagatore deve essere upperCase
       if (provinciaPagatore != null) {
         dovuti.getSoggettoPagatore().setProvinciaPagatore(provinciaPagatore.toUpperCase());
-        log.debug("provincia pagatore: %s", dovuti.getSoggettoPagatore().getProvinciaPagatore());
+        log.debug("provincia pagatore: {}", dovuti.getSoggettoPagatore().getProvinciaPagatore());
       }
     }
-    return dovuti;
   }
 
-  private void fillDovutoElaboratoCompletato(DatiRendicontazioneCod9 datiRendicontazioneCod9, Dovuto dovuto, Carrello carrello, DovutoElaborato dovutoElaboratoCompletato) {
-    dovutoElaboratoCompletato.setMygovCarrelloId(carrello);
-    dovutoElaboratoCompletato.setCodEDatiPagCodiceEsitoPagamento(Constants.CODICE_ESITO_PAGAMENTO_ESEGUITO.charAt(0));
-    dovutoElaboratoCompletato.setNumEDatiPagImportoTotalePagato(datiRendicontazioneCod9.getSingoloImportoPagato());
-    dovutoElaboratoCompletato.setNumEDatiPagDatiSingPagSingoloImportoPagato(datiRendicontazioneCod9.getSingoloImportoPagato());
-    dovutoElaboratoCompletato.setDeEDatiPagDatiSingPagEsitoSingoloPagamento(Constants.PAGATO_CON_RENDICONTAZIONE_9);
-    dovutoElaboratoCompletato.setDtEDatiPagDatiSingPagDataEsitoSingoloPagamento(datiRendicontazioneCod9.getDataEsitoSingoloPagamento());
-    dovutoElaboratoCompletato.setCodEDatiPagDatiSingPagIdUnivocoRiscoss(datiRendicontazioneCod9.getIdentificativoUnivocoRiscossione());
+  private void fillDovutoElaboratoCompletato(DatiRendicontazioneCod9 datiRendicontazioneCod9, Dovuto dovuto, Carrello carrello, DovutoElaborato dovutoElaborato) {
+    dovutoElaborato.setMygovCarrelloId(carrello);
+    dovutoElaborato.setCodEDatiPagCodiceEsitoPagamento(Constants.CODICE_ESITO_PAGAMENTO_ESEGUITO.charAt(0));
+    dovutoElaborato.setNumEDatiPagImportoTotalePagato(datiRendicontazioneCod9.getSingoloImportoPagato());
+    dovutoElaborato.setNumEDatiPagDatiSingPagSingoloImportoPagato(datiRendicontazioneCod9.getSingoloImportoPagato());
+    dovutoElaborato.setDeEDatiPagDatiSingPagEsitoSingoloPagamento(Constants.PAGATO_CON_RENDICONTAZIONE_9);
+    dovutoElaborato.setDtEDatiPagDatiSingPagDataEsitoSingoloPagamento(datiRendicontazioneCod9.getDataEsitoSingoloPagamento());
+    dovutoElaborato.setCodEDatiPagDatiSingPagIdUnivocoRiscoss(datiRendicontazioneCod9.getIdentificativoUnivocoRiscossione());
     String causale = Utilities.getDefaultString().andThen(Utilities.getTruncatedAt(Constants.MAX_LENGHT_CAUSALE)).apply(dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento(), Constants.CAUSALE_DOVUTO_PAGATO);
-    dovutoElaboratoCompletato.setDeEDatiPagDatiSingPagCausaleVersamento(causale);
-    dovutoElaboratoCompletato.setDeEDatiPagDatiSingPagDatiSpecificiRiscossione(StringUtils.defaultIfBlank(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(), Constants.DATI_SPECIFICI_RISCOSSIONE_UNKNOW));
-    dovutoElaboratoCompletato.setDeRpDatiVersDatiSingVersCausaleVersamentoAgid(causale);
+    dovutoElaborato.setDeEDatiPagDatiSingPagCausaleVersamento(causale);
+    dovutoElaborato.setDeEDatiPagDatiSingPagDatiSpecificiRiscossione(StringUtils.defaultIfBlank(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(), Constants.DATI_SPECIFICI_RISCOSSIONE_UNKNOW));
+    dovutoElaborato.setDeRpDatiVersDatiSingVersCausaleVersamentoAgid(causale);
   }
 
-  private void fillDovutoElaboratoWithNoDataEsito(DatiRendicontazioneCod9 datiRendicontazioneCod9, DovutoElaborato dovutoElaboratoCompletato, Carrello carrello) {
-    dovutoElaboratoCompletato.setMygovCarrelloId(carrello);
-    dovutoElaboratoCompletato.setCodEDatiPagCodiceEsitoPagamento(Constants.CODICE_ESITO_PAGAMENTO_ESEGUITO.charAt(0));
-    dovutoElaboratoCompletato.setNumEDatiPagImportoTotalePagato(datiRendicontazioneCod9.getSingoloImportoPagato());
-    dovutoElaboratoCompletato.setNumEDatiPagDatiSingPagSingoloImportoPagato(datiRendicontazioneCod9.getSingoloImportoPagato());
-    dovutoElaboratoCompletato.setDeEDatiPagDatiSingPagEsitoSingoloPagamento(Constants.PAGATO_CON_RENDICONTAZIONE_9);
-    dovutoElaboratoCompletato.setDtEDatiPagDatiSingPagDataEsitoSingoloPagamento(datiRendicontazioneCod9.getDataEsitoSingoloPagamento());
-    dovutoElaboratoCompletato.setCodEDatiPagDatiSingPagIdUnivocoRiscoss(datiRendicontazioneCod9.getIdentificativoUnivocoRiscossione());
-    dovutoElaboratoCompletato.setDeEDatiPagDatiSingPagCausaleVersamento(Constants.CAUSALE_DOVUTO_PAGATO);
-    dovutoElaboratoCompletato.setDeEDatiPagDatiSingPagDatiSpecificiRiscossione(Constants.DATI_SPECIFICI_RISCOSSIONE_UNKNOW);
-    dovutoElaboratoCompletato.setDeRpDatiVersDatiSingVersCausaleVersamentoAgid(Constants.CAUSALE_DOVUTO_PAGATO);
+  private void fillDovutoElaboratoWithNoDataEsito(DatiRendicontazioneCod9 datiRendicontazioneCod9, DovutoElaborato dovutoElaborato, Carrello carrello) {
+    dovutoElaborato.setMygovCarrelloId(carrello);
+    dovutoElaborato.setCodEDatiPagCodiceEsitoPagamento(Constants.CODICE_ESITO_PAGAMENTO_ESEGUITO.charAt(0));
+    dovutoElaborato.setNumEDatiPagImportoTotalePagato(datiRendicontazioneCod9.getSingoloImportoPagato());
+    dovutoElaborato.setNumEDatiPagDatiSingPagSingoloImportoPagato(datiRendicontazioneCod9.getSingoloImportoPagato());
+    dovutoElaborato.setDeEDatiPagDatiSingPagEsitoSingoloPagamento(Constants.PAGATO_CON_RENDICONTAZIONE_9);
+    dovutoElaborato.setDtEDatiPagDatiSingPagDataEsitoSingoloPagamento(datiRendicontazioneCod9.getDataEsitoSingoloPagamento());
+    dovutoElaborato.setCodEDatiPagDatiSingPagIdUnivocoRiscoss(datiRendicontazioneCod9.getIdentificativoUnivocoRiscossione());
+    dovutoElaborato.setDeEDatiPagDatiSingPagCausaleVersamento(Constants.CAUSALE_DOVUTO_PAGATO);
+    dovutoElaborato.setDeEDatiPagDatiSingPagDatiSpecificiRiscossione(Constants.DATI_SPECIFICI_RISCOSSIONE_UNKNOW);
+    dovutoElaborato.setDeRpDatiVersDatiSingVersCausaleVersamentoAgid(Constants.CAUSALE_DOVUTO_PAGATO);
   }
 }

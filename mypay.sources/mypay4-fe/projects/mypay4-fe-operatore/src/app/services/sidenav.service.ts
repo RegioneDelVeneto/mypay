@@ -23,7 +23,9 @@ import { MatSidenav } from '@angular/material/sidenav';
 })
 export class SidenavService {
 
-  constructor() { }
+  constructor() { 
+    //This is intentionally empty
+  }
 
   private sidenav: MatSidenav;
 

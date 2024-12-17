@@ -39,3 +39,12 @@ span.break-word {
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+.mypay-table-detail-section-multiben {
+  border-bottom: 1px solid black;
+  position: relative;
+  bottom: 17px;
+  .mat-h3 {
+    font-weight: 600;
+  }
+}

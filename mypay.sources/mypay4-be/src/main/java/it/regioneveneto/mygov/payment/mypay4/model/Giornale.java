@@ -19,22 +19,15 @@ package it.regioneveneto.mygov.payment.mypay4.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-import java.util.Date;
-
-@Data
-@Builder(toBuilder=true)
 @NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder(toBuilder=true)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovGiornaleId")
-public class Giornale extends BaseEntity {
-
-  public final static String ALIAS = "Giornale";
-  public final static String FIELDS = ""+ALIAS+".mygov_giornale_id as Giornale_mygovGiornaleId,"+ALIAS+".version as Giornale_version"+
+public class Giornale extends it.regioneveneto.mygov.payment.mypay4.model.common.Giornale {
+  public static final String ALIAS = "Giornale";
+  public static final String FIELDS = ""+ALIAS+".mygov_giornale_id as Giornale_mygovGiornaleId,"+ALIAS+".version as Giornale_version"+
       ","+ALIAS+".data_ora_evento as Giornale_dataOraEvento,"+ALIAS+".identificativo_dominio as Giornale_identificativoDominio"+
       ","+ALIAS+".identificativo_univoco_versamento as Giornale_identificativoUnivocoVersamento"+
       ","+ALIAS+".codice_contesto_pagamento as Giornale_codiceContestoPagamento"+
@@ -48,22 +41,4 @@ public class Giornale extends BaseEntity {
       ","+ALIAS+".canale_pagamento as Giornale_canalePagamento"+
       ","+ALIAS+".parametri_specifici_interfaccia as Giornale_parametriSpecificiInterfaccia,"+ALIAS+".esito as Giornale_esito";
 
-  private Long mygovGiornaleId;
-  private int version;
-  private Date dataOraEvento;
-  private String identificativoDominio;
-  private String identificativoUnivocoVersamento;
-  private String codiceContestoPagamento;
-  private String identificativoPrestatoreServiziPagamento;
-  private String tipoVersamento;
-  private String componente;
-  private String categoriaEvento;
-  private String tipoEvento;
-  private String sottoTipoEvento;
-  private String identificativoFruitore;
-  private String identificativoErogatore;
-  private String identificativoStazioneIntermediarioPa;
-  private String canalePagamento;
-  private String parametriSpecificiInterfaccia;
-  private String esito;
 }

@@ -48,11 +48,12 @@ public class RptRtDettaglioService {
   RptRtDettaglioDao rptRtDettaglioDao;
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
-  public void insertRptRtDettaglio(RptRt rptRt, List<CtDatiSingoloVersamentoRPT> ctDatiSingoloVersamentoRPTList) {
+  public void insertRptRtDettaglio(RptRt rptRt, List<CtDatiSingoloVersamentoRPT> ctDatiSingoloVersamentoRPTList, String CCP) {
     for (CtDatiSingoloVersamentoRPT item: ctDatiSingoloVersamentoRPTList) {
       Date now = new Date();
       RptRtDettaglio dettaglio = RptRtDettaglio.builder()
           .mygovRptRtId(rptRt)
+          .mygovCarrelloRptPagopaId(CCP)
           .dtCreazione(now)
           .dtUltimaModifica(now)
           .numRptDatiVersDatiSingVersImportoSingoloVersamento(item.getImportoSingoloVersamento())

@@ -19,8 +19,11 @@ package it.regioneveneto.mygov.payment.mypay4.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.regioneveneto.mygov.payment.mypay4.config.MyPay4AbstractSecurityConfig;
+import it.regioneveneto.mygov.payment.mypay4.dto.CodeDescriptionTo;
+import it.regioneveneto.mygov.payment.mypay4.dto.EnteExtedendTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.EnteTipoDovutoTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.EnteTo;
+import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.logging.LogExecution;
 import it.regioneveneto.mygov.payment.mypay4.model.Ente;
 import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
@@ -29,6 +32,7 @@ import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
 import it.regioneveneto.mygov.payment.mypay4.service.EnteService;
 import it.regioneveneto.mygov.payment.mypay4.service.EnteTipoDovutoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,9 +52,9 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class EnteController {
 
-  private final static String AUTHENTICATED_PATH ="enti";
-  private final static String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="enti";
+  private static final String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   EnteService enteService;
@@ -86,12 +91,24 @@ public class EnteController {
     return listEnteTipiDovuto.stream().map(enteTipoDovutoService::mapEnteTipoDovutoToDto).collect(Collectors.toList());
   }
 
+  @GetMapping(ANONYMOUS_PATH+"/{codIpa}/tipiDovutoByCodIpa")
+  public List<CodeDescriptionTo> getTipiDovutoByCodIpa(@PathVariable String codIpa){
+    Ente ente = Optional.ofNullable(enteService.getEnteByCodIpa(codIpa)).orElseThrow(NotFoundException::new);
+    List<EnteTipoDovuto> listEnteTipiDovuto = enteTipoDovutoService.getAttiviByMygovEnteIdAndFlags(ente.getMygovEnteId(), null, null);
+    return listEnteTipiDovuto.stream().map(enteTipoDovutoService::mapEnteTipoDovutoToCodeDescriptionDto).collect(Collectors.toList());
+  }
+
   @GetMapping(OPERATORE_PATH +"/{id}/tipiDovutoOperatore")
   @Operatore(value = "id")
   public List<EnteTipoDovutoTo> getByMygovEnteIdAndOperatoreUsername(
-      @PathVariable Long id,
-      @AuthenticationPrincipal UserWithAdditionalInfo user){
-    List<EnteTipoDovuto> listEnteTipiDovuto = enteTipoDovutoService.getByMygovEnteIdAndOperatoreUsername(id,user.getUsername());
+          @AuthenticationPrincipal UserWithAdditionalInfo user,
+          @PathVariable Long id,
+          @RequestParam(required = false) String enteSecondario
+      ){
+    List<EnteTipoDovuto> listEnteTipiDovuto =
+      enteTipoDovutoService.getByMygovEnteIdAndOperatoreUsername(id,user.getUsername());
+    if(StringUtils.equalsIgnoreCase(enteSecondario, "true"))
+      listEnteTipiDovuto = enteTipoDovutoService.addTipoDovutoExportEnteSecondario(id, listEnteTipiDovuto);
     return listEnteTipiDovuto.stream().map(enteTipoDovutoService::mapEnteTipoDovutoToDto).collect(Collectors.toList());
   }
 
@@ -109,4 +126,10 @@ public class EnteController {
     return enteService.checkInvalidLogo(delete);
   }
 
+  @GetMapping(OPERATORE_PATH+"/extended")
+  @Operatore
+  public List<EnteExtedendTo> getEnteExtendedByOperatore(@AuthenticationPrincipal UserWithAdditionalInfo user) {
+	  List<Ente> listEnti = enteService.getEntiByOperatoreUsername(user.getUsername());
+	  return listEnti.stream().map(enteService:: mapEnteExtendeToByEnte).collect(Collectors.toList());
+  }
 }

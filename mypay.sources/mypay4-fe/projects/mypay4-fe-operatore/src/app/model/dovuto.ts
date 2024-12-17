@@ -19,6 +19,7 @@ import { DateTime } from 'luxon';
 import {
     Comune, MapperDef, MapperType, Nazione, Provincia, TipoDovuto, WithActions
 } from 'projects/mypay4-fe-common/src/public-api';
+import { DovutoMultibeneficiario } from './dovuto-multibeneficiario';
 
 export class Dovuto extends WithActions {
 
@@ -67,6 +68,7 @@ export class Dovuto extends WithActions {
   prov: Provincia;
   comune: Comune;
   flgGenerateIuv: boolean;
+  flgMultibeneficiario: boolean;
 
   //details dovutoElaborato (opeatore)
   dataInizioTransazione: DateTime;
@@ -82,4 +84,20 @@ export class Dovuto extends WithActions {
   invalidDesc: string;
 
   details: object[];
+
+  //Ente primario detail
+  entePrimarioDetail: any;
+  entePrimarioElaboratoDetail: any;
+  detailEntePrimario: object[];
+
+  //dovuto multibeneficiario
+  dovutoMultibeneficiario: DovutoMultibeneficiario;
+  dovutoMultibeneficiarioElaborato:DovutoMultibeneficiario
+
+  //detail multibeneficiario
+  detailMultiBeneficiario: object[];
+
+  public setDovutoMultieneficiario(dovutoMultiben: DovutoMultibeneficiario){
+    this.dovutoMultibeneficiario = dovutoMultiben;
+  }
 }

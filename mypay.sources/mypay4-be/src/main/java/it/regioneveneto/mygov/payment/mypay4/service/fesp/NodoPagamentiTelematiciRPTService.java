@@ -22,11 +22,12 @@ import it.gov.digitpa.schemas._2011.pagamenti.CtDatiSingoloVersamentoRPT;
 import it.gov.digitpa.schemas._2011.pagamenti.RPT;
 import it.regioneveneto.mygov.payment.mypay4.config.MyPay4AbstractSecurityConfig;
 import it.regioneveneto.mygov.payment.mypay4.dto.common.Psp;
+import it.regioneveneto.mygov.payment.mypay4.exception.RollbackException;
 import it.regioneveneto.mygov.payment.mypay4.model.fesp.*;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
-import it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.PagamentiTelematiciRPTImpl;
+import it.regioneveneto.mygov.payment.mypay4.ws.client.fesp.PagamentiTelematiciRPTClient;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ElementoRP;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.FaultBean;
@@ -44,6 +45,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +54,8 @@ import java.util.List;
 @Slf4j
 @ConditionalOnProperty(prefix = "fesp", name = "mode", havingValue = "local")
 public class NodoPagamentiTelematiciRPTService {
+
+	public static final String ERROR_INVIA_CARRELLO_RPT_PPT_PAGAMENTO_DUPLICATO = "PPT_PAGAMENTO_DUPLICATO";
 
 	@Autowired
 	RpEService rpEService;
@@ -72,8 +76,15 @@ public class NodoPagamentiTelematiciRPTService {
 	@Autowired
 	InviaCarrelloBuilderService inviaCarrelloBuilderService;
 	@Autowired
-	PagamentiTelematiciRPTImpl pagamentiTelematiciRPTImpl;
-
+	PagamentiTelematiciRPTClient pagamentiTelematiciRPTClient;
+	@Autowired
+	private RPTConservazioneService rptConservazioneService;
+//  @Autowired
+//  CarrelloService carrelloService;
+//  @Autowired
+//  DovutoService dovutoService;
+//  @Autowired
+//  private DovutoMultibeneficiarioDao dovutoMultibenDao;
 	@Value("${pa.pspDefaultModelloPagamento}")
 	private int modelloPagamento;
 	@Value("${pa.pspDefaultIdentificativoCanale}")
@@ -91,9 +102,9 @@ public class NodoPagamentiTelematiciRPTService {
 	@Value("${app.be.absolute-path}")
 	private String appBeAbsolutePath;
 
-	private final static String PATH_RP_ESITO_XSD = "/wsdl/pa/PagInf_RP_Esito_6_2_0.xsd";
-	private final static String FESP_LANDING_PATH = "/fesp/landing/richiestaPagamento?idSession=";
-	private final static String ANONYMOUS_FESP_LANDING_PATH = MyPay4AbstractSecurityConfig.PATH_PUBLIC + FESP_LANDING_PATH;
+	private static final String PATH_RP_ESITO_XSD = "/wsdl/pa/PagInf_RP_Esito_6_2_0.xsd";
+	private static final String FESP_LANDING_PATH = "/fesp/landing/richiestaPagamento?idSession=";
+	private static final String ANONYMOUS_FESP_LANDING_PATH = MyPay4AbstractSecurityConfig.PATH_PUBLIC + FESP_LANDING_PATH;
 
 	@Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
 	public NodoSILInviaCarrelloRPRisposta nodoSILInviaCarrelloRP(NodoSILInviaCarrelloRP request) {
@@ -104,6 +115,7 @@ public class NodoPagamentiTelematiciRPTService {
 		String idSession = Utilities.getRandomicUUID();
 		Psp pspAgID = this.newPspAgidValue();
 		NodoInviaCarrelloRPT nodoInviaCarrelloRPT = new NodoInviaCarrelloRPT();
+		boolean forceRollbackTransaction = false;
 		try {
 			carrelloRp = carrelloRpService.insert(idSession, request.getIdentificativoDominioEnteChiamante());
 			carrelloRpt = carrelloRptService.insert(carrelloRp, pspAgID);
@@ -114,27 +126,71 @@ public class NodoPagamentiTelematiciRPTService {
 			nodoInviaCarrelloRPT.setIdentificativoIntermediarioPSP(pspAgID.getIdentificativoIntermediarioPSP());
 			nodoInviaCarrelloRPT.setIdentificativoPSP(pspAgID.getIdentificativoPSP());
 			IntestazioneCarrelloPPT intestazioneCarrelloPPT = new IntestazioneCarrelloPPT();
-			intestazioneCarrelloPPT.setIdentificativoCarrello(carrelloRpt.getCodRptInviacarrellorptIdCarrello());
 			intestazioneCarrelloPPT.setIdentificativoIntermediarioPA(carrelloRpt.getCodRptInviacarrellorptIdIntermediarioPa());
 			intestazioneCarrelloPPT.setIdentificativoStazioneIntermediarioPA(carrelloRpt.getCodRptInviacarrellorptIdStazioneIntermediarioPa());
+
+      // Multi-beneficiary IUV management if defined (IUV_MULTI_08, IUV_MULTI_09)
+      TipoElementoListaRPT elementoSecondarioRPT = null;
+      boolean multibeneficiario = false;
+      if (listRP.size()==1) {
+        elementoSecondarioRPT = createSecondaryRPTElementIfMultiBeneficiaryIUVManaged(listRP.get(0));
+        multibeneficiario = null != elementoSecondarioRPT;
+      }
+
 			for (ElementoRP elementoRP: listRP) {
 				RP rp = jaxbTransformService.unmarshalling(elementoRP.getRp(), RP.class, PATH_RP_ESITO_XSD);
+        TipoElementoListaRPT elementoRPT = new TipoElementoListaRPT();
+
+        String ccp = null;
+        if (multibeneficiario) {
+          ccp = elementoSecondarioRPT.getCodiceContestoPagamento();
+          rp.getDatiVersamento().setCodiceContestoPagamento(ccp);
+          intestazioneCarrelloPPT.setIdentificativoCarrello(ccp);
+          elementoRPT.setCodiceContestoPagamento(ccp);
+        } else {
+          intestazioneCarrelloPPT.setIdentificativoCarrello(carrelloRpt.getCodRptInviacarrellorptIdCarrello());
+          elementoRPT.setCodiceContestoPagamento(elementoRP.getCodiceContestoPagamento());
+        }
+
 				RpE rpe = saveRp(elementoRP, pspAgID, rp, carrelloRp);
 				Ente enteProp = enteService.getEnteByCodFiscale(rp.getDominio().getIdentificativoDominio());
-				RPT CtRPT = inviaCarrelloBuilderService.buildRPT(rp, enteProp);
+				RPT ctRPT = inviaCarrelloBuilderService.buildRPT(rp, enteProp);
 
-				TipoElementoListaRPT elementoRPT = new TipoElementoListaRPT();
-				elementoRPT.setCodiceContestoPagamento(elementoRP.getCodiceContestoPagamento());
 				elementoRPT.setIdentificativoDominio(elementoRP.getIdentificativoDominio());
 				elementoRPT.setIdentificativoUnivocoVersamento(elementoRP.getIdentificativoUnivocoVersamento());
 				elementoRPT.setTipoFirma(Constants.EMPTY);
-				elementoRPT.setRpt(jaxbTransformService.marshallingAsBytes(CtRPT, RPT.class));
-				listaRPT.getElementoListaRPTs().add(elementoRPT);
-				saveRPT(elementoRPT, nodoInviaCarrelloRPT, intestazioneCarrelloPPT, CtRPT, rpe, carrelloRpt);
+				elementoRPT.setRpt(jaxbTransformService.marshallingAsBytes(ctRPT, RPT.class));
+				RptRt mygovRptRt = saveRPT(elementoRPT, nodoInviaCarrelloRPT, intestazioneCarrelloPPT, ctRPT, rpe, carrelloRpt, ccp);
+
+				try {
+					RPT_Conservazione rtpCons = rptConservazioneService.insertRptConservazione(ctRPT,  mygovRptRt, enteProp );
+					log.debug(rtpCons.toString());
+				} catch (Exception e) {
+					log.error("Errore nell'inserimento in RPT_Conservazione", e);
+				}
+
+        // Multi-beneficiary IUV management if defined (IUV_MULTI_08) - Setting order of RPT
+        if (multibeneficiario) {
+					//if importo(ente-primario)==0 -> do not send RPT
+					if(ctRPT.getDatiVersamento().getImportoTotaleDaVersare().compareTo(BigDecimal.ZERO) > 0) {
+						listaRPT.getElementoListaRPTs().add(elementoRPT);
+						nodoInviaCarrelloRPT.setMultiBeneficiario(true);
+					} else
+						log.warn("nodoInviaCarrelloRPT: RPT with importo ente-primario ZERO ente[{}] iuv[{}] ccp[{}]",ctRPT.getDominio().getIdentificativoDominio(),
+							ctRPT.getDatiVersamento().getIdentificativoUnivocoVersamento(), ctRPT.getDatiVersamento().getCodiceContestoPagamento());
+          listaRPT.getElementoListaRPTs().add(elementoSecondarioRPT);
+        } else
+          listaRPT.getElementoListaRPTs().add(elementoRPT);
+
 			}
 			nodoInviaCarrelloRPT.setListaRPT(listaRPT);
 
-			responseNodo = pagamentiTelematiciRPTImpl.nodoInviaCarrelloRPT(intestazioneCarrelloPPT, nodoInviaCarrelloRPT);
+			responseNodo = pagamentiTelematiciRPTClient.nodoInviaCarrelloRPT(nodoInviaCarrelloRPT, intestazioneCarrelloPPT);
+
+			if(responseNodo!=null && responseNodo.getFault()!=null && StringUtils.equals(responseNodo.getFault().getFaultCode(),ERROR_INVIA_CARRELLO_RPT_PPT_PAGAMENTO_DUPLICATO)){
+				log.error("forceRollbackTransction idCarrello[{}] cause[{}]", intestazioneCarrelloPPT.getIdentificativoCarrello(), ERROR_INVIA_CARRELLO_RPT_PPT_PAGAMENTO_DUPLICATO);
+				throw new RollbackException(ERROR_INVIA_CARRELLO_RPT_PPT_PAGAMENTO_DUPLICATO);
+			}
 
 			responseCart = new NodoSILInviaCarrelloRPRisposta();
 			if(responseNodo!=null && responseNodo.getFault()!=null){
@@ -153,6 +209,10 @@ public class NodoPagamentiTelematiciRPTService {
 			if(StringUtils.equalsIgnoreCase(responseNodo.getEsitoComplessivoOperazione(), "OK"))
 				responseCart.setUrl(appBeAbsolutePath + ANONYMOUS_FESP_LANDING_PATH + idSession);
 
+		} catch (RollbackException re){
+			//just rethrow it: we want rollback to occur
+			forceRollbackTransaction = true;
+			throw re;
 		} catch (Exception e) {
 			log.error(String.format("{}: [{}]", FaultCodeConstants.PPT_ESITO_SCONOSCIUTO, e.getMessage()), e);
 
@@ -173,21 +233,21 @@ public class NodoPagamentiTelematiciRPTService {
 			faultRP.setDescription(faultRPT.getDescription());
 			responseCart.setFault(faultRP);
 		} finally {
-			try {
-				if (carrelloRp!=null && responseCart!=null) {
-					saveCartRpRisposta(carrelloRp, responseCart, idSession);
-					if  (carrelloRpt!=null && responseNodo!=null) {
-						saveCarrelloRPTRisposta(responseNodo, carrelloRpt);
+			if(!forceRollbackTransaction)
+				try {
+					if (carrelloRp!=null && responseCart!=null) {
+						saveCartRpRisposta(carrelloRp, responseCart, idSession);
+						if  (carrelloRpt!=null && responseNodo!=null) {
+							saveCarrelloRPTRisposta(responseNodo, carrelloRpt);
+						}
 					}
+				} catch (Exception e) {
+					log.error(String.format("Error saving RP risposta: [{}]", e.getMessage()), e);
 				}
-			} catch (Exception e) {
-				log.error(String.format("Error saving RP risposta: [{}]", e.getMessage()), e);
-			}
 		}
 		return responseCart;
 	}
 
-	@Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
 	private RpE saveRp(ElementoRP elementoRP, Psp psp, RP rp, CarrelloRp carrelloRp) {
 		RpE rpE = rpEService.insertRp(elementoRP, psp, rp, carrelloRp);
 		List<CtDatiSingoloVersamentoRP> ctDatiSingoloVersamentoRPList = rp.getDatiVersamento().getDatiSingoloVersamentos();
@@ -197,23 +257,20 @@ public class NodoPagamentiTelematiciRPTService {
 		return rpE;
 	}
 
-	@Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
-	private RptRt saveRPT(TipoElementoListaRPT elementoRPT, NodoInviaCarrelloRPT nodoInviaCarrelloRPT, IntestazioneCarrelloPPT intestazioneCarrelloPPT, RPT rpt, RpE rpE, CarrelloRpt carrelloRpt) {
+  private RptRt saveRPT(TipoElementoListaRPT elementoRPT, NodoInviaCarrelloRPT nodoInviaCarrelloRPT, IntestazioneCarrelloPPT intestazioneCarrelloPPT, RPT rpt, RpE rpE, CarrelloRpt carrelloRpt,String CCP) {
 		RptRt rptRt = rptRtService.insertRpt(elementoRPT, nodoInviaCarrelloRPT, intestazioneCarrelloPPT, rpt, rpE, carrelloRpt);
 		List<CtDatiSingoloVersamentoRPT> ctDatiSingoloVersamentoRPTList = rpt.getDatiVersamento().getDatiSingoloVersamentos();
 		if(!ctDatiSingoloVersamentoRPTList.isEmpty()) {
-			rptRtDettaglioService.insertRptRtDettaglio(rptRt, ctDatiSingoloVersamentoRPTList);
+      rptRtDettaglioService.insertRptRtDettaglio(rptRt, ctDatiSingoloVersamentoRPTList, CCP);
 		}
 		return rptRt;
 	}
 
-	@Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
 	private void saveCartRpRisposta(CarrelloRp carrelloRp, NodoSILInviaCarrelloRPRisposta response, String idSession) {
 		carrelloRpService.updateRispostaRpById(carrelloRp, response, idSession);
 		rpEService.updateByKey(carrelloRp, response);
 	}
 
-	@Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
 	private void saveCarrelloRPTRisposta(NodoInviaCarrelloRPTRisposta respondeNodo, CarrelloRpt carrelloRpt) throws UnsupportedEncodingException, MalformedURLException {
 		carrelloRptService.updateByKey(respondeNodo, carrelloRpt);
 		rptRtService.updateRispostaRptByCart(respondeNodo, carrelloRpt);
@@ -230,4 +287,21 @@ public class NodoPagamentiTelematiciRPTService {
 			.modelloPagamento(modelloPagamento)
 			.build();
 	}
+
+  private TipoElementoListaRPT createSecondaryRPTElementIfMultiBeneficiaryIUVManaged(ElementoRP elementoRP) throws Exception {
+    TipoElementoListaRPT elementoSecondarioRPT = null;
+		RP rp = jaxbTransformService.unmarshalling(elementoRP.getRp(), RP.class, PATH_RP_ESITO_XSD);
+		if(rp.getRpEnteSecondario()!=null){
+			RP rpSecondario = rp.getRpEnteSecondario();
+			Ente enteSecondario = jaxbTransformService.unmarshalling(rp.getDatiEnteSecondario(), Ente.class);
+			elementoSecondarioRPT = new TipoElementoListaRPT();
+			elementoSecondarioRPT.setCodiceContestoPagamento(elementoRP.getCodiceContestoPagamento());
+			elementoSecondarioRPT.setIdentificativoDominio(enteSecondario.getCodiceFiscaleEnte());
+			elementoSecondarioRPT.setIdentificativoUnivocoVersamento(elementoRP.getIdentificativoUnivocoVersamento());
+			RPT CtSecondarioRPT = inviaCarrelloBuilderService.buildRPT(rpSecondario, enteSecondario);
+			elementoSecondarioRPT.setTipoFirma(Constants.EMPTY);
+			elementoSecondarioRPT.setRpt(jaxbTransformService.marshallingAsBytes(CtSecondarioRPT, RPT.class));
+		}
+    return elementoSecondarioRPT;
+  }
 }

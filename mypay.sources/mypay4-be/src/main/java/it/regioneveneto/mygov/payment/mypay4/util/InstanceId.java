@@ -20,7 +20,7 @@ package it.regioneveneto.mygov.payment.mypay4.util;
 import java.util.UUID;
 
 public class InstanceId {
-  private final static String instanceId = UUID.randomUUID().toString();
+  private static final String instanceId = UUID.randomUUID().toString();
   private InstanceId(){
 
   }

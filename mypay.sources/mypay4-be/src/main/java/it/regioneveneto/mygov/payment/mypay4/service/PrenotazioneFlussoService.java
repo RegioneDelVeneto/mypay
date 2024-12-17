@@ -25,6 +25,7 @@ import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -32,11 +33,14 @@ import java.util.UUID;
 import static it.regioneveneto.mygov.payment.mypay4.util.Constants.DEFAULT_VERSIONE_TRACCIATO;
 import static it.regioneveneto.mygov.payment.mypay4.ws.helper.PagamentiTelematiciDovutiPagatiHelper.verificaDate;
 import static it.regioneveneto.mygov.payment.mypay4.ws.helper.PagamentiTelematiciDovutiPagatiHelper.verificaTracciato;
+import static it.regioneveneto.mygov.payment.mypay4.ws.helper.PagamentiTelematiciDovutiPagatiHelper.verificaPasswordMyPivot;
 
 @Service
 @Slf4j
 public class PrenotazioneFlussoService {
 
+  @Value("${app.be.password-mypivot}")
+  private String appBePasswordMyPivot;
   @Autowired
   EnteService enteService;
   @Autowired
@@ -58,6 +62,7 @@ public class PrenotazioneFlussoService {
 
     var faultBean = enteService.verificaEnte(to.getCodIpaEnte(), to.getPassword())
         .or(() -> verificaDate(to.getCodIpaEnte(), to.getDateFrom(), to.getDateTo()))
+        .or(() -> verificaPasswordMyPivot(to.getPasswordMypivot(), appBePasswordMyPivot))
         .or(() -> enteTipoDovutoService.verificaTipoDovuto(to.getCodIpaEnte(), to.getIdentificativoTipoDovuto()))
         .or(() -> utenteService.verificaWsUser(to.getCodIpaEnte()))
         .or(() -> verificaTracciato(to.getCodIpaEnte(), to.getVersioneTracciato()));

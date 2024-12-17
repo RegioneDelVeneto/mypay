@@ -1,0 +1,1 @@
+ALTER TABLE public.mygov_dovuto_multibeneficiario_elaborato DROP COLUMN exported;

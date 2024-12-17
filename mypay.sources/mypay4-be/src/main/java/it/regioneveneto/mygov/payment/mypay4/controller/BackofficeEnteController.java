@@ -50,8 +50,8 @@ import static java.util.stream.Collectors.toList;
 @ConditionalOnWebApplication
 public class BackofficeEnteController {
 
-  private final static String AUTHENTICATED_PATH ="admin/enti";
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="admin/enti";
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   private EnteService enteService;

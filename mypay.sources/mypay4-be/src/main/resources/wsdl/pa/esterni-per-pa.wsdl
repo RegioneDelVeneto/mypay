@@ -67,6 +67,10 @@ targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEs
 			<xsd:element name="paaSILVerificaEsternaRisposta" type="ppt:paaSILVerificaEsternaRisposta" />
 			<xsd:element name="paaSILAttivaEsterna" type="ppt:paaSILAttivaEsterna" />
 			<xsd:element name="paaSILAttivaEsternaRisposta" type="ppt:paaSILAttivaEsternaRisposta" />
+			<xsd:element name="paExternalVerifyPaymentNoticeReq" type="ppt:paExternalVerifyPaymentNoticeReq" />
+			<xsd:element name="paExternalVerifyPaymentNoticeRes" type="ppt:paExternalVerifyPaymentNoticeRes" />
+			<xsd:element name="paExternalGetPaymentReq" type="ppt:paExternalGetPaymentReq" />
+			<xsd:element name="paExternalGetPaymentRes" type="ppt:paExternalGetPaymentRes" />
 			<!-- Element Definition -->
 			<xsd:complexType name="paaTipoDatiPagamentoPA">
 				<xsd:sequence>
@@ -165,6 +169,62 @@ targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEs
 					<xsd:element name="serial" type="xsd:int" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:complexType>
+			<xsd:complexType name="paExternalVerifyPaymentNoticeReq">
+				<xsd:sequence>
+					<xsd:element name="idPA" type="ppt:stText35"/>
+					<xsd:element name="idBrokerPA" type="ppt:stText35"/>
+					<xsd:element name="idStation" type="ppt:stText35"/>
+					<xsd:element name="qrCodeFiscalCode" type="ppt:stText35"/>
+					<xsd:element name="noticeNumber" type="ppt:stText35"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paExternalVerifyPaymentNoticeRes">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="paymentDescription" type="ppt:stText35"/>
+							<xsd:element name="fiscalCodePA" type="ppt:stText35"/>
+							<xsd:element name="companyName" type="ppt:stText35"/>
+							<xsd:element name="officeName" type="ppt:stText35"/>
+							<xsd:element name="amount" type="pay_i:stImporto"/>
+							<xsd:element name="dueDate" type="pay_i:stISODate" minOccurs="0"/>
+							<xsd:element name="detailDescription" type="pay_i:stText140"/>
+							<xsd:element name="allCCP" type="xsd:boolean"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="paExternalGetPaymentReq">
+				<xsd:sequence>
+					<xsd:element name="idPA" type="ppt:stText35"/>
+					<xsd:element name="idBrokerPA" type="ppt:stText35"/>
+					<xsd:element name="idStation" type="ppt:stText35"/>
+					<xsd:element name="qrCodeFiscalCode" type="ppt:stText35"/>
+					<xsd:element name="noticeNumber" type="ppt:stText35"/>
+					<xsd:element name="amount" type="pay_i:stImporto"/>
+					<xsd:element name="paymentNote" type="pay_i:stText210"/>
+					<xsd:element name="transferType" type="pay_i:stTransferType"/>
+					<xsd:element name="dueDate" type="pay_i:stISODate"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paExternalGetPaymentRes">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="creditorReferenceId" type="ppt:stText35"/>
+							<xsd:element name="paymentAmount" type="pay_i:stImporto"/>
+							<xsd:element name="dueDate" type="pay_i:stISODate"/>
+							<xsd:element name="retentionDate" type="pay_i:stISODateTime"/>
+							<xsd:element name="lastPayment" type="xsd:boolean"/>
+							<xsd:element name="description" type="pay_i:stText140"/>
+							<xsd:element name="companyName" type="pay_i:stText140"/>
+							<xsd:element name="officeName" type="pay_i:stText140"/>
+							<xsd:element name="debtor" type="pay_i:ctSoggettoPagatore"/>
+							<xsd:element name="transferList" type="pay_i:ctTransferPA" maxOccurs="5"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
 		</xsd:schema>
 	</wsdl:types>
 	<wsdl:message name="paaSILVerificaEsterna">
@@ -181,6 +241,12 @@ targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEs
 	<wsdl:message name="paaSILAttivaEsternaRisposta">
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILAttivaEsternaRisposta" />
 	</wsdl:message>
+	<wsdl:message name="paExternalVerifyPaymentNoticeReq">
+		<wsdl:part name="bodyrichiesta" element="ppt:paExternalVerifyPaymentNoticeReq" />
+	</wsdl:message>
+	<wsdl:message name="paExternalVerifyPaymentNoticeRes">
+		<wsdl:part name="bodyrisposta" element="ppt:paExternalVerifyPaymentNoticeRes" />
+	</wsdl:message>
 	<wsdl:portType name="PagamentiTelematiciEsterniCCP">
 		<wsdl:operation name="paaSILVerificaEsterna">
 			<wsdl:input message="tns:paaSILVerificaEsterna" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILVerificaEsternaRichiesta" />
@@ -189,6 +255,10 @@ targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEs
 		<wsdl:operation name="paaSILAttivaEsterna">
 			<wsdl:input message="tns:paaSILAttivaEsterna" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILAttivaEsternaRichiesta" />
 			<wsdl:output message="tns:paaSILAttivaEsternaRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILAttivaEsternaRisposta" />
+		</wsdl:operation>
+		<wsdl:operation name="paExternalVerifyPaymentNotice">
+			<wsdl:input message="tns:paExternalVerifyPaymentNoticeReq" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paExternalVerifyPaymentNoticeReq" />
+			<wsdl:output message="tns:paExternalVerifyPaymentNoticeRes" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paExternalVerifyPaymentNoticeRes" />
 		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:binding name="PagamentiTelematiciEsterniCCPbinding" type="tns:PagamentiTelematiciEsterniCCP">
@@ -208,6 +278,15 @@ targetNamespace="http://www.regione.veneto.it/pagamenti/pa/PagamentiTelematiciEs
 			<wsdl:input>
 				<soap:body parts="bodyrichiesta" use="literal" />
 				<soap:header message="tns:paaSILVerificaEsterna" part="header" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="paExternalVerifyPaymentNotice">
+			<soap:operation soapAction="paExternalVerifyPaymentNotice" />
+			<wsdl:input>
+				<soap:body parts="paExternalVerifyPaymentNoticeReq" use="literal" />
 			</wsdl:input>
 			<wsdl:output>
 				<soap:body use="literal" />

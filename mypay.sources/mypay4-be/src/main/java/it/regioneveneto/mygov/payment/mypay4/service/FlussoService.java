@@ -27,7 +27,6 @@ import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
 import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.queue.QueueProducer;
-import it.regioneveneto.mygov.payment.mypay4.service.common.CacheService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.MaxResultsHelper;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
@@ -42,8 +41,6 @@ import org.apache.commons.text.StringSubstitutor;
 import org.jdbi.v3.core.mapper.JoinRow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -67,6 +64,7 @@ import java.util.zip.ZipInputStream;
 @Slf4j
 public class FlussoService {
 
+  public static final String PA_MESSAGES_INVALID_DATA_INTERVALLO = "pa.messages.invalidDataIntervallo";
   @Value("${jdbc.limit.default:1000}")
   private int defaultQueryLimit;
 
@@ -115,31 +113,37 @@ public class FlussoService {
   @Autowired
   private MaxResultsHelper maxResultsHelper;
 
+  @Autowired
+  private FlussoConservazioneService flussoConservazioneService;
+
+  @Value("${pa.gpd.enabled}")
+  private boolean gpdEnabled;
+
   @Value("${mypay.path.manage.log}")
   private String flussiLogRootDir;
-  private final String MESSAGE_PROPERTY = "pa.batch.import.";
+  private static final String MESSAGE_PROPERTY = "pa.batch.import.";
 
   private static Function<String, List<String>> mapFlussiDefault = s -> List.of(
-      "_" + s + "_SPONTANEO",
-      "_" + s + "_ESTERNO-ANONIMO",
-      "_" + s + "_IMPORT-DOVUTO"
+    "_" + s + "_SPONTANEO",
+    "_" + s + "_ESTERNO-ANONIMO",
+    "_" + s + "_ESTERNO-ANONIMO_MULTIENTE",
+    "_" + s + "_IMPORT-DOVUTO"
   );
 
-  @CacheEvict(value=CacheService.CACHE_NAME_FLUSSO,key="{'id',#id}")
-  public void clearCacheById(Long id){}
-
-  @Cacheable(value=CacheService.CACHE_NAME_FLUSSO, key="{'id',#id}", unless="#result==null")
   public Flusso getById(Long id) {
     return flussoDao.getById(id);
   }
 
-  @Cacheable(value=CacheService.CACHE_NAME_FLUSSO)
   public List<Flusso> getByEnte(Long mygovEnteId, boolean spontaneo) {
     return flussoDao.getByEnte(mygovEnteId, spontaneo);
   }
 
+    public List<Flusso> getFlussiDaRecuperare(int olderThanInMinutes, long idStatoFlusso) {
+        return flussoDao.getFlussiDaRecuperare(olderThanInMinutes, idStatoFlusso);
+    }
+
   @Transactional(propagation =  Propagation.SUPPORTS)
-  public List<FlussoImportTo> getByEnteIufCreateDt(Long mygovEnteId, String iuf, LocalDate dateFrom, LocalDate dateTo) throws ValidatorException {
+  public List<FlussoImportTo> getByEnteIufCreateDt(Long mygovEnteId, String username, String iuf, LocalDate dateFrom, LocalDate dateTo) throws ValidatorException {
     if (dateFrom == null && dateTo == null) {
       dateTo = LocalDate.now();
       dateFrom = dateTo.plusMonths(-1);
@@ -148,15 +152,15 @@ public class FlussoService {
     } else if (dateFrom == null) {
       dateFrom = LocalDate.now().isBefore(dateTo.plusMonths(-1)) ? LocalDate.now() : dateTo.plusMonths(-1);
     } else if (dateTo.isBefore(dateFrom)) {
-      throw new ValidatorException(messageSource.getMessage("pa.messages.invalidDataIntervallo", null, Locale.ITALY));
+      throw new ValidatorException(messageSource.getMessage(PA_MESSAGES_INVALID_DATA_INTERVALLO, null, Locale.ITALY));
     }
     final LocalDate dateFromFinal = dateFrom;
     final LocalDate dateToFinal = dateTo.plusDays(1);
 
     return maxResultsHelper.manageMaxResults(
-        maxResults -> flussoDao.getByEnteIufCreateDt(mygovEnteId, iuf, dateFromFinal, dateToFinal, maxResults)
-            .stream().map(this::mapEntityToDto).collect(Collectors.toList()),
-        () -> flussoDao.getByEnteIufCreateDtCount(mygovEnteId, iuf, dateFromFinal, dateToFinal) );
+      maxResults -> flussoDao.getByEnteIufCreateDt(mygovEnteId, username, iuf, dateFromFinal, dateToFinal, maxResults),
+      this::mapEntityToDto,
+      () -> flussoDao.getByEnteIufCreateDtCount(mygovEnteId, username, iuf, dateFromFinal, dateToFinal) );
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
@@ -164,7 +168,7 @@ public class FlussoService {
     return flussoDao.getByIuf(iuf);
   }
 
-  public byte[] downloadLog(String pa, String fileName) throws Exception {
+  public byte[] downloadLog(String pa, String fileName) throws IOException {
 
     File file = new File(flussiLogRootDir);
     if (!file.exists()) {
@@ -203,7 +207,6 @@ public class FlussoService {
     int updatedRec = flussoDao.update(flusso);
     if (updatedRec != 1)
       throw new MyPayException("Errore interno aggiornamento flusso");
-    this.clearCacheById(flusso.getMygovFlussoId());
 
     List<Dovuto> dovuti = dovutoDao.getByFlussoId(mygovFlussoId);
 
@@ -225,8 +228,8 @@ public class FlussoService {
   }
 
   @Transactional(propagation =  Propagation.SUPPORTS)
-  public List<FileTo> flussiExport(Long mygovEnteId, String codFedUserId, String nomeFile, LocalDate dateFrom,
-                                         LocalDate dateTo) throws ValidatorException {
+  public List<FileTo> flussiExport(Long mygovEnteId, String username, String nomeFile, LocalDate dateFrom,
+                                   LocalDate dateTo) throws ValidatorException {
     boolean invalidDates = false;
     LocalDate now = LocalDate.now();
     if (dateFrom == null && dateTo == null) {
@@ -242,16 +245,16 @@ public class FlussoService {
       invalidDates = true;
     }
     if(invalidDates)
-      throw new ValidatorException(messageSource.getMessage("pa.messages.invalidDataIntervallo", null, Locale.ITALY));
+      throw new ValidatorException(messageSource.getMessage(PA_MESSAGES_INVALID_DATA_INTERVALLO, null, Locale.ITALY));
 
     final LocalDate dateFromFinal = dateFrom;
     final LocalDate dateToFinal = dateTo.plusDays(1);
 
     return maxResultsHelper.manageMaxResults(
-        maxResults -> exportDovutiService.getByEnteNomefileDtmodifica
-            (mygovEnteId, codFedUserId, nomeFile, dateFromFinal, dateToFinal, maxResults)
-            .stream().map(this::mapEntityToDto).collect(Collectors.toList()),
-        () -> exportDovutiService.getByEnteNomefileDtmodificaCount(mygovEnteId, codFedUserId, nomeFile, dateFromFinal, dateToFinal) );
+      maxResults -> exportDovutiService.getByEnteNomefileDtmodifica
+          (mygovEnteId, username, nomeFile, dateFromFinal, dateToFinal, maxResults),
+        this::mapEntityToDto,
+      () -> exportDovutiService.getByEnteNomefileDtmodificaCount(mygovEnteId, username, nomeFile, dateFromFinal, dateToFinal) );
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -264,25 +267,28 @@ public class FlussoService {
     } else if (dateFrom == null) {
       dateFrom = LocalDate.now().isBefore(dateTo.plusMonths(-1)) ? LocalDate.now() : dateTo.plusMonths(-1);
     } else if (dateTo.isBefore(dateFrom)) {
-      throw new ValidatorException(messageSource.getMessage("pa.messages.invalidDataIntervallo", null, Locale.ITALY));
+      throw new ValidatorException(messageSource.getMessage(PA_MESSAGES_INVALID_DATA_INTERVALLO, null, Locale.ITALY));
     }
 
     String codRequestToken = UUID.randomUUID().toString();
 
     boolean correctVesioneTracciato = Arrays.stream(Constants.VERSIONE_TRACCIATO_EXPORT.values())
-        .anyMatch(v -> v.getValue().equals(StringUtils.firstNonBlank(versioneTracciato, Constants.DEFAULT_VERSIONE_TRACCIATO)));
+      .anyMatch(v -> v.getValue().equals(StringUtils.firstNonBlank(versioneTracciato, Constants.DEFAULT_VERSIONE_TRACCIATO)));
     if (!correctVesioneTracciato)
       throw new ValidatorException(messageSource.getMessage("pa.messages.notOperatorAccess", null, Locale.ITALY));
 
     boolean flgRicevuta = !Constants.DEFAULT_VERSIONE_TRACCIATO.equals(versioneTracciato);
 
-    if (tipoDovuto != null) {
+    //EXPORT_ENTE_SECONDARIO is a "special marker" to select only the multi-beneficiary (SANP 2.5) payments where the ente is the "secondary ente"
+    // since this tipo dovuto does not exist on DB as a regular tipo-dovuto, the check on DB must be skipped
+    if (tipoDovuto != null && !StringUtils.equals(Constants.COD_TIPO_DOVUTO_EXPORT_ENTE_SECONDARIO, tipoDovuto)) {
       var codIpa = enteService.getEnteById(mygovEnteId).getCodIpaEnte();
-      enteTipoDovutoService.getOptionalByCodTipo(tipoDovuto, codIpa, true).orElseThrow(()-> new NotFoundException("Tipo Dovuto not found"));
+      if(enteTipoDovutoService.getOptionalByCodTipo(tipoDovuto, codIpa, true).isEmpty())
+        throw new NotFoundException("Tipo Dovuto not found");
     }
 
     Long exportDovutiId = exportDovutiService.insert(mygovEnteId, codFedUserId, dateFrom, dateTo, tipoDovuto, codRequestToken,
-        flgRicevuta, false, versioneTracciato);
+      flgRicevuta, false, versioneTracciato);
 
     //add message to EXPORT DOVUTI queue
     queueProducer.enqueueExportDovuti(exportDovutiId);
@@ -291,8 +297,8 @@ public class FlussoService {
   }
 
   @Transactional(propagation =  Propagation.SUPPORTS)
-  public List<FileTo> flussiSPC( Constants.FLG_TIPO_FLUSSO tipoFlusso, Long mygovEnteId, String codFedUserId, String flgProdOrDisp, LocalDate dateFrom,
-                                   LocalDate dateTo) throws ValidatorException {
+  public List<FileTo> flussiSPC( Constants.FLG_TIPO_FLUSSO tipoFlusso, Long mygovEnteId, String flgProdOrDisp, LocalDate dateFrom,
+                                 LocalDate dateTo) throws ValidatorException {
     if (dateFrom == null && dateTo == null) {
       dateTo = LocalDate.now();
       dateFrom = dateTo.plusMonths(-1);
@@ -301,7 +307,7 @@ public class FlussoService {
     } else if (dateFrom == null) {
       dateFrom = LocalDate.now().isBefore(dateTo.plusMonths(-1)) ? LocalDate.now() : dateTo.plusMonths(-1);
     } else if (dateTo.isBefore(dateFrom)) {
-      throw new ValidatorException(messageSource.getMessage("pa.messages.invalidDataIntervallo", null, Locale.ITALY));
+      throw new ValidatorException(messageSource.getMessage(PA_MESSAGES_INVALID_DATA_INTERVALLO, null, Locale.ITALY));
     }
 
     ChiediFlussoSPCPage request = new ChiediFlussoSPCPage();
@@ -339,37 +345,36 @@ public class FlussoService {
 
     if(flusso.getPdfGenerati() != null) {
       flussoTo.setPdfGenerati(flusso.getPdfGenerati());
-      if(Constants.STATO_FLUSSO_ERRORE_CARICAMENTO.equals(flusso.getMygovAnagraficaStatoId().getCodStato())) {
-        if(StringUtils.isNotBlank(flusso.getCodErrore())) {
-          String erroreComposto;
-          String errore = flusso.getCodErrore();
-          if(errore.contains("(")) {
-            int a=0;
-            int b=0;
+      if(Constants.STATO_FLUSSO_ERRORE_CARICAMENTO.equals(flusso.getMygovAnagraficaStatoId().getCodStato()) &&
+              StringUtils.isNotBlank(flusso.getCodErrore())) {
+        String erroreComposto;
+        String errore = flusso.getCodErrore();
+        if(errore.contains("(")) {
+          int a=0;
+          int b=0;
 
-            for(int i = 0; i < errore.length(); i++) {
-              if(errore.charAt(i) == '(') {
-                a = i;
-              }
-              if(errore.charAt(i) == ')') {
-                b = i;
-              }
+          for(int i = 0; i < errore.length(); i++) {
+            if(errore.charAt(i) == '(') {
+              a = i;
             }
-            String codice = errore.substring(a+1, b);
-            String[] temp = codice.split(",");
-            Map<String,String> map = new HashMap<>();
-            for(int i = 0; i<temp.length; i++)
-            {
-              map.put(String.valueOf(i), temp[i]);
+            if(errore.charAt(i) == ')') {
+              b = i;
             }
-            String tempErrore =  errore.substring(0,a);
-            erroreComposto = StringSubstitutor.replace(messageSource.getMessage(MESSAGE_PROPERTY+tempErrore, null, Locale.ITALY), map,"{","}");
           }
-          else {
-            erroreComposto = messageSource.getMessage(MESSAGE_PROPERTY+errore, null, Locale.ITALY);
+          String codice = errore.substring(a+1, b);
+          String[] temp = codice.split(",");
+          Map<String,String> map = new HashMap<>();
+          for(int i = 0; i<temp.length; i++)
+          {
+            map.put(String.valueOf(i), temp[i]);
           }
-          flussoTo.setCodErrore(erroreComposto);
+          String tempErrore =  errore.substring(0,a);
+          erroreComposto = StringSubstitutor.replace(messageSource.getMessage(MESSAGE_PROPERTY+tempErrore, null, Locale.ITALY), map,"{","}");
         }
+        else {
+          erroreComposto = messageSource.getMessage(MESSAGE_PROPERTY+errore, null, Locale.ITALY);
+        }
+        flussoTo.setCodErrore(erroreComposto);
       }
       if(Constants.STATO_FLUSSO_CARICATO.equals(flusso.getMygovAnagraficaStatoId().getCodStato())) {
         flussoTo.setShowDownload(Boolean.TRUE);
@@ -393,10 +398,13 @@ public class FlussoService {
     if(StringUtils.isBlank(fileName))
       fileName = messageSource.getMessage("pa.batch.export.no.data", null, Locale.ITALY);
     FileTo.FileToBuilder builder = FileTo.builder()
-        .name(fileName)
-        .path(exportDovuto.getDeNomeFileGenerato())
-        .dataCreazione(Utilities.toLocalDateTime(exportDovuto.getDtUltimaModifica()))
-        .dimensione(exportDovuto.getNumDimensioneFileGenerato());
+      .name(fileName)
+      .path(exportDovuto.getDeNomeFileGenerato())
+      .dataCreazione(Utilities.toLocalDateTime(exportDovuto.getDtUltimaModifica()))
+      .dimensione(exportDovuto.getNumDimensioneFileGenerato())
+      .codFedUserId(exportDovuto.getMygovUtenteId().getCodFedUserId())
+      .operatore(StringUtils.joinWith(" ", exportDovuto.getMygovUtenteId().getDeFirstname(),exportDovuto.getMygovUtenteId().getDeLastname()))
+      .showDownload(StringUtils.isNotBlank(exportDovuto.getDeNomeFileGenerato()));
     return builder.build();
   }
 
@@ -406,12 +414,12 @@ public class FlussoService {
       int idx = flusso.getDeNomeFileScaricato().lastIndexOf(File.separator);
       String fileName = flusso.getDeNomeFileScaricato().substring(idx + 1);
       FileTo.FileToBuilder builder = FileTo.builder()
-          .identificativo(flusso.getCodIdentificativoFlusso())
-          .name(fileName)
-          .path(flusso.getDeNomeFileScaricato())
-          .dataProduzione(Utilities.toLocalDateTime(flusso.getDtDataOraFlusso().toGregorianCalendar().getTime()))
-          .dataCreazione(Utilities.toLocalDateTime(flusso.getDtCreazione().toGregorianCalendar().getTime())) // Data Disponibilità
-          .dimensione(flusso.getNumDimensioneFileScaricato());
+        .identificativo(flusso.getCodIdentificativoFlusso())
+        .name(fileName)
+        .path(flusso.getDeNomeFileScaricato())
+        .dataProduzione(Utilities.toLocalDateTime(flusso.getDtDataOraFlusso().toGregorianCalendar().getTime()))
+        .dataCreazione(Utilities.toLocalDateTime(flusso.getDtCreazione().toGregorianCalendar().getTime())) // Data Disponibilità
+        .dimensione(flusso.getNumDimensioneFileScaricato());
       files.add(builder.build());
     }
     return files;
@@ -431,13 +439,7 @@ public class FlussoService {
     }
   }
 
-  @Transactional(propagation = Propagation.REQUIRED)
-  public void onUploadFile(String codIpa, String filePath, String authToken){
-    importDovutiService.insert(codIpa, authToken);
-    queueProducer.enqueueImportDovuti(filePath);
-  }
-
-  @Transactional(propagation =  Propagation.SUPPORTS)
+  @Transactional(propagation =  Propagation.REQUIRED)
   public Flusso getRend9Flusso(Ente ente) {
 
     Flusso flusso;
@@ -487,42 +489,163 @@ public class FlussoService {
 
   @Transactional(propagation = Propagation.REQUIRED)
   public Long insertDefault(Ente ente, String iuf, AnagraficaStato anagraficaStato) {
+    var now = new Date();
     Flusso flusso = Flusso.builder()
-        .iuf(iuf)
-        .flgSpontaneo(true)
-        .version(0)
-        .mygovEnteId(ente)
-        .mygovAnagraficaStatoId(anagraficaStato)
-        .numRigheTotali(0L)
-        .numRigheImportateCorrettamente(0L)
-        .flgAttivo(true)
-        .build();
+      .dtCreazione(now)
+      .dtUltimaModifica(now)
+      .iuf(iuf)
+      .flgSpontaneo(iuf.contains("SPONTANEO"))
+      .version(0)
+      .mygovEnteId(ente)
+      .mygovAnagraficaStatoId(anagraficaStato)
+      .numRigheTotali(0L)
+      .numRigheImportateCorrettamente(0L)
+      .flgAttivo(true)
+      .build();
     return flussoDao.insert(flusso);
   }
 
 
   private void validateFile(Ente ente, MultipartFile file) {
+    log.debug("zip filename: [{}]", file.getOriginalFilename());
     if (!StringUtils.endsWithIgnoreCase(file.getOriginalFilename(),".zip")) {
-      throw new ValidatorException("Il formato del file deve essere lo zip.");
-    } else
+      throw new ValidatorException("Il formato del file ["+file.getOriginalFilename()+"] deve essere lo zip.");
+    } else {
       try {
-        String fileNameNoExtension = StringUtils.removeEndIgnoreCase(file.getOriginalFilename(),".zip");
+        String fileNameNoExtension = StringUtils.removeEndIgnoreCase(file.getOriginalFilename(), ".zip");
         ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(file.getBytes()));
         ZipEntry entry;
-        while((entry = zis.getNextEntry()) != null) {
-          if(!StringUtils.startsWith(entry.getName(), fileNameNoExtension + "."))
-            throw new ValidatorException("Il nome del file contenuto deve essere uguale al nome dello zip.");
+        while ((entry = zis.getNextEntry()) != null) {
+          log.debug("zip entry name: [{}]", entry.getName());
+          if (!StringUtils.startsWith(entry.getName(), fileNameNoExtension + "."))
+            throw new ValidatorException("Il nome del file contenuto [" + entry.getName() + "] deve essere uguale al nome dello zip [" + fileNameNoExtension + ".zip].");
         }
       } catch (IOException ex) {
-        throw new ValidatorException("Verificato un errore durante la lettura dello zip caricato.");
+        log.error("error reading zip file [{}]", file.getOriginalFilename(), ex);
+        throw new ValidatorException("Verificato un errore durante la lettura dello zip caricato ["+file.getOriginalFilename()+"].");
       }
+    }
 
-      if (!StringUtils.startsWith(file.getOriginalFilename(), ente.getCodIpaEnte()) )
-        throw new ValidatorException("Il nome del file deve iniziare col codice dell'ente.");
+    if (!StringUtils.startsWith(file.getOriginalFilename(), ente.getCodIpaEnte()) )
+      throw new ValidatorException("Il nome del file ["+file.getOriginalFilename()+"] deve iniziare col codice dell'ente.");
 
 
     if (flussoDao.countDuplicateFileName(file.getOriginalFilename())>0)
-      throw new ValidatorException("Lo stesso nome di file esiste gia'.");
+      throw new ValidatorException("Lo stesso nome di file ["+file.getOriginalFilename()+"] esiste gia'.");
   }
+
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public int updateFlussoImport(Flusso flusso) {
+
+    String codStato = StringUtils.isNotBlank(flusso.getCodErrore()) ? Constants.STATO_FLUSSO_ERRORE_CARICAMENTO
+            : (!gpdEnabled || flusso.getNumRigheImportateCorrettamente() == 0) ? Constants.STATO_FLUSSO_CARICATO
+            : Constants.STATO_FLUSSO_IN_CARICAMENTO;
+
+    AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(codStato, Constants.STATO_TIPO_FLUSSO);
+    flusso.setMygovAnagraficaStatoId(anagraficaStato);
+    flusso.setDtUltimaModifica(new Date());
+    flusso.setVersion(flusso.getVersion()+1);
+    int updatedRec = flussoDao.update(flusso);
+    if (updatedRec != 1)
+      throw new MyPayException("Errore interno aggiornamento flusso");
+    return updatedRec;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void updateStatoNumDovutiImportati(Long mygovFlussoId, Long mygovAnagraficaStatoId, Long numRigheImportateCorrettamente) {
+    flussoDao.updateStatoNumDovutiImportati(mygovFlussoId, mygovAnagraficaStatoId, numRigheImportateCorrettamente);
+  }
+
+
+  @Transactional(propagation =  Propagation.SUPPORTS)
+  public List<FileTo> flussiExportConservazione(Long mygovEnteId, String codFedUserId, String nomeFile, LocalDate dateFrom,
+                                                LocalDate dateTo) throws ValidatorException {
+    boolean invalidDates = false;
+    LocalDate now = LocalDate.now();
+    if (dateFrom == null && dateTo == null) {
+      dateTo = LocalDate.now();
+      dateFrom = dateTo.minusMonths(1);
+    } else if (dateTo == null) {
+      invalidDates = dateFrom.isAfter(LocalDate.now());
+      dateTo = dateFrom.plusMonths(1).isBefore(now) ? dateFrom.plusMonths(1) : now;
+    } else if (dateFrom == null) {
+      invalidDates = dateTo.isAfter(LocalDate.now());
+      dateFrom = dateTo.minusMonths(1);
+    } else if (dateTo.isBefore(dateFrom)) {
+      invalidDates = true;
+    }
+    if(invalidDates)
+      throw new ValidatorException(messageSource.getMessage("pa.messages.invalidDataIntervallo", null, Locale.ITALY));
+
+    final LocalDate dateFromFinal = dateFrom;
+    final LocalDate dateToFinal = dateTo.plusDays(1);
+
+    return maxResultsHelper.manageMaxResults(
+            maxResults -> flussoConservazioneService.getByEnteNomefileDtmodifica
+                            (mygovEnteId, codFedUserId, nomeFile, dateFromFinal, dateToFinal, maxResults)
+                    .stream().map(this::mapEntityToDto).collect(Collectors.toList()),
+            () -> flussoConservazioneService.getByEnteNomefileDtmodificaCount(mygovEnteId, codFedUserId, nomeFile, dateFromFinal, dateToFinal) );
+
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public long flussiExportConservazioneInsert(Long mygovEnteId, String codFedUserId, String tipoTracciato, LocalDate dateFrom, LocalDate dateTo) throws ValidatorException {
+    if (dateFrom == null && dateTo == null) {
+      dateTo = LocalDate.now();
+      dateFrom = dateTo.plusMonths(-1);
+    } else if (dateTo == null) {
+      dateTo = dateFrom.plusMonths(1);
+    } else if (dateFrom == null) {
+      dateFrom = LocalDate.now().isBefore(dateTo.plusMonths(-1)) ? LocalDate.now() : dateTo.plusMonths(-1);
+    } else if (dateTo.isBefore(dateFrom)) {
+      throw new ValidatorException(messageSource.getMessage("pa.messages.invalidDataIntervallo", null, Locale.ITALY));
+    }
+
+    String codRequestToken = UUID.randomUUID().toString();
+
+    if (StringUtils.isBlank(tipoTracciato))
+      tipoTracciato = Constants.DEFAULT_TIPO_TRACCIATO;
+
+    long exportConservazioneId = flussoConservazioneService.insert(mygovEnteId, codFedUserId, dateFrom, dateTo, codRequestToken,
+            tipoTracciato);
+
+    return exportConservazioneId;
+  }
+
+  private FileTo mapEntityToDto(ExportConservazione exportDovuto) {
+    String fileName = FilenameUtils.getName(exportDovuto.getDeNomeFileGenerato());
+    FileTo.FileToBuilder builder = FileTo.builder()
+            .name(fileName)
+            .path(exportDovuto.getDeNomeFileGenerato())
+            .dataCreazione(Utilities.toLocalDateTime(exportDovuto.getDtUltimaModifica()))
+            .dimensione(exportDovuto.getNumDimensioneFileGenerato())
+            .dataInizio(Utilities.toLocalDateTime(exportDovuto.getDtInizioEstrazione()))
+            .dataFine(Utilities.toLocalDateTime(exportDovuto.getDtFineEstrazione()))
+            .stato(exportDovuto.getMygovAnagraficaStatoId().getCodStato())
+            .id(exportDovuto.getMygovExportConservazioneId());
+    return builder.build();
+  }
+
+    // GPD massiva
+
+    /**
+     * Updates the status of the flow as completed.
+     *
+     * @param flusso the payment flow
+     */
+    public void updateStatusAsCompleted(Flusso flusso) {
+        AnagraficaStato statoCaricato = anagraficaStatoService
+                .getByCodStatoAndTipoStato(Constants.STATO_FLUSSO_CARICATO,
+                        Constants.STATO_TIPO_FLUSSO);
+
+        updateStatoNumDovutiImportati(flusso.getMygovFlussoId(),
+                statoCaricato.getMygovAnagraficaStatoId(), flusso.getNumRigheImportateCorrettamente());
+
+        ImportDovuti flussoImport = importDovutiService.getFlussoImport(flusso.getCodRequestToken());
+        if (flussoImport != null) {
+            importDovutiService.updateImportFlusso(flussoImport, Constants.STATO_IMPORT_ESEGUITO);
+        }
+    }
 
 }

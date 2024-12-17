@@ -17,21 +17,27 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.config;
 
+import it.regioneveneto.mygov.payment.mypay4.AbstractApplication;
 import it.regioneveneto.mygov.payment.mypay4.dao.EnteDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.GiornaleDao;
+import it.regioneveneto.mygov.payment.mypay4.dao.ReceiptDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.*;
 import it.regioneveneto.mygov.payment.mypay4.dao.catalog.CatalogDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.common.DbToolsDao;
+import it.regioneveneto.mygov.payment.mypay4.dao.extra.BonificaPaSendRtFespDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.fesp.*;
+import it.regioneveneto.mygov.payment.mypay4.extra.bonificapasendrt.BonificaPaSendRtStandaloneApplication;
 import it.regioneveneto.mygov.payment.mypay4.logging.JdbiSqlLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.RowMapper;
 import org.jdbi.v3.core.spi.JdbiPlugin;
+import org.jdbi.v3.core.statement.SqlStatements;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -39,7 +45,9 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -52,6 +60,9 @@ public class JdbiConfiguration {
   @Value("${sql-logging.slow.milliseconds:0}")
   private int sqlLogginSlowQueryTresholdMs;
 
+  @Value("${mypay4.statements.timeout.seconds:-1}")
+  private int globalStatementTimeout;
+
 
   @Autowired
   JdbiSqlLogger jdbiSqlLogger;
@@ -59,29 +70,37 @@ public class JdbiConfiguration {
   @Primary
   @Bean("jdbiPa")
   public Jdbi paJdbi(@Qualifier("dsPa") DataSource ds, List<JdbiPlugin> jdbiPlugins, List<RowMapper<?>> rowMappers) {
-    return _createJdbi(ds, jdbiPlugins, rowMappers);
+    return createJdbiImpl(ds, jdbiPlugins, rowMappers);
   }
 
   @Bean("jdbiFesp")
   public Jdbi fespJdbi(@Qualifier("dsFesp") DataSource ds, List<JdbiPlugin> jdbiPlugins, List<RowMapper<?>> rowMappers) {
-    return _createJdbi(ds, jdbiPlugins, rowMappers);
+    return createJdbiImpl(ds, jdbiPlugins, rowMappers);
   }
 
-  private Jdbi _createJdbi (DataSource ds, List<JdbiPlugin> jdbiPlugins, List<RowMapper<?>> rowMappers) {
+  private Jdbi createJdbiImpl(DataSource ds, List<JdbiPlugin> jdbiPlugins, List<RowMapper<?>> rowMappers) {
+    String dsString;
+    try(Connection connection = ds.getConnection()){
+      dsString = connection.getMetaData().getURL();
+    } catch (Exception e){
+      dsString = ds.toString();
+    }
+    final String dsStringFinal = dsString;
     TransactionAwareDataSourceProxy proxy = new TransactionAwareDataSourceProxy(ds);
     Jdbi jdbi = Jdbi.create(proxy);
+    if(globalStatementTimeout >= 0)
+      jdbi = jdbi.configure(SqlStatements.class, stmt -> {
+        log.info("set default query timeout for ds {} to {} seconds", dsStringFinal, globalStatementTimeout);
+        stmt.setQueryTimeout(globalStatementTimeout);
+      });
+    else
+      log.info("not setting default query timeout for ds {} (value {})", dsStringFinal, globalStatementTimeout);
     if(!"false".equalsIgnoreCase(sqlLogginEnabled)) {
       jdbiSqlLogger.setBehaviour(sqlLogginEnabled);
       jdbiSqlLogger.setSlowQueryTresholdMs(sqlLogginSlowQueryTresholdMs);
       jdbi.setSqlLogger(jdbiSqlLogger);
     }
     // Register all available plugins
-    String dsString;
-    try{
-      dsString = ds.getConnection().getMetaData().getURL();
-    } catch (Exception e){
-      dsString = ds.toString();
-    }
     log.debug("Datasource {} - Installing jdbi plugins... ({} found): {}"
         , dsString, jdbiPlugins.size()
         , jdbiPlugins.stream().map(x -> x.getClass().getName()).collect(Collectors.joining(", ")) );
@@ -104,6 +123,7 @@ public class JdbiConfiguration {
     var source = new ResourceBundleMessageSource();
     source.setBasenames("messages/messages");
     source.setUseCodeAsDefaultMessage(true);
+    source.setDefaultLocale(Locale.ITALIAN);
     return source;
   }
 
@@ -122,8 +142,34 @@ public class JdbiConfiguration {
   public DovutoElaboratoDao dovutoElaboratoDao(Jdbi jdbi) { return jdbi.onDemand(DovutoElaboratoDao.class); }
 
   @Bean
+  public DovutoMultibeneficiarioElaboratoDao dovutoBeneficiarioElaboratoDao(Jdbi jdbi) {
+    return jdbi.onDemand(DovutoMultibeneficiarioElaboratoDao.class);
+  }
+
+  @Bean
   public DovutoDao dovutoDao(Jdbi jdbi) {
     return jdbi.onDemand(DovutoDao.class);
+  }
+
+  @Bean
+  public GpdSyncDao gpdSyncDao(Jdbi jdbi) {
+    return jdbi.onDemand(GpdSyncDao.class);
+  }
+
+  @Bean
+  public GpdErrDovutoDao gpdErrDovutoDao(Jdbi jdbi) {
+    return jdbi.onDemand(GpdErrDovutoDao.class);
+  }
+
+
+  @Bean
+  public DovutoPreloadDao gpdDovutoPreloadDao(Jdbi jdbi) {
+    return jdbi.onDemand(DovutoPreloadDao.class);
+  }
+
+  @Bean
+  public DovutoMultibeneficiarioDao dovutoBeneficiarioDao(Jdbi jdbi) {
+	  return jdbi.onDemand(DovutoMultibeneficiarioDao.class);
   }
 
   @Bean
@@ -139,6 +185,11 @@ public class JdbiConfiguration {
   @Bean
   public FlussoDao flussiDao(Jdbi jdbi) {
     return jdbi.onDemand(FlussoDao.class);
+  }
+
+  @Bean
+  public FlussoExportScadutiDao flussoExportScadutiDao(Jdbi jdbi) {
+    return jdbi.onDemand(FlussoExportScadutiDao.class);
   }
 
   @Bean
@@ -330,4 +381,30 @@ public class JdbiConfiguration {
     return jdbi.onDemand(DbToolsDao.class);
   }
 
+
+  @Bean
+  public ReceiptDao receiptDao(@Qualifier("jdbiPa") Jdbi jdbi) { return jdbi.onDemand(ReceiptDao.class); }
+
+  @Bean
+  public it.regioneveneto.mygov.payment.mypay4.dao.fesp.ReceiptDao fespReceiptDao(@Qualifier("jdbiFesp") Jdbi jdbi) {
+    return jdbi.onDemand(it.regioneveneto.mygov.payment.mypay4.dao.fesp.ReceiptDao.class);
+  }
+
+  @Bean
+  @ConditionalOnProperty(name= AbstractApplication.NAME_KEY, havingValue= BonificaPaSendRtStandaloneApplication.NAME)
+  public BonificaPaSendRtFespDao bonificaPaSendRtFespDao(@Qualifier("jdbiFesp") Jdbi jdbi) {
+    return jdbi.onDemand(BonificaPaSendRtFespDao.class);
+  }
+
+  @Bean("fespRPTConservazioneDao")
+  public RPTConservazioneDao fespRPTConservazioneDao(@Qualifier("jdbiFesp")Jdbi jdbi) { return jdbi.onDemand(RPTConservazioneDao.class); }
+
+  @Bean("fespRTConservazioneDao")
+  public RTConservazioneDao fespRTConservazioneDao(@Qualifier("jdbiFesp")Jdbi jdbi) { return jdbi.onDemand(RTConservazioneDao.class); }
+
+  @Bean("fespNodoFespDao")
+  public NodoFespDao nodoFespDao(@Qualifier("jdbiFesp")Jdbi jdbi) { return jdbi.onDemand(NodoFespDao.class); }
+
+  @Bean("exportConservazioneDao")
+  public ExportConservazioneDao exportConservazioneDao(Jdbi jdbi) { return jdbi.onDemand(ExportConservazioneDao.class); }
 }

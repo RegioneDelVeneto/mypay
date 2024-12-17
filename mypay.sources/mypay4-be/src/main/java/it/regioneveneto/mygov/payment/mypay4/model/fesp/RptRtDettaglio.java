@@ -35,11 +35,12 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovRptRtDettaglioId")
 public class RptRtDettaglio {
 
-  public final static String ALIAS = "FESP_RptRtDettaglio";
-  public final static String FIELDS = ""+ALIAS+".mygov_rpt_rt_dettaglio_id as FESP_RptRtDettaglio_mygovRptRtDettaglioId"+
+  public static final String ALIAS = "FESP_RptRtDettaglio";
+  public static final String FIELDS = ""+ALIAS+".mygov_rpt_rt_dettaglio_id as FESP_RptRtDettaglio_mygovRptRtDettaglioId"+
       ","+ALIAS+".version as FESP_RptRtDettaglio_version,"+ALIAS+".dt_creazione as FESP_RptRtDettaglio_dtCreazione"+
       ","+ALIAS+".dt_ultima_modifica as FESP_RptRtDettaglio_dtUltimaModifica"+
       ","+ALIAS+".mygov_rpt_rt_id as FESP_RptRtDettaglio_mygovRptRtId"+
+      ","+ALIAS+".mygov_carrello_rpt_pagopa_id as FESP_RptRtDettaglio_mygovCarrelloRptPagopaId"+
       ","+ALIAS+".num_rpt_dati_vers_dati_sing_vers_importo_singolo_versamento as FESP_RptRtDettaglio_numRptDatiVersDatiSingVersImportoSingoloVersamento"+
       ","+ALIAS+".num_rpt_dati_vers_dati_sing_vers_commissione_carico_pa as FESP_RptRtDettaglio_numRptDatiVersDatiSingVersCommissioneCaricoPa"+
       ","+ALIAS+".de_rpt_dati_vers_dati_sing_vers_iban_accredito as FESP_RptRtDettaglio_deRptDatiVersDatiSingVersIbanAccredito"+
@@ -68,6 +69,7 @@ public class RptRtDettaglio {
   private Date dtUltimaModifica;
   @Nested(RptRt.ALIAS)
   private RptRt mygovRptRtId;
+  private String mygovCarrelloRptPagopaId;
   private BigDecimal numRptDatiVersDatiSingVersImportoSingoloVersamento;
   private BigDecimal numRptDatiVersDatiSingVersCommissioneCaricoPa;
   private String deRptDatiVersDatiSingVersIbanAccredito;

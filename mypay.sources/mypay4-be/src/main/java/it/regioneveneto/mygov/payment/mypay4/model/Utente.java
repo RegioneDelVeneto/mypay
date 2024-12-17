@@ -35,7 +35,7 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovUtenteId")
 public class Utente extends BaseEntity {
 
-  public final static char EMAIL_SOURCE_TYPE_BACKOFFICE = 'B';
+  public static final char EMAIL_SOURCE_TYPE_BACKOFFICE = 'B';
 
   public enum EMAIL_SOURCE_TYPES {
     AUTH_SYSTEM('A'),
@@ -62,8 +62,8 @@ public class Utente extends BaseEntity {
     }
   }
 
-  public final static String ALIAS = "Utente";
-  public final static String FIELDS = ""+ALIAS+".mygov_utente_id as Utente_mygovUtenteId,"+ALIAS+".version as Utente_version"+
+  public static final String ALIAS = "Utente";
+  public static final String FIELDS = ""+ALIAS+".mygov_utente_id as Utente_mygovUtenteId,"+ALIAS+".version as Utente_version"+
       ","+ALIAS+".cod_fed_user_id as Utente_codFedUserId,"+ALIAS+".cod_codice_fiscale_utente as Utente_codCodiceFiscaleUtente"+
       ","+ALIAS+".flg_fed_authorized as Utente_flgFedAuthorized,"+ALIAS+".de_email_address as Utente_deEmailAddress"+
       ","+ALIAS+".de_firstname as Utente_deFirstname,"+ALIAS+".de_lastname as Utente_deLastname"+

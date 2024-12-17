@@ -100,7 +100,7 @@ public class ChiediFlussoRendicontazioneTaskService {
 
 
   private long counter = 0;
-  @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
+  @Transactional(transactionManager = "tmFesp", propagation = Propagation.NEVER)
   public void chiediFlussoRendicontazione(){
     log.info("chiediFlussoRendicontazione start [{}]", ++counter);
     log.info("filterEnti: {}", filterEnti);

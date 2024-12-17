@@ -34,8 +34,8 @@ import java.math.BigDecimal;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovEnteTipoDovutoId")
 public class EnteTipoDovuto extends BaseEntity {
 
-  public final static String ALIAS = "EnteTipoDovuto";
-  public final static String FIELDS = ""+ALIAS+".mygov_ente_tipo_dovuto_id as EnteTipoDovuto_mygovEnteTipoDovutoId"+
+  public static final String ALIAS = "EnteTipoDovuto";
+  public static final String FIELDS = ""+ALIAS+".mygov_ente_tipo_dovuto_id as EnteTipoDovuto_mygovEnteTipoDovutoId"+
       ","+ALIAS+".mygov_ente_id as EnteTipoDovuto_mygovEnteId,"+ALIAS+".cod_tipo as EnteTipoDovuto_codTipo"+
       ","+ALIAS+".de_tipo as EnteTipoDovuto_deTipo,"+ALIAS+".iban_accredito_pi as EnteTipoDovuto_ibanAccreditoPi"+
       ","+ALIAS+".bic_accredito_pi as EnteTipoDovuto_bicAccreditoPi"+
@@ -63,7 +63,11 @@ public class EnteTipoDovuto extends BaseEntity {
       ","+ALIAS+".flg_disabilita_stampa_avviso as EnteTipoDovuto_flgDisabilitaStampaAvviso"+
       ","+ALIAS+".macro_area as EnteTipoDovuto_macroArea,"+ALIAS+".tipo_servizio as EnteTipoDovuto_tipoServizio"+
       ","+ALIAS+".motivo_riscossione as EnteTipoDovuto_motivoRiscossione"+
-      ","+ALIAS+".cod_tassonomico as EnteTipoDovuto_codTassonomico";
+      ","+ALIAS+".cod_tassonomico as EnteTipoDovuto_codTassonomico" +
+             ","+ALIAS+".url_notifica_pnd as EnteTipoDovuto_urlNotificaPnd"+
+          ","+ALIAS+".user_pnd as EnteTipoDovuto_userPnd"+
+          ","+ALIAS+".psw_pnd as EnteTipoDovuto_pswPnd"+
+          ","+ALIAS+".url_notifica_attualizzazione_pnd as EnteTipoDovuto_urlNotificaAttualizzazionePnd";
 
 
   private Long mygovEnteTipoDovutoId;
@@ -103,4 +107,8 @@ public class EnteTipoDovuto extends BaseEntity {
   private String tipoServizio;
   private String motivoRiscossione;
   private String codTassonomico;
+  private String urlNotificaPnd;
+  private String userPnd;
+  private String pswPnd;
+  private String urlNotificaAttualizzazionePnd;
 }

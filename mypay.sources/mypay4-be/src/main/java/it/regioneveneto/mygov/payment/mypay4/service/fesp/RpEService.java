@@ -23,6 +23,7 @@ import it.regioneveneto.mygov.payment.mypay4.dto.common.Psp;
 import it.regioneveneto.mygov.payment.mypay4.dto.fesp.RpEDettaglioDto;
 import it.regioneveneto.mygov.payment.mypay4.exception.MandatoryFieldsException;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
+import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.model.fesp.CarrelloRp;
 import it.regioneveneto.mygov.payment.mypay4.model.fesp.RpE;
 import it.regioneveneto.mygov.payment.mypay4.model.fesp.RpEDettaglio;
@@ -78,7 +79,6 @@ public class RpEService {
         .codRpSilinviarpCodiceContestoPagamento(elementoRP.getCodiceContestoPagamento())
         .deRpVersioneOggetto(rp.getVersioneOggetto())
         .codRpDomIdDominio(rp.getDominio().getIdentificativoDominio())
-        //.codRpDomIdStazioneRichiedente(rp.getDominio().getIdentificativoStazioneRichiedente())  TODO: IT'S NULL???
         .codRpIdMessaggioRichiesta(rp.getIdentificativoMessaggioRichiesta())
         .dtRpDataOraMessaggioRichiesta(rp.getDataOraMessaggioRichiesta().toGregorianCalendar().getTime())
         .codRpAutenticazioneSoggetto(rp.getAutenticazioneSoggetto().toString())
@@ -161,6 +161,7 @@ public class RpEService {
     return insertRpEDettaglio(dettaglio);
   }
 
+  @SuppressWarnings("java:S107")
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
   public RpE insertRPWithRefresh(final String codRpSilinviarpIdPsp, final String codRpSilinviarpIdIntermediarioPsp, final String codRpSilinviarpIdCanale,
                                       final String codRpSilinviarpIdDominio, final String codRpSilinviarpIdUnivocoVersamento, final String codRpSilinviarpCodiceContestoPagamento,
@@ -241,22 +242,40 @@ public class RpEService {
     return rpE;
   }
 
+  @SuppressWarnings("java:S107")
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
   public RpE updateRispostaRpById(final Long mygovRpEId, final String deRpSilinviarpEsito, final Integer codRpSilinviarpRedirect,
                                          final String codRpSilinviarpUrl, final String codRpSilinviarpFaultCode, final String deRpSilinviarpFaultString, final String codRpSilinviarpId,
                                          final String deRpSilinviarpDescription, final Integer codRpSilinviarpSerial, final String idSession, final String codRpSilinviarpOriginalFaultCode,
                                          final String deRpSilinviarpOriginalFaultString, final String deRpSilinviarpOriginalFaultDescription) throws DataAccessException {
+    log.debug("mygovRpEId=[{}] "+
+              "deRpSilinviarpEsito=[{}] "+
+              "codRpSilinviarpRedirect=[{}] "+
+              "codRpSilinviarpUrl=[{}] "+
+              "codRpSilinviarpFaultCode=[{}] "+
+              "deRpSilinviarpFaultString=[{}] "+
+              "codRpSilinviarpId=[{}] "+
+              "deRpSilinviarpDescription=[{}] "+
+              "codRpSilinviarpSerial=[{}] "+
+              "idSession=[{}] "+
+              "codRpSilinviarpOriginalFaultCode=[{}] "+
+              "deRpSilinviarpOriginalFaultString=[{}] "+
+              "deRpSilinviarpOriginalFaultDescription=[{}] "
+              ,mygovRpEId
+              ,deRpSilinviarpEsito
+              ,codRpSilinviarpRedirect
+              ,codRpSilinviarpUrl
+              ,codRpSilinviarpFaultCode
+              ,deRpSilinviarpFaultString
+              ,codRpSilinviarpId
+              ,deRpSilinviarpDescription
+              ,codRpSilinviarpSerial
+              ,idSession
+              ,codRpSilinviarpOriginalFaultCode
+              ,deRpSilinviarpOriginalFaultString
+              ,deRpSilinviarpOriginalFaultDescription);
 
-    log.debug("Invocato metodo updateRispostaRpById PARAMETRI ::: " + "mygovRpEId = [" + mygovRpEId + "] ::: deRpSilinviarpEsito = [" + deRpSilinviarpEsito
-        + "] ::: codRpSilinviarpRedirect = [" + codRpSilinviarpRedirect + "] ::: codRpSilinviarpUrl = [" + codRpSilinviarpUrl
-        + "] ::: codRpSilinviarpFaultCode = [" + codRpSilinviarpFaultCode + "] ::: deRpSilinviarpFaultString = [" + deRpSilinviarpFaultString
-        + "] ::: codRpSilinviarpId = [" + codRpSilinviarpId + "] ::: deRpSilinviarpDescription = [" + deRpSilinviarpDescription
-        + "] ::: codRpSilinviarpSerial = [" + codRpSilinviarpSerial + "] ::: idSession = [" + idSession + "] ::: "
-        + "codRpSilinviarpOriginalFaultCode = [" + codRpSilinviarpOriginalFaultCode + "] ::: "
-        + "deRpSilinviarpOriginalFaultString = [" + deRpSilinviarpOriginalFaultString + "] ::: "
-        + "deRpSilinviarpOriginalFaultDescription = [" + deRpSilinviarpOriginalFaultDescription + "] ::: ");
-
-    RpE mygovRpE = getById(mygovRpEId).orElse(null);
+    RpE mygovRpE = getById(mygovRpEId).orElseThrow(NotFoundException::new);
 
     mygovRpE.setDtUltimaModificaRp(new Date());
     mygovRpE.setDeRpSilinviarpEsito(deRpSilinviarpEsito);
@@ -344,7 +363,7 @@ public class RpEService {
 
   public Optional<RpE> getById(Long id){ return rpEDao.getById(id); }
 
-  public List<RpE> getByCart(CarrelloRp CarrelloRp) { return rpEDao.getByCart(CarrelloRp.getMygovCarrelloRpId()); }
+  public List<RpE> getByCart(CarrelloRp carrelloRp) { return rpEDao.getByCart(carrelloRp.getMygovCarrelloRpId()); }
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
   public void updateCarrelloRef(RpE rpE, CarrelloRp carrelloRp) {
@@ -353,12 +372,13 @@ public class RpEService {
         .build();
     int updated = rpEDao.update(rpE);
     if(updated!=1)
-      throw new MyPayException(String.format("invalid number of rows updated: %d for mygovCarrelloRpId: %d", updated, rpE.getMygovCarrelloRpId()));
+      throw new MyPayException(String.format("invalid number of rows updated: %d for mygovCarrelloRpId: %d", updated,
+              Optional.ofNullable(rpE.getMygovCarrelloRpId()).map(CarrelloRp::getMygovCarrelloRpId).orElse(null)));
   }
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
   public RpE updateEById(Long mygovRpEId, Esito esito, IntestazionePPT header) {
-    RpE rpE = self.getById(mygovRpEId).get()
+    RpE rpE = self.getById(mygovRpEId).orElseThrow(NotFoundException::new)
         .toBuilder()
         .codESilinviaesitoIdDominio(header.getIdentificativoDominio())
         .codESilinviaesitoIdUnivocoVersamento(header.getIdentificativoUnivocoVersamento())
@@ -421,7 +441,7 @@ public class RpEService {
     String logMsg = String.format("Invocato metodo updateRispostaEById PARAMETRI ::: " + "mygovRpEId = [%d] ::: codAckE = [%s] ::: deESilinviaesitoEsito = [%s] ", mygovRpEId, Constants.ACK_STRING, esitoRisposta.getEsito());
     String logFault = "";
 
-    RpE rpE = self.getById(mygovRpEId).get()
+    RpE rpE = self.getById(mygovRpEId).orElseThrow(NotFoundException::new)
         .toBuilder()
         .dtUltimaModificaE(new Date())
         .codAckE(Constants.ACK_STRING)
@@ -444,7 +464,7 @@ public class RpEService {
           + "] ::: deESilinviaesitoDescription = [" + f.getDescription() + "] ::: codESilinviaesitoSerial = [" + f.getSerial()
           + "] ::: codESilinviaesitoOriginalFaultCode = [" + f.getOriginalFaultCode() + "] ::: deESilinviaesitoOriginalFaultString = [" + f.getOriginalFaultString()
           + "] ::: deESilinviaesitoOriginalFaultDescription = [" + f.getOriginalDescription() + "]";
-    };
+    }
 
     log.debug(logMsg + logFault);
     int updated = rpEDao.update(rpE);

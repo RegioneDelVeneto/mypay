@@ -25,13 +25,9 @@ export class WithActions {
     element.enabledActions = null;
   }
 
-  public static toggleFloatingButtons(tableId: string, element: WithActions){
+  public static toggleFloatingButtons(_tableId: string, _element: WithActions){
     //do nothing since we are no more using floating buttons for actions, but vertical menu
     return;
-
-    if(!(element.showFloatingButtons instanceof Map))
-      element.showFloatingButtons = new Map();
-    element.showFloatingButtons.set(tableId, !element.showFloatingButtons.get(tableId));
   }
 
 }

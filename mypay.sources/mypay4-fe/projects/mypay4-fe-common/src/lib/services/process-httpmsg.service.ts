@@ -27,7 +27,9 @@ import { AlreadyManagedError } from '../model/already-managed-error';
 })
 export class ProcessHTTPMsgService {
 
-  constructor() { }
+  constructor() {
+    //This is intentionally empty
+  }
 
   public handleError(error: HttpErrorResponse) {
 
@@ -49,15 +51,17 @@ export class ProcessHTTPMsgService {
       errMsg = 'Impossibile eseguire l\'operazione: '
     } else if(error.status==418){  //I_AM_A_TEAPOT, used to bypass courtesy page with 404
       errMsg = 'Risorsa non trovata: '
+    } else if(error.status==471){  //recaptcha fallback
+      return throwError(error);
     } else {
       const status = error.status ? ('['+error.status+']') : '';
       errMsg = 'Errore di sistema '+status+': ';
-    };
+    }
 
     if(error.error instanceof Blob){
       const reader: FileReader = new FileReader();
       const obs = new Observable((observer: any) => {
-        reader.onloadend = (e) => {
+        reader.onloadend = (_event) => {
           let message;
           let errorUID;
           try{
@@ -98,7 +102,7 @@ export class ProcessHTTPMsgService {
     return throwError(error);
   }
 
-  public static trimMessage(errMsg:string, message:string, errorUID?:string){
+  public static trimMessage(errMsg:string, message?:string, errorUID?:string){
     if(message)
       errMsg += message?.substring(0,150);
     //strip html

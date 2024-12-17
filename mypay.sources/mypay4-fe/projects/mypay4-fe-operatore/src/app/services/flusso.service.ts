@@ -107,4 +107,29 @@ export class FlussoService {
   removeFlusso(ente: Ente, mygovFlussoId: number): Observable<any> {
     return this.apiInvokerService.get<any>(this.baseUrlService.getOperatoreUrl() + 'flussi/remove/' + ente.mygovEnteId + '/' + mygovFlussoId);
   }
+
+  insertFlussiExportConservazione(ente: Ente, dateFrom: DateTime, dateTo: DateTime, versioneTracciato: string): Observable<number> {
+    let params = new HttpParams();
+    params = params
+      .append('from', dateFrom.toFormat('yyyy/MM/dd'))
+      .append('to', dateTo.toFormat('yyyy/MM/dd'))
+      .append('tipoTracciato', versioneTracciato);
+    return this.apiInvokerService.get<number>(this.baseUrlService.getOperatoreUrl() + 'flussi/export/conservazione/insert/' + ente.mygovEnteId, { params: params });
+  }
+
+  searchFlussiExportConservazione(ente: Ente, nomeFlusso: string, dateFrom: DateTime, dateTo: DateTime): Observable<FlussoFile[]> {
+    let params = new HttpParams();
+    if (nomeFlusso)
+      params = params.append('nomeFlusso', nomeFlusso);
+    params = params
+      .append('from', dateFrom.toFormat('yyyy/MM/dd'))
+      .append('to', dateTo.toFormat('yyyy/MM/dd'));
+    return this.apiInvokerService.get<FlussoFile[]>
+      (this.baseUrlService.getOperatoreUrl() + 'flussi/export/conservazione/' + ente.mygovEnteId, { params: params }, new Mappers({ mapperS2C: FlussoFile }));
+  }
+
+  reloadFlusso(ente: Ente, flussoFile: FlussoFile): any {
+    return this.apiInvokerService.get<FlussoFile[]>(this.baseUrlService.getOperatoreUrl() + 'flussi/conservazione/reload/' + ente.mygovEnteId + '/' + flussoFile.id);
+  }
+
 }

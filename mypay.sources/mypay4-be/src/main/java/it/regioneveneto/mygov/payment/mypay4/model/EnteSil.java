@@ -33,8 +33,8 @@ import org.jdbi.v3.core.mapper.Nested;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovEnteSilId")
 public class EnteSil extends BaseEntity {
 
-  public final static String ALIAS = "EnteSil";
-  public final static String FIELDS = ""+ALIAS+".mygov_ente_sil_id as EnteSil_mygovEnteSilId,"+ALIAS+".mygov_ente_id as EnteSil_mygovEnteId"+
+  public static final String ALIAS = "EnteSil";
+  public static final String FIELDS = ""+ALIAS+".mygov_ente_sil_id as EnteSil_mygovEnteSilId,"+ALIAS+".mygov_ente_id as EnteSil_mygovEnteId"+
       ","+ALIAS+".nome_applicativo as EnteSil_nomeApplicativo"+
       ","+ALIAS+".de_url_inoltro_esito_pagamento_push as EnteSil_deUrlInoltroEsitoPagamentoPush"+
       ","+ALIAS+".cod_service_account_jwt_entrata_client_id as EnteSil_codServiceAccountJwtEntrataClientId"+

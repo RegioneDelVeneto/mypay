@@ -28,7 +28,9 @@ export class CoreAppService {
 
   private activationState = new BehaviorSubject<CoreAppElementsActivation>(this.DEFAULT_STATE);
 
-  constructor() { }
+  constructor() { 
+    //This is intentionally empty
+  }
 
   public setState(newState: CoreAppElementsActivation){
     const currentState = this.activationState.getValue();

@@ -141,7 +141,7 @@ export class ContentDispositionUtil{
       var value
 
       // calculate index to start at
-      index = ContentDispositionUtil.PARAM_REGEXP.lastIndex = match[0].substr(-1) === ';'
+      index = ContentDispositionUtil.PARAM_REGEXP.lastIndex = match[0].slice(-1) === ';'
         ? index - 1
         : index
 
@@ -178,7 +178,7 @@ export class ContentDispositionUtil{
         if (value[0] === '"') {
           // remove quotes and escapes
           value = value
-            .substr(1, value.length - 2)
+            .substring(1, value.length - 1)
             .replace(ContentDispositionUtil.QESC_REGEXP, '$1')
         }
 
@@ -241,7 +241,7 @@ export class ContentDispositionUtil{
    * @private
    */
 
-   private static pdecode (str, hex) {
+   private static pdecode (_str, hex) {
     return String.fromCharCode(parseInt(hex, 16))
   }
 

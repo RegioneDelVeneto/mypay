@@ -386,6 +386,7 @@ export class DatiUtenteComponent implements OnInit, OnDestroy, WithTitle {
       .subscribe(() => {
         this.userService.updateUserData(utente);
         this.loggedUser = this.userService.getLoggedUser();
+        this.addressViewMode = true;
         this.overlaySpinnerService.detach(spinner);
         this.toastrService.success('Dati utente aggiornati correttamente.');
       }, manageError('Errore aggiornando i dati utente', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );

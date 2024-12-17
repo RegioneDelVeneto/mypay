@@ -38,7 +38,7 @@ public class DovutoUtils {
     Long currentCarrelloId = null;
     for (DovutoElaborato de : listaDovutiElaborati) {
       if (currentCarrelloId != null) {
-        if (currentCarrelloId != de.getMygovCarrelloId().getMygovCarrelloId())
+        if (!currentCarrelloId.equals(de.getMygovCarrelloId().getMygovCarrelloId()))
           return false;
       }
       currentCarrelloId = de.getMygovCarrelloId().getMygovCarrelloId();

@@ -18,13 +18,13 @@
 import { DateTime } from 'luxon';
 import { ToastrService } from 'ngx-toastr';
 import {
-    ConfirmDialogComponent
+  ConfirmDialogComponent
 } from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
 import {
-    MyPayBaseTableComponent
+  MyPayBaseTableComponent
 } from 'projects/mypay4-fe-common/src/lib/components/my-pay-table/my-pay-table.component';
 import {
-    manageError, OverlaySpinnerService, PageStateService, PaginatorData, TableAction, TableColumn, UserService
+  manageError, OverlaySpinnerService, PageStateService, PaginatorData, TableAction, TableColumn, UserService
 } from 'projects/mypay4-fe-common/src/public-api';
 import { first } from 'rxjs/operators';
 
@@ -33,11 +33,11 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { faBook, faSearch } from '@fortawesome/free-solid-svg-icons';
 
+import { Subscription } from 'rxjs/internal/Subscription';
 import { WithActions } from '../../../../../../../mypay4-fe-common/src/lib/table/with-actions';
 import { EnteFunzionalita } from '../../../../model/ente-funzionalita';
 import { AdminEntiService } from '../../../../services/admin-enti.service';
 import { RegistroComponent } from '../../registro/registro.component';
-import { Subscription } from 'rxjs/internal/Subscription';
 
 @Component({
   selector: 'funzionalita-list',
@@ -95,9 +95,6 @@ export class FunzionalitaListComponent implements OnInit {
       }
     }
     this.onSubmit(); //TODO Retreive all funzionalita by mygovEnteId.
-  }
-
-  ngOnDestroy():void {
   }
 
   onSubmit(){

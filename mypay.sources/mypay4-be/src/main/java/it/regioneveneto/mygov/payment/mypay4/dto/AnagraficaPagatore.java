@@ -17,10 +17,12 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dto;
 
+import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -30,7 +32,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class AnagraficaPagatore extends BaseTo implements Serializable {
 
-  public enum TIPO { Pagatore, Versante }
+  public enum TIPO {Pagatore, Versante}
 
   private char tipoIdentificativoUnivoco;
   private String codiceIdentificativoUnivoco;
@@ -45,4 +47,9 @@ public class AnagraficaPagatore extends BaseTo implements Serializable {
   private Long localitaId;
   private Long provinciaId;
   private Long nazioneId;
+
+  public boolean checkSameCoreFields(UserWithAdditionalInfo user){
+    return StringUtils.equalsIgnoreCase(user.getCodiceFiscale(), codiceIdentificativoUnivoco) &&
+            StringUtils.equalsIgnoreCase(StringUtils.joinWith(" ",user.getFirstName(), user.getFamilyName()), anagrafica);
+  }
 }

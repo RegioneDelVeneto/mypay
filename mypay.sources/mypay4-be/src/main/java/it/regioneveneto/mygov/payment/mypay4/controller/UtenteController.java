@@ -45,7 +45,7 @@ import java.util.Optional;
 @ConditionalOnWebApplication
 public class UtenteController {
 
-  private final static String AUTHENTICATED_PATH ="utente";
+  private static final String AUTHENTICATED_PATH ="utente";
 
   @Autowired
   private UtenteService utenteService;
@@ -75,10 +75,12 @@ public class UtenteController {
       utenteTo.setCivico(null);
     } else if(addressCompletelyPresent) {
       if(utenteTo.getNazioneId().equals(nazioneIdItalia)) {
-        Optional.ofNullable(locationService.getProvincia(utenteTo.getProvinciaId())).orElseThrow(BadRequestException::new);
-        Optional.ofNullable(locationService.getComune(utenteTo.getComuneId())).orElseThrow(BadRequestException::new);
+        if(locationService.getProvincia(utenteTo.getProvinciaId()) == null ||
+                locationService.getComune(utenteTo.getComuneId()) == null )
+          throw new BadRequestException();
       } else {
-        Optional.ofNullable(locationService.getNazione(utenteTo.getNazioneId())).orElseThrow(BadRequestException::new);
+        if(locationService.getNazione(utenteTo.getNazioneId()) == null )
+          throw new BadRequestException();
       }
     } else {
       throw new BadRequestException("address fields not completely set");
@@ -95,10 +97,11 @@ public class UtenteController {
         StringUtils.equals(utente.getCap(), utenteTo.getCap()) &&
         StringUtils.equals(utente.getIndirizzo(), utenteTo.getIndirizzo()) &&
         StringUtils.equals(utente.getCivico(), utenteTo.getCivico()) ) {
-      throw new BadRequestException("unchanged data");
+      //do nothing, unchanged data
+     log.info("update utente [{}] address data: no changed data; request ignored", user.getUsername());
+    } else {
+      utenteService.updateIndirizzo(utenteTo);
     }
-
-    utenteService.updateIndirizzo(utenteTo);
   }
 
 }

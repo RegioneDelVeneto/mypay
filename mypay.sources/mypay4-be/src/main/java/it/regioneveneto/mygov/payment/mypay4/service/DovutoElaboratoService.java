@@ -19,14 +19,30 @@ package it.regioneveneto.mygov.payment.mypay4.service;
 
 import it.regioneveneto.mygov.payment.mypay4.dao.DovutoDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.DovutoElaboratoDao;
+import it.regioneveneto.mygov.payment.mypay4.dao.DovutoMultibeneficiarioDao;
+import it.regioneveneto.mygov.payment.mypay4.dao.DovutoMultibeneficiarioElaboratoDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.DatiRendicontazioneCod9;
 import it.regioneveneto.mygov.payment.mypay4.dto.DovutoElaboratoTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.DovutoOperatoreTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
-import it.regioneveneto.mygov.payment.mypay4.model.*;
+import it.regioneveneto.mygov.payment.mypay4.model.AnagraficaStato;
+import it.regioneveneto.mygov.payment.mypay4.model.Carrello;
+import it.regioneveneto.mygov.payment.mypay4.model.DatiMarcaBolloDigitale;
+import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.DovutoCarrello;
+import it.regioneveneto.mygov.payment.mypay4.model.DovutoElaborato;
+import it.regioneveneto.mygov.payment.mypay4.model.DovutoFunctionOut;
+import it.regioneveneto.mygov.payment.mypay4.model.DovutoMultibeneficiario;
+import it.regioneveneto.mygov.payment.mypay4.model.DovutoMultibeneficiarioElaborato;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
+import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.Flusso;
+import it.regioneveneto.mygov.payment.mypay4.service.pagopa.GpdService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.util.ListWithCount;
 import it.regioneveneto.mygov.payment.mypay4.util.MaxResultsHelper;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
+import it.regioneveneto.mygov.payment.mypay4.ws.util.SumUtilis;
 import it.veneto.regione.pagamenti.pa.PaaSILInviaEsitoRisposta;
 import it.veneto.regione.schemas._2012.pagamenti.CtDatiSingoloPagamentoEsito;
 import it.veneto.regione.schemas._2012.pagamenti.Esito;
@@ -45,7 +61,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -59,6 +79,11 @@ public class DovutoElaboratoService {
   private DatiMarcaBolloDigitaleService datiMarcaBolloDigitaleService;
   @Autowired
   private DovutoDao dovutoDao;
+
+  @Autowired
+  private DovutoMultibeneficiarioDao dovutoMultibeneficiarioDao;
+  @Autowired
+  private DovutoMultibeneficiarioElaboratoDao dovutoMultibeneficiarioElaboratoDao;
   @Autowired
   private DovutoCarrelloService dovutoCarrelloService;
   @Autowired
@@ -79,8 +104,14 @@ public class DovutoElaboratoService {
   @Autowired
   private MaxResultsHelper maxResultsHelper;
 
+  @Autowired(required = false)
+  private GpdService gpdService;
+
   @Value("${pa.deRpVersioneOggetto:6.2.0}")
   private String deRpVersioneOggetto;
+
+  @Value("${pa.gpd.enabled}")
+  private boolean gpdEnabled;
 
   @Transactional(propagation = Propagation.REQUIRED)
   public DovutoElaborato upsert(DovutoElaborato dovutoElaborato) {
@@ -147,8 +178,8 @@ public class DovutoElaboratoService {
   @Transactional(propagation = Propagation.SUPPORTS)
   public List<DovutoElaborato> getByIdUnivocoPersonaEnteIntervalloData(String tipoIdUnivoco, String idUnivoco, String codIpaEnte, Date from, Date to) {
     List<DovutoElaborato> dovuti = dovutoElaboratoDao.getByIdUnivocoPersonaEnteIntervalloData(tipoIdUnivoco, idUnivoco, codIpaEnte, from, to);
-    dovuti.forEach(d ->
-      d.setMygovCarrelloId( Optional.ofNullable(d.getMygovCarrelloId()).map(c -> carrelloService.getById(c.getMygovCarrelloId())).orElse(null) ) );
+    //dovuti.forEach(d ->
+    //  d.setMygovCarrelloId( Optional.ofNullable(d.getMygovCarrelloId()).map(c -> carrelloService.getById(c.getMygovCarrelloId())).orElse(null) ) );
     return dovuti;
   }
 
@@ -161,40 +192,86 @@ public class DovutoElaboratoService {
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public List<DovutoElaboratoTo> searchDovutoElaborato(String codIpaEnte,
-                                                       String idUnivocoPagatoreVersante, LocalDate from, LocalDate to,
-                                                       String causale, String codTipoDovuto) {
-    return maxResultsHelper.manageMaxResults(
-        maxResults -> dovutoElaboratoDao.searchDovutoElaborato(codIpaEnte,
-            idUnivocoPagatoreVersante, from, to, causale, codTipoDovuto, maxResults),
-        this::mapDovutoElaboratoToDto,
-        () -> dovutoElaboratoDao.searchDovutoElaboratoCount(codIpaEnte,
-            idUnivocoPagatoreVersante, from, to, causale, codTipoDovuto) );
+  public ListWithCount<DovutoElaboratoTo> searchDovutoElaborato(String codIpaEnte,
+                                                                String idUnivocoPagatoreVersante, LocalDate from, LocalDate to,
+                                                                String causale, String codTipoDovuto, String codStato) {
+
+    final String codStatoPagamento;
+    final String importoCod;
+    if (codStato != null)
+      switch (codStato) {
+        case "annullato":
+          codStatoPagamento = AnagraficaStato.STATO_DOVUTO_ANNULLATO;
+          importoCod = null;
+          break;
+        case "pagato":
+          codStatoPagamento = AnagraficaStato.STATO_DOVUTO_COMPLETATO;
+          importoCod = "gtZero";
+          break;
+        case "nonPagato":
+          codStatoPagamento = AnagraficaStato.STATO_DOVUTO_COMPLETATO;
+          importoCod = "eqZero";
+          break;
+        case "abortito":
+          codStatoPagamento = AnagraficaStato.STATO_DOVUTO_ABORT;
+          importoCod = null;
+          break;
+        case "scaduto":
+          codStatoPagamento = AnagraficaStato.STATO_DOVUTO_SCADUTO_ELABORATO;
+          importoCod = null;
+          break;
+        default:
+          codStatoPagamento = null;
+          importoCod = null;
+      }
+    else {
+      codStatoPagamento = null;
+      importoCod = null;
+    }
+
+    ListWithCount<DovutoElaboratoTo> payload = maxResultsHelper.manageMaxResults(
+            maxResults -> dovutoElaboratoDao.searchDovutoElaborato(codIpaEnte,
+                    idUnivocoPagatoreVersante, from, to, causale, codTipoDovuto,
+                    codStatoPagamento, importoCod, maxResults),
+            this::mapDovutoElaboratoToDto,
+            () -> dovutoElaboratoDao.searchDovutoElaboratoCount(codIpaEnte,
+                    idUnivocoPagatoreVersante, from, to, causale, codTipoDovuto,
+                    codStatoPagamento, importoCod) );
+
+    // Retrieve information from Dovuto Ente primario and Dovuto multibeneficiario
+    if(!payload.isEmpty())
+      dovutoMultibeneficiarioElaboratoDao.getListDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(
+        payload.stream().map(DovutoElaboratoTo::getId).collect(Collectors.toList()))
+        .forEach(dme ->
+          payload.stream().filter(de -> dme.getIdDovutoElaborato().equals(de.getId())).forEach( de ->
+            de.setImporto(SumUtilis.sumAmountPagati(de.getImporto(), dme.getImportoSecondario())) ) );
+
+    return payload;
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
   public Optional<Boolean> hasReplicaDovutoElaborato(String codIpaEnte, char tipoIdUnivocoPagatoreVersante,
                                                      String idUnivocoPagatoreVersante, String causale, String codTipoDovuto) {
     if(StringUtils.isBlank(codIpaEnte) || StringUtils.isBlank(idUnivocoPagatoreVersante)
-        || StringUtils.isBlank(causale) || StringUtils.isBlank(codTipoDovuto))
+            || StringUtils.isBlank(causale) || StringUtils.isBlank(codTipoDovuto))
       return Optional.empty();
     else
       return dovutoElaboratoDao.hasReplicaDovutoElaborato(codIpaEnte, tipoIdUnivocoPagatoreVersante, idUnivocoPagatoreVersante, causale, codTipoDovuto);
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public List<DovutoElaborato> searchDovutoElaboratoByIuvIdPagatore(String iuv, String idUnivocoPagatore, String anagraficaPagatore) {
-    return dovutoElaboratoDao.searchDovutoElaboratoByIuvIdPagatore(iuv, idUnivocoPagatore, anagraficaPagatore);
+  public List<DovutoElaborato> searchDovutoElaboratoByIuvIdPagatore(Long mygovEnteId, String iuv, String idUnivocoPagatore, String anagraficaPagatore) {
+    return dovutoElaboratoDao.searchDovutoElaboratoByIuvIdPagatore(mygovEnteId, StringUtils.upperCase(iuv), idUnivocoPagatore, anagraficaPagatore);
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
   public List<DovutoElaborato> searchDovutoElaboratoByIuvEnte(String iuv, String codIpaEnte) {
-    return dovutoElaboratoDao.searchDovutoElaboratoByIuvEnte(iuv, codIpaEnte);
+    return dovutoElaboratoDao.searchDovutoElaboratoByIuvEnte(StringUtils.upperCase(iuv), codIpaEnte);
   }
 
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public List<DovutoOperatoreTo> searchDovutoElaboratoNellArchivio(String username, Long mygovEnteId, String codStato, Long myGovEnteTipoDovutoId,
+  public List<DovutoOperatoreTo> searchDovutoElaboratoForOperatore(String username, Long mygovEnteId, String codStato, Long myGovEnteTipoDovutoId,
                                                                    String nomeFlusso, LocalDate from, LocalDate to, String codiceFiscale,
                                                                    String causale, String codIud, String codIuv) {
 
@@ -245,11 +322,27 @@ public class DovutoElaboratoService {
     }
     final LocalDate adjustedTo = to.plusDays(1);
 
-    return maxResultsHelper.manageMaxResults(
-        maxResults -> dovutoElaboratoDao.searchDovutoElaboratoNellArchivio(mygovEnteId, codStatoPagamento, importoCod,
-            listCodTipoDovuto, nomeFlusso, from, adjustedTo, codiceFiscale, causale, codIud, codIuv, maxResults),
-        () -> dovutoElaboratoDao.searchDovutoElaboratoNellArchivioCount(mygovEnteId, codStatoPagamento, importoCod,
-            listCodTipoDovuto, nomeFlusso, from, adjustedTo, codiceFiscale, causale, codIud, codIuv) );
+    List<DovutoOperatoreTo> payload = maxResultsHelper.manageMaxResults(
+            maxResults -> dovutoElaboratoDao.searchDovutoElaboratoNellArchivio(mygovEnteId, codStatoPagamento, importoCod,
+                    listCodTipoDovuto, nomeFlusso, from, adjustedTo, codiceFiscale, causale, codIud, StringUtils.upperCase(codIuv), maxResults),
+            () -> dovutoElaboratoDao.searchDovutoElaboratoNellArchivioCount(mygovEnteId, codStatoPagamento, importoCod,
+                    listCodTipoDovuto, nomeFlusso, from, adjustedTo, codiceFiscale, causale, codIud, StringUtils.upperCase(codIuv)) );
+
+    if(!payload.isEmpty()) {
+      List<Long> ids = payload.stream().map(DovutoOperatoreTo::getId).collect(Collectors.toList());
+      // retrieve list of enti primari by ids dovuti
+      dovutoElaboratoDao.getListInfoEntePrimarioByIdDovuto(ids).forEach(deep ->
+        payload.stream().filter(d -> deep.getIdDovutoElaborato().equals(d.getId())).forEach(d -> d.setEntePrimarioElaboratoDetail(deep))
+      );
+      dovutoMultibeneficiarioElaboratoDao.getListDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(ids).forEach(dme ->
+        payload.stream().filter(d -> dme.getIdDovutoElaborato().equals(d.getId())).forEach(d -> {
+          d.setImporto(SumUtilis.sumAmount(d.getImporto(), dme.getImportoSecondario()));
+          d.setDovutoMultibeneficiarioElaborato(dme);
+          d.setFlgMultibeneficiario(true);
+        }) );
+    }
+
+    return payload;
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
@@ -261,8 +354,20 @@ public class DovutoElaboratoService {
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public List<DovutoElaborato> searchLastDovutoElaborato(String idUnivocoPagatoreVersante, Integer num) {
-    return dovutoElaboratoDao.searchLastDovutoElaborato(idUnivocoPagatoreVersante, num);
+  public List<DovutoElaboratoTo> searchLastDovutoElaborato(String idUnivocoPagatoreVersante, Integer num) {
+    List<DovutoElaboratoTo> result = dovutoElaboratoDao.searchLastDovutoElaborato(idUnivocoPagatoreVersante, num)
+            .stream().map(this::mapDovutoElaboratoToDto).collect(Collectors.toList());
+
+    //retrieve fields for dovuto multi-beneficiario
+    if(!result.isEmpty())
+      dovutoMultibeneficiarioElaboratoDao.getListDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(
+        result.stream().map(DovutoElaboratoTo::getId).collect(Collectors.toList())).forEach(mb ->
+          result.stream().filter(d -> d.getId()==mb.getIdDovutoElaborato()).forEach(d -> {
+            d.setMultibeneficiario(true);
+            d.setImporto(SumUtilis.sumAmountPagati(d.getImporto(), mb.getImportoSecondario()));
+          }) );
+
+    return result;
   }
 
   @Transactional(propagation = Propagation.SUPPORTS)
@@ -275,7 +380,7 @@ public class DovutoElaboratoService {
 
     pagatoDto.setId(pagato.getMygovDovutoElaboratoId());
     if (StringUtils.isNotBlank(pagato.getDeRpDatiVersDatiSingVersCausaleVersamentoAgid()) &&
-        pagato.getDeRpDatiVersDatiSingVersCausaleVersamentoAgid().contains("/TXT/")) {
+            pagato.getDeRpDatiVersDatiSingVersCausaleVersamentoAgid().contains("/TXT/")) {
       String causaleAgid = pagato.getDeRpDatiVersDatiSingVersCausaleVersamentoAgid();
       pagatoDto.setCausale(causaleAgid.substring(causaleAgid.indexOf("/TXT/")+5));
     }
@@ -297,7 +402,7 @@ public class DovutoElaboratoService {
     else {
       if (pagato.getNumEDatiPagDatiSingPagSingoloImportoPagato().compareTo(BigDecimal.ZERO) == 0) {
         statoComplessivo = anagraficaStatoService.getByCodStatoAndTipoStato(AnagraficaStato.STATO_CARRELLO_NON_PAGATO, AnagraficaStato.STATO_TIPO_CARRELLO)
-            .getDeStato();
+                .getDeStato();
       }
       else {
         statoComplessivo = anagraficaStatoService.getByCodStatoAndTipoStato(AnagraficaStato.STATO_CARRELLO_PAGATO, AnagraficaStato.STATO_TIPO_CARRELLO).getDeStato();
@@ -319,11 +424,12 @@ public class DovutoElaboratoService {
 
       pagatoDto.setIdentificativoTransazione(pagato.getCodRpSilinviarpIdUnivocoVersamento() + " - " + pagato.getCodRpSilinviarpCodiceContestoPagamento());
       pagatoDto.setIntestatario(pagato.getDeRpSoggPagAnagraficaPagatore() + " - " + pagato.getCodRpSoggPagIdUnivPagCodiceIdUnivoco());
+      pagatoDto.setEmail(pagatoDto.getEmail());
 
       if (StringUtils.isNotBlank(pagato.getDeEIstitAttDenominazioneAttestante())){
         if (StringUtils.isNotBlank(pagato.getCodEIstitAttIdUnivAttCodiceIdUnivoco())){
           pagatoDto.setPspScelto(pagato.getDeEIstitAttDenominazioneAttestante()
-              + " (" + pagato.getCodEIstitAttIdUnivAttCodiceIdUnivoco() + ")");
+                  + " (" + pagato.getCodEIstitAttIdUnivAttCodiceIdUnivoco() + ")");
         }
         else {
           pagatoDto.setPspScelto(pagato.getDeEIstitAttDenominazioneAttestante());
@@ -340,9 +446,11 @@ public class DovutoElaboratoService {
 
     if (statoComplessivo.equals(AnagraficaStato.STATO_CARRELLO_PAGATO)) {
       pagatoDto.setImporto(Utilities.parseImportoString(pagato.getNumEDatiPagDatiSingPagSingoloImportoPagato()));
+      pagatoDto.setImportoAsCent(Utilities.amountAsEuroCents(pagato.getNumEDatiPagDatiSingPagSingoloImportoPagato()));
     }
     else {
       pagatoDto.setImporto(Utilities.parseImportoString(pagato.getNumRpDatiVersDatiSingVersImportoSingoloVersamento()));
+      pagatoDto.setImportoAsCent(Utilities.amountAsEuroCents(pagato.getNumRpDatiVersDatiSingVersImportoSingoloVersamento()));
     }
 
     pagatoDto.setModPagamento(pagato.getCodRpDatiVersTipoVersamento());
@@ -352,30 +460,36 @@ public class DovutoElaboratoService {
     if(pagato.getNestedEnte()!=null) {
       pagatoDto.setEnteId(pagato.getNestedEnte().getMygovEnteId());
       pagatoDto.setEnteDeNome(pagato.getNestedEnte().getDeNomeEnte());
+      pagatoDto.setCodIpaEnte(pagato.getNestedEnte().getCodIpaEnte());
+      pagatoDto.setCodFiscaleEnte(pagato.getNestedEnte().getCodiceFiscaleEnte());
     }
 
     pagatoDto.setCodTipoDovuto(pagato.getCodTipoDovuto());
     pagatoDto.setDeTipoDovuto(
-        enteTipoDovutoService.getOptionalByCodTipo(pagato.getCodTipoDovuto(), pagato.getNestedEnte().getCodIpaEnte(), false)
-            .map(EnteTipoDovuto::getDeTipo).orElse(pagato.getCodTipoDovuto()));
+            enteTipoDovutoService.getOptionalByCodTipo(pagato.getCodTipoDovuto(), pagato.getNestedEnte().getCodIpaEnte(), false)
+                    .map(EnteTipoDovuto::getDeTipo).orElse(pagato.getCodTipoDovuto()));
 
     pagatoDto.setCodIuv(pagato.getValidIuv());
+    if(StringUtils.isNotBlank(pagatoDto.getCodIuv()) && pagato.getNestedEnte()!=null)
+      pagatoDto.setNumeroAvviso(Utilities.iuvToNumeroAvviso(pagatoDto.getCodIuv(), pagato.getNestedEnte().getApplicationCode(), false));
+
     return pagatoDto;
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public long elaborateDovuto(Dovuto dovuto, String vecchioStato, String nuovoStato) {
 
-    Optional.ofNullable(dovuto)
-        .map(Dovuto::getMygovAnagraficaStatoId)
-        .map(AnagraficaStato::getCodStato)
-        .filter(Predicate.isEqual(vecchioStato))
-        .orElseThrow(() -> new MyPayException("pa.dovuto.optimisticLockErrorAnnullamento"));
+    if(!Optional.ofNullable(dovuto)
+            .map(Dovuto::getMygovAnagraficaStatoId)
+            .map(AnagraficaStato::getCodStato)
+            .filter(Predicate.isEqual(vecchioStato))
+            .isPresent())
+      throw new MyPayException(new MyPayException(messageSource.getMessage("pa.dovuto.optimisticLockErrorAnnullamento", null, Locale.ITALY)));
 
     // Clone dovutoElaborato fron dovuto;
     DovutoElaborato dovutoElaborato = new DovutoElaborato();
     dovutoElaborato.setMygovAnagraficaStatoId(
-        anagraficaStatoService.getByCodStatoAndTipoStato(nuovoStato, Constants.STATO_TIPO_DOVUTO));
+            anagraficaStatoService.getByCodStatoAndTipoStato(nuovoStato, Constants.STATO_TIPO_DOVUTO));
 
     dovutoElaborato.setFlgDovutoAttuale(dovuto.isFlgDovutoAttuale());
     dovutoElaborato.setMygovFlussoId(dovuto.getMygovFlussoId());
@@ -400,9 +514,9 @@ public class DovutoElaboratoService {
 
     dovutoElaborato.setDtRpDatiVersDataEsecuzionePagamento(dovuto.getDtRpDatiVersDataEsecuzionePagamento());
     dovutoElaborato.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(
-        dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+            dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
     dovutoElaborato.setNumRpDatiVersDatiSingVersCommissioneCaricoPa(
-        dovuto.getNumRpDatiVersDatiSingVersCommissioneCaricoPa());
+            dovuto.getNumRpDatiVersDatiSingVersCommissioneCaricoPa());
 
     dovutoElaborato.setCodTipoDovuto(dovuto.getCodTipoDovuto());
 
@@ -410,37 +524,48 @@ public class DovutoElaboratoService {
     dovutoElaborato.setCodRpDatiVersDatiSingVersCredenzialiPagatore(null);
 
     dovutoElaborato
-        .setDeRpDatiVersDatiSingVersCausaleVersamento(dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento());
+            .setDeRpDatiVersDatiSingVersCausaleVersamento(dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento());
     dovutoElaborato.setDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(
-        dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
+            dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
 
     dovutoElaborato.setCodTipoDovuto(dovuto.getCodTipoDovuto());
     Optional.ofNullable(dovuto.getBilancio()).ifPresent(dovutoElaborato::setBilancio);
     dovutoElaborato.setDtUltimoCambioStato(new Date());
     dovutoElaborato.setDeRpVersioneOggetto(deRpVersioneOggetto);
+    dovutoElaborato.setGpdStatus(dovuto.getGpdStatus());
+    dovutoElaborato.setGpdIupd(dovuto.getGpdIupd());
 
     long mygovDovutoElaboratoId = dovutoElaboratoDao.insert(dovutoElaborato);
+    /**Multi-beneficiary IUV management if defined**/
+    DovutoMultibeneficiario dovMultibenef = dovutoMultibeneficiarioDao.getByIdDovuto(dovuto.getMygovDovutoId());
+    int deletedRecMulti = (dovMultibenef!=null) ? dovutoMultibeneficiarioDao.delete(dovMultibenef) : 0;
     int deletedRec = dovutoDao.delete(dovuto);
-    if (mygovDovutoElaboratoId < 1 || deletedRec != 1)
+
+    //todo nell'annullare il dovuto associare al mygov_dovuto_elaborato (annullato) anche un record della mygov_dovuto_multibeneficiario_elaborato
+
+    if (mygovDovutoElaboratoId < 1 || deletedRec != 1 || (dovMultibenef!=null && deletedRecMulti != 1))
       throw new MyPayException("Errore interno aggiornamento  dovuto e/o dovutoElaborato");
     return mygovDovutoElaboratoId;
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public void elaborateDovutoNoCompletato(long idDovuto, DovutoElaborato dovutoElaborato, String vecchioStato, String nuovoStato, Ente ente, DatiRendicontazioneCod9 datiRendicontazioneCod9)
-      throws DataAccessException {
+          throws DataAccessException {
 
     Dovuto dovuto = dovutoDao.getById(idDovuto);
-    Optional.ofNullable(dovuto)
-        .map(Dovuto::getMygovAnagraficaStatoId)
-        .map(AnagraficaStato::getCodStato)
-        .filter(Predicate.isEqual(vecchioStato))
-        .orElseThrow(() -> new MyPayException(messageSource.getMessage("pa.dovuto.optimisticLockErrorAnnullamento", null, Locale.ITALY)));
+    if(!Optional.ofNullable(dovuto)
+            .map(Dovuto::getMygovAnagraficaStatoId)
+            .map(AnagraficaStato::getCodStato)
+            .filter(Predicate.isEqual(vecchioStato))
+            .isPresent())
+      throw new MyPayException(new MyPayException(messageSource.getMessage("pa.dovuto.optimisticLockErrorAnnullamento", null, Locale.ITALY)));
 
     dovutoElaborato.setMygovDovutoElaboratoId(null);
     dovutoElaborato.setMygovAnagraficaStatoId(anagraficaStatoService.getByCodStatoAndTipoStato(nuovoStato, Constants.STATO_TIPO_DOVUTO));
 
     copiaCampiDovutoRend9(dovuto, dovutoElaborato, datiRendicontazioneCod9, ente);
+    dovutoElaborato.setGpdStatus(dovuto.getGpdStatus());
+    dovutoElaborato.setGpdIupd(dovuto.getGpdIupd());
     dovutoElaborato.setDtUltimoCambioStato(new Date());
 
     this.upsert(dovutoElaborato);
@@ -449,7 +574,7 @@ public class DovutoElaboratoService {
 
   @Transactional(propagation = Propagation.REQUIRED)
   public void elaborateDovutoNoCompletato(DovutoElaborato dovutoElaborato, String statoDovutoCompletato, Ente ente,
-                                        DatiRendicontazioneCod9 datiRendicontazioneCod9) {
+                                          DatiRendicontazioneCod9 datiRendicontazioneCod9) {
 
     dovutoElaborato.setMygovDovutoElaboratoId(null);
     dovutoElaborato.setMygovAnagraficaStatoId(anagraficaStatoService.getByCodStatoAndTipoStato(statoDovutoCompletato, Constants.STATO_TIPO_DOVUTO));
@@ -462,14 +587,15 @@ public class DovutoElaboratoService {
 
   @Transactional(propagation = Propagation.REQUIRED)
   public DovutoElaborato insert(final long idDovuto, final String vecchioStato, final String nuovoStato, final Ente ente, final DatiRendicontazioneCod9 datiRendicontazioneCod9)
-      throws DataAccessException {
+          throws DataAccessException {
 
     Dovuto dovuto = dovutoDao.getById(idDovuto);
-    Optional.ofNullable(dovuto)
-        .map(Dovuto::getMygovAnagraficaStatoId)
-        .map(AnagraficaStato::getCodStato)
-        .filter(Predicate.isEqual(vecchioStato))
-        .orElseThrow(() -> new MyPayException(messageSource.getMessage("pa.dovuto.optimisticLockErrorAnnullamento", null, Locale.ITALY)));
+    if(!Optional.ofNullable(dovuto)
+            .map(Dovuto::getMygovAnagraficaStatoId)
+            .map(AnagraficaStato::getCodStato)
+            .filter(Predicate.isEqual(vecchioStato))
+            .isPresent())
+      throw new MyPayException(new MyPayException(messageSource.getMessage("pa.dovuto.optimisticLockErrorAnnullamento", null, Locale.ITALY)));
 
     DovutoElaborato dovutoElaborato = new DovutoElaborato();
     dovutoElaborato.setMygovAnagraficaStatoId(anagraficaStatoService.getByCodStatoAndTipoStato(nuovoStato, Constants.STATO_TIPO_DOVUTO));
@@ -485,9 +611,12 @@ public class DovutoElaboratoService {
     dovutoElaborato.setNumRigaFlusso(dovuto.getNumRigaFlusso());
     dovutoElaborato.setMygovCarrelloId(dovuto.getMygovCarrelloId());
     dovutoElaborato.setCodIud(dovuto.getCodIud());
+    dovutoElaborato.setGpdStatus(dovuto.getGpdStatus());
+    dovutoElaborato.setGpdIupd(dovuto.getGpdIupd());
 
     long mygovDovutoElaboratoId = dovutoElaboratoDao.insert(dovutoElaborato);
     dovutoElaborato.setMygovDovutoElaboratoId(mygovDovutoElaboratoId);
+    //TODO Gestire l'aggiunta del dovuto multibeneficiario elaborato nella tabella mygov_dovuto_multibeneficiario_elaborato
     //dovutoDao.delete(dovuto);
     return dovutoElaborato;
   }
@@ -502,19 +631,22 @@ public class DovutoElaboratoService {
                                                Date n_dt_rp_dati_vers_data_esecuzione_pagamento, String n_cod_rp_dati_vers_tipo_versamento,
                                                Double n_num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento, Double n_num_rp_dati_vers_dati_sing_vers_commissione_carico_pa,
                                                String n_cod_tipo_dovuto, String n_de_rp_dati_vers_dati_sing_vers_causale_versamento,
-                                               String n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, Long n_mygov_utente_id, boolean insert_avv_dig) {
+                                               String n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, Long n_mygov_utente_id, boolean insert_avv_dig,
+                                               String n_cod_iupd, Character n_gpd_status) {
+
     OutParameters out = dovutoElaboratoDao.callAnnullaFunction(n_mygov_ente_id, n_mygov_flusso_id, n_num_riga_flusso, n_mygov_anagrafica_stato_id, n_mygov_carrello_id, n_cod_iud,
-        n_cod_iuv, n_dt_creazione, n_de_rp_versione_oggetto, n_cod_rp_sogg_pag_id_univ_pag_tipo_id_univoco,
-        n_cod_rp_sogg_pag_id_univ_pag_codice_id_univoco, n_de_rp_sogg_pag_anagrafica_pagatore, n_de_rp_sogg_pag_indirizzo_pagatore,
-        n_de_rp_sogg_pag_civico_pagatore, n_cod_rp_sogg_pag_cap_pagatore, n_de_rp_sogg_pag_localita_pagatore, n_de_rp_sogg_pag_provincia_pagatore,
-        n_cod_rp_sogg_pag_nazione_pagatore, n_de_rp_sogg_pag_email_pagatore, n_dt_rp_dati_vers_data_esecuzione_pagamento,
-        n_cod_rp_dati_vers_tipo_versamento, n_num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento,
-        n_num_rp_dati_vers_dati_sing_vers_commissione_carico_pa, n_cod_tipo_dovuto, n_de_rp_dati_vers_dati_sing_vers_causale_versamento,
-        n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, n_mygov_utente_id, insert_avv_dig);
+            n_cod_iuv, n_dt_creazione, n_de_rp_versione_oggetto, n_cod_rp_sogg_pag_id_univ_pag_tipo_id_univoco,
+            n_cod_rp_sogg_pag_id_univ_pag_codice_id_univoco, n_de_rp_sogg_pag_anagrafica_pagatore, n_de_rp_sogg_pag_indirizzo_pagatore,
+            n_de_rp_sogg_pag_civico_pagatore, n_cod_rp_sogg_pag_cap_pagatore, n_de_rp_sogg_pag_localita_pagatore, n_de_rp_sogg_pag_provincia_pagatore,
+            n_cod_rp_sogg_pag_nazione_pagatore, n_de_rp_sogg_pag_email_pagatore, n_dt_rp_dati_vers_data_esecuzione_pagamento,
+            n_cod_rp_dati_vers_tipo_versamento, n_num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento,
+            n_num_rp_dati_vers_dati_sing_vers_commissione_carico_pa, n_cod_tipo_dovuto, n_de_rp_dati_vers_dati_sing_vers_causale_versamento,
+            n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, n_mygov_utente_id, insert_avv_dig, n_cod_iupd, n_gpd_status);
+
     return out==null?null:DovutoFunctionOut.builder()
-        .result(out.getString("result"))
-        .resultDesc(out.getString("result_desc"))
-        .build();
+            .result(out.getString("result"))
+            .resultDesc(out.getString("result_desc"))
+            .build();
   }
 
   /**
@@ -524,7 +656,7 @@ public class DovutoElaboratoService {
    * @param ente
    * @return new DovutoElaborato Object.
    */
-  @Transactional(propagation =  Propagation.SUPPORTS)
+  @Transactional(propagation =  Propagation.REQUIRED)
   public DovutoElaborato getFittizio(Carrello carrello, DatiRendicontazioneCod9 ctDtRendCod9, Ente ente) {
     //TODO Stefano, creazione di un DovutoElaborato fittizio
     DovutoElaborato dovutoElaboratoFittizio = new DovutoElaborato();
@@ -636,8 +768,8 @@ public class DovutoElaboratoService {
       dovutoElaborato.setDeESoggPagLocalitaPagatore(dovuto.getDeRpSoggPagLocalitaPagatore());
       dovutoElaborato.setDeESoggPagProvinciaPagatore(dovuto.getDeRpSoggPagProvinciaPagatore());
       String causale = Utilities.getDefaultString()
-          .andThen(Utilities.getTruncatedAt(Constants.MAX_LENGHT_CAUSALE))
-          .apply(dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento(), Constants.CAUSALE_DOVUTO_PAGATO);
+              .andThen(Utilities.getTruncatedAt(Constants.MAX_LENGHT_CAUSALE))
+              .apply(dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento(), Constants.CAUSALE_DOVUTO_PAGATO);
       dovutoElaborato.setDeEDatiPagDatiSingPagCausaleVersamento(causale);
       dovutoElaborato.setDeEDatiPagDatiSingPagDatiSpecificiRiscossione(Utilities.getDefaultString().apply(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(), Constants.DATI_SPECIFICI_RISCOSSIONE_UNKNOW));
       dovutoElaborato.setDeRpDatiVersDatiSingVersCausaleVersamentoAgid(causale);
@@ -839,13 +971,13 @@ public class DovutoElaboratoService {
 
     if (Objects.nonNull(dovutoCarrello)) {
       elaborato = elaborato.toBuilder()
-          .numRpDatiVersDatiSingVersCommissioneCaricoPa(dovutoCarrello.getNumRpDatiVersDatiSingVersCommissioneCaricoPa())
-          .codRpDatiVersDatiSingVersIbanAccredito(dovutoCarrello.getCodRpDatiVersDatiSingVersIbanAccredito())
-          .codRpDatiVersDatiSingVersBicAccredito(dovutoCarrello.getCodRpDatiVersDatiSingVersBicAccredito())
-          .codRpDatiVersDatiSingVersIbanAppoggio(dovutoCarrello.getCodRpDatiVersDatiSingVersIbanAppoggio())
-          .codRpDatiVersDatiSingVersBicAppoggio(dovutoCarrello.getCodRpDatiVersDatiSingVersBicAppoggio())
-          .deRpDatiVersDatiSingVersCausaleVersamentoAgid(dovutoCarrello.getDeRpDatiVersDatiSingVersCausaleVersamentoAgid())
-          .build();
+              .numRpDatiVersDatiSingVersCommissioneCaricoPa(dovutoCarrello.getNumRpDatiVersDatiSingVersCommissioneCaricoPa())
+              .codRpDatiVersDatiSingVersIbanAccredito(dovutoCarrello.getCodRpDatiVersDatiSingVersIbanAccredito())
+              .codRpDatiVersDatiSingVersBicAccredito(dovutoCarrello.getCodRpDatiVersDatiSingVersBicAccredito())
+              .codRpDatiVersDatiSingVersIbanAppoggio(dovutoCarrello.getCodRpDatiVersDatiSingVersIbanAppoggio())
+              .codRpDatiVersDatiSingVersBicAppoggio(dovutoCarrello.getCodRpDatiVersDatiSingVersBicAppoggio())
+              .deRpDatiVersDatiSingVersCausaleVersamentoAgid(dovutoCarrello.getDeRpDatiVersDatiSingVersCausaleVersamentoAgid())
+              .build();
     }
 
     if (!List.of(Constants.STATO_DOVUTO_ABORT, Constants.STATO_DOVUTO_SCADUTO_ELABORATO).contains(nuovoStato)) {
@@ -872,9 +1004,9 @@ public class DovutoElaboratoService {
       elaborato.setCodEIstitAttNazioneAttestante(carrello.getCodEIstitAttNazioneAttestante());
 
       elaborato.setCodEEnteBenefIdUnivBenefTipoIdUnivoco(ctEsito.getEnteBeneficiario()
-          .getIdentificativoUnivocoBeneficiario().getTipoIdentificativoUnivoco().toString().charAt(0));
+              .getIdentificativoUnivocoBeneficiario().getTipoIdentificativoUnivoco().toString().charAt(0));
       elaborato.setCodEEnteBenefIdUnivBenefCodiceIdUnivoco(ctEsito.getEnteBeneficiario()
-          .getIdentificativoUnivocoBeneficiario().getCodiceIdentificativoUnivoco());
+              .getIdentificativoUnivocoBeneficiario().getCodiceIdentificativoUnivoco());
       elaborato.setDeEEnteBenefDenominazioneBeneficiario(ctEsito.getEnteBeneficiario().getDenominazioneBeneficiario());
       elaborato.setCodEEnteBenefCodiceUnitOperBeneficiario(ctEsito.getEnteBeneficiario().getCodiceUnitOperBeneficiario());
       elaborato.setDeEEnteBenefDenomUnitOperBeneficiario(ctEsito.getEnteBeneficiario().getDenomUnitOperBeneficiario());
@@ -917,7 +1049,7 @@ public class DovutoElaboratoService {
       elaborato.setCodEDatiPagDatiSingPagIdUnivocoRiscoss( singoloPagamentoEsito.getIdentificativoUnivocoRiscossione());
       elaborato.setDeEDatiPagDatiSingPagCausaleVersamento(singoloPagamentoEsito.getCausaleVersamento());
       elaborato.setDeEDatiPagDatiSingPagDatiSpecificiRiscossione(
-          Utilities.getDefaultString().apply(datiSpecificiRiscossione, singoloPagamentoEsito.getDatiSpecificiRiscossione())
+              Utilities.getDefaultString().apply(datiSpecificiRiscossione, singoloPagamentoEsito.getDatiSpecificiRiscossione())
       );
 
       elaborato.setDtUltimoCambioStato(elaborato.getCodEDataOraMessaggioRicevuta());
@@ -930,7 +1062,8 @@ public class DovutoElaboratoService {
       }
     }
     elaborato.setIndiceDatiSingoloPagamento(indiceDatiSingoloPagamento);
-
+    elaborato.setGpdStatus(dovuto.getGpdStatus());
+    elaborato.setGpdIupd(dovuto.getGpdIupd());
     if (elaborato.getDtUltimoCambioStato()==null) elaborato.setDtUltimoCambioStato(now);
 
     if (dovuto.getCodTipoDovuto().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE) && dovuto.getMygovDatiMarcaBolloDigitaleId() != null) {
@@ -957,4 +1090,69 @@ public class DovutoElaboratoService {
   public Optional<DovutoElaborato> getByCodRpIdMessaggioRichiesta(String idMessaggioRichiesta) {
     return dovutoElaboratoDao.getByCodRpIdMessaggioRichiesta(idMessaggioRichiesta);
   }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public DovutoMultibeneficiarioElaborato insertDovutoMultibenefElaborato(Dovuto dovuto, DovutoMultibeneficiario dovMultibenef,
+                                                                          Long mygovDovutoElaboratoId) {
+
+    DovutoMultibeneficiarioElaborato dovMultibenefElaborato = new DovutoMultibeneficiarioElaborato();
+
+    dovMultibenefElaborato.setDeRpEnteBenefDenominazioneBeneficiario(dovMultibenef.getDeRpEnteBenefDenominazioneBeneficiario());
+    dovMultibenefElaborato.setCodiceFiscaleEnte(dovMultibenef.getCodiceFiscaleEnte());
+    dovMultibenefElaborato.setCodIuv(dovuto.getCodIuv());
+    dovMultibenefElaborato.setCodIud(dovuto.getCodIud());
+
+    dovMultibenefElaborato.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(dovMultibenef.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+
+    dovMultibenefElaborato.setDeRpEnteBenefCivicoBeneficiario(dovMultibenef.getDeRpEnteBenefCivicoBeneficiario());
+    dovMultibenefElaborato.setDeRpEnteBenefIndirizzoBeneficiario(dovMultibenef.getDeRpEnteBenefIndirizzoBeneficiario());
+    dovMultibenefElaborato.setDeRpEnteBenefLocalitaBeneficiario(dovMultibenef.getDeRpEnteBenefLocalitaBeneficiario());
+    dovMultibenefElaborato.setDeRpEnteBenefProvinciaBeneficiario(dovMultibenef.getDeRpEnteBenefProvinciaBeneficiario());
+    dovMultibenefElaborato.setCodRpEnteBenefNazioneBeneficiario(dovMultibenef.getCodRpEnteBenefNazioneBeneficiario());
+    dovMultibenefElaborato.setCodRpEnteBenefCapBeneficiario(dovMultibenef.getCodRpEnteBenefCapBeneficiario());
+    dovMultibenefElaborato.setCodRpDatiVersDatiSingVersIbanAccredito(dovMultibenef.getCodRpDatiVersDatiSingVersIbanAccredito());
+
+    if (null!=mygovDovutoElaboratoId)
+      dovMultibenefElaborato.setMygovDovutoElaboratoId(DovutoElaborato.builder().mygovDovutoElaboratoId(mygovDovutoElaboratoId).build());
+
+    dovMultibenefElaborato.setDeRpDatiVersDatiSingVersCausaleVersamento(dovMultibenef.getDeRpDatiVersDatiSingVersCausaleVersamento());
+    dovMultibenefElaborato.setDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(dovMultibenef.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
+
+    Date now = new Date();
+    dovMultibenefElaborato.setDtCreazione(now);
+    dovMultibenefElaborato.setDtUltimaModifica(now);
+
+    long newId = dovutoMultibeneficiarioElaboratoDao.insert(dovMultibenefElaborato);
+    return dovMultibenefElaborato.toBuilder().mygovDovutoMultibeneficiarioElaboratoId(newId).build();
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public BigDecimal getImportoDovutoMultibeneficiarioElaboratoByIdDovuto(Long idDovuto) {
+    return dovutoMultibeneficiarioElaboratoDao.getImportoDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(idDovuto);
+  }
+
+  @Transactional(propagation = Propagation.SUPPORTS)
+  public Optional<DovutoMultibeneficiarioElaborato> getDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(long idDovutoElaborato) {
+    return dovutoMultibeneficiarioElaboratoDao.getDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(idDovutoElaborato);
+  }
+
+  @Transactional(propagation = Propagation.SUPPORTS)
+  public DovutoMultibeneficiarioElaborato getDovutoMultibeneficiarioElaboratoByCCP(String CCP) {
+    DovutoMultibeneficiarioElaborato dovMultibeneficiarioElaborato = dovutoMultibeneficiarioElaboratoDao.getDovutoMultibeneficiarioElaboratoByCCP(CCP);
+    return dovMultibeneficiarioElaborato;
+  }
+
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public int updateFromReceipt(Long mygovDovutoMultibeneficiarioElaboratoId,
+                               String deRpDatiVersDatiSingVersCausaleVersamento, String deRpDatiVersDatiSingVersDatiSpecificiRiscossione) {
+    return dovutoMultibeneficiarioElaboratoDao.updateFromReceipt(mygovDovutoMultibeneficiarioElaboratoId,
+      deRpDatiVersDatiSingVersCausaleVersamento, deRpDatiVersDatiSingVersDatiSpecificiRiscossione);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public int updateDovElaboratoId(DovutoMultibeneficiarioElaborato dovMultiElab) {
+    return dovutoMultibeneficiarioElaboratoDao.updateDovElaboratoId(dovMultiElab);
+  }
+
 }

@@ -37,28 +37,33 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CacheService {
 
-  public final static String CACHE_NAME_ALL_OBJECTS = "allObjectCache";
-  public final static String CACHE_NAME_ANAGRAFICA_STATO = "anagraficaStatoCache";
-  public final static String CACHE_NAME_CHIEDI_COPIA_ESITO = "processingInfoChiediCopiaEsitoCache";
-  public final static String CACHE_NAME_CHIEDI_STATO_RPT = "processingInfoChiediStatoRptCache";
-  public final static String CACHE_NAME_COMUNE_TO = "comuneToCache";
-  public final static String CACHE_NAME_ENTE = "enteCache";
-  public final static String CACHE_NAME_ENTE_TIPO_DOVUTO = "enteTipoDovutoCache";
-  public final static String CACHE_NAME_FESP_ENTE = "fespEnteCache";
-  public final static String CACHE_NAME_FESP_TIPI_VERSAMENTO = "fespTipiVersamentoCache";
-  public final static String CACHE_NAME_FLUSSO = "flussoCache";
-  public final static String CACHE_NAME_MY_DICTIONARY_XSD = "mydictionaryXsdCache";
-  public final static String CACHE_NAME_NAZIONE_TO = "nazioneToCache";
-  public final static String CACHE_NAME_PROVINCIA_TO = "provinciaToCache";
-  public final static String CACHE_NAME_TASSONOMIA = "tassonomiaCache";
-  public final static String CACHE_NAME_THUMBNAIL = "thumbnailCache";
-  public final static String CACHE_NAME_THUMBNAIL_HASH = "thumbnailHashCache";
-  public final static String CACHE_NAME_TOKEN_USAGE = "jwtTokenUsageCache";
-  public final static String CACHE_NAME_UPLOAD = "uploadCache";
-  public final static String CACHE_NAME_UTENTE = "utenteCache";
-  public final static String CACHE_NAME_UTENTE_PROFILE = "UtenteProfileCache";
+  public static final String CACHE_NAME_ALL_OBJECTS = "allObjectCache";
+  public static final String CACHE_NAME_ANAGRAFICA_STATO = "anagraficaStatoCache";
+  public static final String CACHE_NAME_CHIEDI_COPIA_ESITO = "processingInfoChiediCopiaEsitoCache";
+  public static final String CACHE_NAME_CHIEDI_STATO_RPT = "processingInfoChiediStatoRptCache";
+  public static final String CACHE_NAME_COMUNE_TO = "comuneToCache";
+  public static final String CACHE_NAME_ENTE = "enteCache";
+  public static final String CACHE_NAME_ENTE_TIPO_DOVUTO = "enteTipoDovutoCache";
+  public static final String CACHE_NAME_ENTE_SIL = "enteSilCache";
+  public static final String CACHE_NAME_FESP_ENTE = "fespEnteCache";
+  public static final String CACHE_NAME_FESP_TIPI_VERSAMENTO = "fespTipiVersamentoCache";
+  public static final String CACHE_NAME_MY_DICTIONARY_XSD = "mydictionaryXsdCache";
+  public static final String CACHE_NAME_NAZIONE_TO = "nazioneToCache";
+  public static final String CACHE_NAME_PROVINCIA_TO = "provinciaToCache";
+  public static final String CACHE_NAME_TASSONOMIA = "tassonomiaCache";
+  public static final String CACHE_NAME_THUMBNAIL = "thumbnailCache";
+  public static final String CACHE_NAME_THUMBNAIL_HASH = "thumbnailHashCache";
+  public static final String CACHE_NAME_TOKEN_USAGE = "jwtTokenUsageCache";
+  public static final String CACHE_NAME_UPLOAD = "uploadCache";
+  public static final String CACHE_NAME_UTENTE = "utenteCache";
+  public static final String CACHE_NAME_UTENTE_PROFILE = "UtenteProfileCache";
 
-  public final static Set<String> CACHE_NAMES = Set.of(
+
+  public final static String CACHE_KEY_ENTE_ALL = "{'all'}";
+  public final static String CACHE_KEY_ENTE_ALL_SPONTANEI = "{'all-spontanei'}";
+  public final static String CACHE_KEY_ENTE_ALL_IMPORT = "{'all-import'}";
+
+  public static final Set<String> CACHE_NAMES = Set.of(
     CACHE_NAME_ALL_OBJECTS,
     CACHE_NAME_ANAGRAFICA_STATO,
     CACHE_NAME_CHIEDI_COPIA_ESITO,
@@ -66,9 +71,9 @@ public class CacheService {
     CACHE_NAME_COMUNE_TO,
     CACHE_NAME_ENTE,
     CACHE_NAME_ENTE_TIPO_DOVUTO,
+    CACHE_NAME_ENTE_SIL,
     CACHE_NAME_FESP_ENTE,
     CACHE_NAME_FESP_TIPI_VERSAMENTO,
-    CACHE_NAME_FLUSSO,
     CACHE_NAME_MY_DICTIONARY_XSD,
     CACHE_NAME_NAZIONE_TO,
     CACHE_NAME_PROVINCIA_TO,

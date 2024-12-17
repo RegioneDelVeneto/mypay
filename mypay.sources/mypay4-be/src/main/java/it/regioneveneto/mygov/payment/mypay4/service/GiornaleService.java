@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GiornaleService {
 
-  private final static String EMPTY = "-";
+  private static final String EMPTY = "-";
 
   @Autowired
   GiornaleDao giornaleDao;
@@ -53,9 +53,17 @@ public class GiornaleService {
 
   // |---------------------------------------------|
   // |DO NOT ADD OTHER METHODS TO WRITE TO GIORNALE|
-  // |ONLY USE registraEvento()                    |
-  // ----------------------------------------------|
+  // |---------------------------------------------|
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void insert(Giornale giornale) {
+    giornaleDao.insert(giornale);
+  }
+
+  /**
+   * @deprecated "use @it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService methods instead"
+   */
+  @Deprecated()
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void registraEvento(Date dataOraEvento, String identificativoDominio, String identificativoUnivocoVersamento, String codiceContestoPagamento,
                              String identificativoPrestatoreServiziPagamento, String tipoVersamento, String componente, String categoriaEvento, String tipoEvento,

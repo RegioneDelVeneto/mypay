@@ -94,7 +94,7 @@ export class MyPayBreadcrumbsService {
     this.menuItemMap = menuItemMap;
   }
 
-  public getBreadcrumbs(): Observable<Breadcrumb[]>{
+  public getBreadcrumbsObs(): Observable<Breadcrumb[]>{
     return this.breadcrumbsObs;
   }
 

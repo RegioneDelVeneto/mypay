@@ -21,5 +21,6 @@ export const versionInfo = {
   buildTime:'?',
   gitHash:'?',
   branchName:'?',
+  tag:'',
   version:'?'
 };

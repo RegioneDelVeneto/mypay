@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<wsdl:definitions xmlns:ppt="http://www.regione.veneto.it/pagamenti/ente/"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:ppthead="http://www.regione.veneto.it/pagamenti/ente/ppthead"
+	xmlns:pay_i="http://www.regione.veneto.it/schemas/2012/Pagamenti/Ente/"
+	xmlns:tns="http://www.regione.veneto.it/pagamenti/ente/AllineamentoMyCS"
+	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="AllineamentoMyCSService"
+	targetNamespace="http://www.regione.veneto.it/pagamenti/ente/AllineamentoMyCS">
+
+	<wsdl:types>
+
+		<xsd:schema version="1.0"
+			targetNamespace="http://www.regione.veneto.it/pagamenti/ente/ppthead">
+			<xsd:simpleType name="stText35">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1"/>
+					<xsd:maxLength value="35"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:element name="intestazionePPT">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="codIpaEnte" type="ppthead:stText35"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+
+		<xsd:schema version="1.0" targetNamespace="http://www.regione.veneto.it/pagamenti/ente/">
+
+			<xsd:import namespace="http://www.regione.veneto.it/schemas/2012/Pagamenti/Ente/" schemaLocation="PagInf_Dovuti_Pagati_6_2_0.xsd" />
+
+			<xsd:simpleType name="stText35">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1"/>
+					<xsd:maxLength value="35"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:simpleType name="stText80">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="35" />
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:simpleType name="stText100">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="35" />
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:simpleType name="stPassword">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="8"/>
+					<xsd:maxLength value="15"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+      		<xsd:simpleType name="hashSHA256">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="64"/>
+					<xsd:maxLength value="64"/>
+				</xsd:restriction>
+			</xsd:simpleType>			
+			<xsd:simpleType name="stISODateTime">
+				<xsd:restriction base="xsd:dateTime" />
+			</xsd:simpleType>
+			<xsd:simpleType name="stPasswordAllineamento">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="4"/>
+					<xsd:maxLength value="4"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+      
+			<xsd:element name="paaMCSAllineamento" type="ppt:paaMCSAllineamento"/>
+			<xsd:element name="paaMCSAllineamentoRisposta" type="ppt:paaMCSAllineamentoRisposta"/>
+			
+			<xsd:complexType name="risposta">
+				<xsd:sequence>
+					<xsd:element name="fault" type="ppt:faultBean" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="faultBean">
+				<xsd:sequence>
+					<xsd:element name="faultCode" type="xsd:string"/>
+					<xsd:element name="faultString" type="xsd:string"/>
+					<xsd:element name="id" type="xsd:string"/>
+					<xsd:element name="description" type="xsd:string" minOccurs="0" />
+					<xsd:element name="serial" type="xsd:int" minOccurs="0"/>
+					<xsd:element name="originalFaultCode" type="xsd:string"  minOccurs="0"  />
+					<xsd:element name="originalFaultString" type="xsd:string"  minOccurs="0"  />
+					<xsd:element name="originalDescription" type="xsd:string" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ctEnte">
+				<xsd:sequence>
+					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codiceFiscaleEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deNomeEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="emailAmministratore" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="dtCreazione" type="ppt:stISODateTime" minOccurs="0" />
+					<xsd:element name="dtUltimaModifica" type="ppt:stISODateTime" minOccurs="0" />
+					<xsd:element name="codRpDatiVersTipoVersamento" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="numRpDatiVersDatiSingVersCommissioneCaricoPa" type="xsd:long" minOccurs="0" />
+					<xsd:element name="codRpDatiVersDatiSingVersIbanAccredito" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codRpDatiVersDatiSingVersBicAccredito" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codRpDatiVersDatiSingVersIbanAppoggio" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codRpDatiVersDatiSingVersBicAppoggio" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="myboxClientKey" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="myboxClientSecret" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="enteSilInviaRispostaPagamentoUrl" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codGlobalLocationNumber" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="dePassword" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codRpDatiVersDatiSingVersBicAccreditoSeller" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="deRpEnteBenefDenominazioneBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefIndirizzoBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefCivicoBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codRpEnteBenefCapBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefLocalitaBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefProvinciaBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codRpEnteBenefNazioneBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefTelefonoBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefSitoWebBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deRpEnteBenefEmailBeneficiario" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="applicationCode" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codCodiceInterbancarioCbill" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deInformazioniEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deAutorizzazione" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codStatoEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deTipoStato" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deUrlEsterniAttiva" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="linguaAggiuntiva" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deLogoEnte" type="xs:string" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			
+			<xsd:complexType name="ctEnteFunzionalita">
+				<xsd:sequence>
+					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codFunzionalita" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flgAttivo" type="xsd:boolean"  minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			
+			<xsd:complexType name="ctEnteTipoDovuto">
+				<xsd:sequence>
+					<!-- private EnteSil enteSil; -->
+					<!-- private Ente ente;-->
+					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0" />
+					
+					<xsd:element name="codTipo" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deTipo" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="ibanAccreditoPi" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="bicAccreditoPi" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="ibanAppoggioPi" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="bicAppoggioPi" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="ibanAccreditoPsp" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="bicAccreditoPsp" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="ibanAppoggioPsp" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="bicAppoggioPsp" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codContoCorrentePostale" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codXsdCausale" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="bicAccreditoPiSeller" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="bicAccreditoPspSeller" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="spontaneo" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="importo" type="xsd:long" minOccurs="0" />
+					<xsd:element name="deUrlPagamentoDovuto" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deBilancioDefault" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flgCfAnonimo" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="flgScadenzaObbligatoria" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="flgStampaDataScadenza" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="deIntestatarioCcPostale" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deSettoreEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flgNotificaIo" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="flgNotificaEsitoPush" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="maxTentativiInoltroEsito" type="xsd:int" minOccurs="0" />
+					<xsd:element name="codiceContestoPagamento" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flgDisabilitaStampaAvviso" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="flgAttivo" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="macroarea" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="tipoServizio" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="motivoRisc" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codTassonomico" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="tokenServiceGio" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flagServiceGio" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="giorniNotificaScadenza" type="xsd:int" minOccurs="0" />
+					<xsd:element name="flagSensibile" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="dtAbilitazioneServiceGio" type="ppt:stISODateTime" minOccurs="0" />
+					<xsd:element name="flagOmettiInvioCreazione" type="xsd:boolean"  minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			
+			<xsd:complexType name="ctOperatore">
+				<xsd:sequence>
+					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="ruolo" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codFedUserId" type="ppt:stText35" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			
+			<xsd:complexType name="ctOperatoreEnteTipoDovuto">
+				<xsd:sequence>
+					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codTipoDovuto" type="xsd:string" minOccurs="0"/>
+					<xsd:element name="codFedUserId" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flgAttivo" type="xsd:boolean"  minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>			
+			
+			<xsd:complexType name="ctUtente">
+				<xsd:sequence>
+					<xsd:element name="version" type="xsd:int" minOccurs="0" />
+					<xsd:element name="codFedUserId" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="codCodiceFiscaleUtente" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="flgFedAuthorized" type="xsd:boolean"  minOccurs="0" />
+					<xsd:element name="deEmailAddress" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deFirstname" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deLastname" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="deFedLegalEntity" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="dtUltimoLogin" type="ppt:stISODateTime" minOccurs="0" />
+					<xsd:element name="indirizzo" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="civico" type="ppt:stText35" minOccurs="0" />
+					<xsd:element name="cap" type="ppt:stText35" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+			
+			<xsd:complexType name="ctAllineamento">
+				<xsd:sequence>
+					<xsd:element name="enti" type="ppt:ctEnte" minOccurs="0" maxOccurs="unbounded" />
+					<xsd:element name="entiFunzionalita" type="ppt:ctEnteFunzionalita" minOccurs="0" maxOccurs="unbounded" />
+					<xsd:element name="enteTipiDovuto" type="ppt:ctEnteTipoDovuto" minOccurs="0" maxOccurs="unbounded" />
+					<xsd:element name="operatori" type="ppt:ctOperatore" minOccurs="0" maxOccurs="unbounded" />
+					<xsd:element name="operatoriEnteTipiDovuto" type="ppt:ctOperatoreEnteTipoDovuto" minOccurs="0" maxOccurs="unbounded" />
+					<xsd:element name="utenti" type="ppt:ctUtente" minOccurs="0" maxOccurs="unbounded" />
+				</xsd:sequence>
+			</xsd:complexType>
+					
+			
+			<xsd:complexType name="paaMCSAllineamento">
+				<xsd:sequence>
+					<xsd:element name="passwordAllineamento" type="ppt:stPasswordAllineamento" minOccurs="0"/>
+					<xsd:element name="dateFromAllineamento" type="ppt:stISODateTime" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paaMCSAllineamentoRisposta">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="jsonAllineamento" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>	
+			</xsd:complexType>
+			
+		</xsd:schema>
+
+	</wsdl:types>
+	
+	<wsdl:message name="paaMCSAllineamento">
+		<wsdl:part name="bodyrichiesta" element="ppt:paaMCSAllineamento"/>
+	</wsdl:message>
+	<wsdl:message name="paaMCSAllineamentoResponse">
+		<wsdl:part name="bodyrisposta" element="ppt:paaMCSAllineamentoRisposta"/>
+	</wsdl:message>		
+
+	<wsdl:portType name="AllineamentoMyCS">
+		
+		<wsdl:operation name="paaMCSAllineamento" >
+			<wsdl:input name="paaMCSAllineamento" message="tns:paaMCSAllineamento"
+				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaMCSAllineamentoRichiesta"
+				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaMCSAllineamentoRichiesta">
+			</wsdl:input>
+			<wsdl:output name="paaMCSAllineamentoResponse" message="tns:paaMCSAllineamentoResponse"
+				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaMCSAllineamentoRisposta"
+				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaMCSAllineamentoRisposta">
+			</wsdl:output>
+		</wsdl:operation>
+
+	</wsdl:portType>
+
+	<wsdl:binding name="AllineamentoMyCSBinding"
+		type="tns:AllineamentoMyCS">
+
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+
+		
+		
+		<wsdl:operation name="paaMCSAllineamento">
+			<soap:operation soapAction="paaMCSAllineamento" soapActionRequired="false" style="document"/>
+			<wsdl:input name="paaMCSAllineamento">
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="paaMCSAllineamentoResponse">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		
+	</wsdl:binding>
+
+	<wsdl:service name="AllineamentoMyCSService">
+		<wsdl:port name="AllineamentoMyCSPort"
+			binding="tns:AllineamentoMyCSBinding">
+			<soap:address location="http://www.regione.veneto.it/pagamenti/ente/"/>
+		</wsdl:port>
+	</wsdl:service>
+
+</wsdl:definitions>
+
+
+

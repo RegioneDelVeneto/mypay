@@ -36,7 +36,9 @@ import { MAT_DATE_FORMATS } from '@angular/material/core';
 })
 export class DatepickerFormatYyyyDirective {
 
-  constructor() { }
+  constructor() { 
+    //This is intentionally empty
+  }
 
 }
 
@@ -58,6 +60,8 @@ export class DatepickerFormatYyyyDirective {
 })
 export class DatepickerFormatMmYyyyDirective {
 
-  constructor() { }
+  constructor() { 
+    //This is intentionally empty
+  }
 
 }

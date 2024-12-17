@@ -26,6 +26,8 @@ import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
+import java.util.List;
+
 public interface EnteSilDao extends BaseDao {
 
   @SqlUpdate(
@@ -96,5 +98,21 @@ public interface EnteSilDao extends BaseDao {
   )
   @RegisterFieldMapper(EnteSil.class)
   EnteSil getById(Long mygovEnteSilId);
+
+  @SqlQuery(
+      "select "+EnteSil.ALIAS+ALL_FIELDS+", "+Ente.FIELDS+", "+EnteTipoDovuto.FIELDS +
+          " from mygov_ente_sil "+EnteSil.ALIAS +
+          " inner join mygov_ente "+Ente.ALIAS +
+          "    on "+Ente.ALIAS+".mygov_ente_id = "+EnteSil.ALIAS+".mygov_ente_id" +
+          "  left join mygov_ente_tipo_dovuto "+EnteTipoDovuto.ALIAS +
+          "    on "+EnteTipoDovuto.ALIAS+".mygov_ente_tipo_dovuto_id = "+EnteSil.ALIAS+".mygov_ente_tipo_dovuto_id" +
+          " where "+Ente.ALIAS+".mygov_ente_id = :mygovEnteId" +
+          "   and ( (:codTipoDovuto is null and "+EnteSil.ALIAS+".mygov_ente_tipo_dovuto_id is null" +
+          "         or "+EnteTipoDovuto.ALIAS+".cod_tipo = :codTipoDovuto )" +
+          "      or "+EnteSil.ALIAS+".mygov_ente_tipo_dovuto_id is null )" +
+          " order by "+EnteSil.ALIAS+".mygov_ente_tipo_dovuto_id NULLS LAST"
+  )
+  @RegisterFieldMapper(EnteSil.class)
+  List<EnteSil> getByEnteTipoDovuto(Long mygovEnteId, String codTipoDovuto);
 
 }

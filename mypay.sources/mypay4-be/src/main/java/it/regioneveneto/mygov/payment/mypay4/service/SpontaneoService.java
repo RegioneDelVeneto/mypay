@@ -17,14 +17,16 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.service;
 
-import it.regioneveneto.mygov.payment.mypay4.dto.*;
+import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaPagatore;
+import it.regioneveneto.mygov.payment.mypay4.dto.CartItem;
+import it.regioneveneto.mygov.payment.mypay4.dto.SpontaneoFormTo;
+import it.regioneveneto.mygov.payment.mypay4.dto.SpontaneoTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotAuthorizedException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
 import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
 import it.regioneveneto.mygov.payment.mypay4.model.Ente;
 import it.regioneveneto.mygov.payment.mypay4.model.EnteFunzionalita;
 import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
-import it.regioneveneto.mygov.payment.mypay4.security.JwtTokenUtil;
 import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
@@ -33,6 +35,7 @@ import it.regioneveneto.mygov.payment.mypay4.util.render.HttpRenderClientService
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,13 +43,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 @Slf4j
 @Transactional(propagation = Propagation.SUPPORTS)
 public class SpontaneoService {
+
+  @Value("${app.fe.cittadino.absolute-path}")
+  private String appFeCittadinoAbsolutePath;
 
   @Resource
   private SpontaneoService self;
@@ -65,9 +74,6 @@ public class SpontaneoService {
   private EnteTipoDovutoService enteTipoDovutoService;
 
   @Autowired
-  private LocationService locationService;
-
-  @Autowired
   private MessageSource messageSource;
 
   @Autowired
@@ -78,9 +84,6 @@ public class SpontaneoService {
 
   @Autowired
   private DefinitionDovutoService definitionDovutoService;
-
-  @Autowired
-  private JwtTokenUtil jwtTokenUtil;
 
   public SpontaneoFormTo initializeForm(String codIpaEnte, String codTipo) {
     enteService.verifyEnteIsPublicAndActive(codIpaEnte);
@@ -182,7 +185,7 @@ public class SpontaneoService {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public DovutoTo prepareAvviso(UserWithAdditionalInfo user, CartItem spontaneo) {
+  public Dovuto prepareAvviso(UserWithAdditionalInfo user, CartItem spontaneo) {
     enteService.verifyEnteIsPublicAndActive(spontaneo.getCodIpaEnte());
     List<EnteFunzionalita> enteFunzionalita = enteFunzionalitaService.getAllByCodIpaEnte(spontaneo.getCodIpaEnte(), true);
     boolean validDovutoSpontaneo = enteFunzionalita.stream().filter(ef -> Constants.FUNZIONALITA_PAGAMENTO_SPONTANEO.equals(ef.getCodFunzionalita())).count() == 1;
@@ -194,7 +197,7 @@ public class SpontaneoService {
     //if pagatore email is null, then versante email is used (and is therefore compulsory)
     if(spontaneo.getIntestatario()!=null && StringUtils.isBlank(spontaneo.getIntestatario().getEmail())){
       if(StringUtils.isBlank(spontaneo.getVersanteEmail()))
-        throw new ValidatorException(messageSource.getMessage("pa.anagrafica"+AnagraficaPagatore.TIPO.Pagatore+".emailNonValida", null, Locale.ITALY));
+        throw new ValidatorException(messageSource.getMessage("pa.anagrafica"+AnagraficaPagatore.TIPO.Pagatore +".emailNonValida", null, Locale.ITALY));
       else
         spontaneo.getIntestatario().setEmail(spontaneo.getVersanteEmail());
     }
@@ -202,10 +205,10 @@ public class SpontaneoService {
     self.validateCart(spontaneo);
 
     Ente ente = enteService.getEnteByCodIpa(spontaneo.getCodIpaEnte());
-    long newId = dovutoService.insertDovutoFromSpontaneo(spontaneo, ente, true);
+    var newId = dovutoService.insertDovutoFromSpontaneo(spontaneo, ente, true, null, false);
 
     // only if avviso: i.e. has IUV and length in [15 , 17])
-    Dovuto dovuto = dovutoService.getById(newId);
+    var dovuto = dovutoService.getById(newId);
     if (Utilities.isAvviso(dovuto.getCodIuv())) {
       // AVVISATURA DIGITALE WS
       asynchAvvisiDigitaliService.manageAvvisoDigitale(
@@ -237,10 +240,7 @@ public class SpontaneoService {
           "I");
     }
 
-    DovutoTo dovutoTo = dovutoService.getToById(newId);
-    if(dovutoTo!=null)
-      dovutoTo.setSecurityTokenAvviso(jwtTokenUtil.generateSecurityToken(user, ""+dovutoTo.getId()));
-    return dovutoTo;
+    return dovuto;
   }
 
   public void validateCart(CartItem cart) throws ValidatorException {
@@ -253,5 +253,15 @@ public class SpontaneoService {
       throw new ValidatorException(messageSource.getMessage("pa.gestioneDovuto.errore.importo", null, Locale.ITALY));
 
     dovutoService.validateAndNormalizeAnagraficaPagatore(AnagraficaPagatore.TIPO.Pagatore, cart.getIntestatario(), enteTipoDovuto.isFlgCfAnonimo());
+  }
+
+  public String getFrontendUrlForSpontaneo(Optional<String> codIpaEnte, Optional<String> codTipoDovuto){
+    final StringBuilder s = new StringBuilder(this.appFeCittadinoAbsolutePath+"/landing/spontaneo");
+    codIpaEnte.map(StringUtils::stripToNull).ifPresent(codIpaEnteValue -> {
+      s.append("?codIpaEnte=").append(URLEncoder.encode(codIpaEnteValue, StandardCharsets.UTF_8));
+      codTipoDovuto.map(StringUtils::stripToNull).ifPresent(codTipoDovutoValue ->
+              s.append("&codTipo=").append(URLEncoder.encode(codTipoDovutoValue, StandardCharsets.UTF_8)));
+    });
+    return s.toString();
   }
 }

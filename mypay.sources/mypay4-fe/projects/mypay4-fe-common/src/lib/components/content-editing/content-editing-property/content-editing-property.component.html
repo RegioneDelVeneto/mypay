@@ -30,7 +30,8 @@
         [formControlName]="schemaItem.name" [required]="schemaItem.required" [readonly]="readOnly">
     </textarea>
     <fa-icon *ngIf="schemaItem.helpMessage && schemaItem.helpMessage.length > 0" matSuffix
-        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"></fa-icon>
+        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"
+        #tooltip="matTooltip" (click)="$event.stopImmediatePropagation(); tooltip.toggle()"></fa-icon>
     <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
   </mat-form-field>
 
@@ -41,7 +42,8 @@
     <input matInput *ngIf="'CURRENCY_LABEL' == schemaItem.htmlRender" [formControlName]="schemaItem.name" readonly
         [value]="form.get(schemaItem.name).value | currency:'EUR'">
     <fa-icon *ngIf="schemaItem.helpMessage && schemaItem.helpMessage.length > 0" matSuffix
-        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"></fa-icon>
+        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"
+        #tooltip="matTooltip" (click)="$event.stopImmediatePropagation(); tooltip.toggle()"></fa-icon>
     <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
   </mat-form-field>
 
@@ -54,7 +56,8 @@
     <mat-datepicker-toggle *ngIf="!readOnly" matSuffix [for]="datePicker"></mat-datepicker-toggle>
     <mat-datepicker #datePicker></mat-datepicker>
     <fa-icon *ngIf="schemaItem.helpMessage && schemaItem.helpMessage.length > 0" matSuffix
-        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"></fa-icon>
+        [matTooltip]="schemaItem.helpMessage" [icon]="iconHelp"
+        #tooltip="matTooltip" (click)="$event.stopImmediatePropagation(); tooltip.toggle()"></fa-icon>
     <mat-error *ngIf="hasError">{{ errors[0] }}</mat-error>
   </mat-form-field>
 

@@ -23,6 +23,7 @@ import { MapperDef, MapperType } from '../../../../mypay4-fe-common/src/lib/mapp
 /** Common DTO for FlussoTassonomia and FlussoMassivo */
 export class FlussoTasMas extends WithActions {
   public static readonly MAPPER_S2C_DEF  = [
+    new MapperDef(MapperType.DateTime,'dtCreazione','local-date-time'),
     new MapperDef(MapperType.Function,'statoToShow',(flusso: FlussoTasMas) => {
       switch(flusso.codStato) {
         case "ERRORE_CARICAMENTO":
@@ -33,6 +34,9 @@ export class FlussoTasMas extends WithActions {
                   Scarti: ${(flusso.numRigheTotali-flusso.numRigheElaborateCorrettamente)}`;
       }
     }),
+  ];
+  public static readonly MAPPER_C2S_DEF  = [
+    new MapperDef(MapperType.DateTime,'dtCreazione','local-date-time'),
   ];
   id: number;
   codStato: string;
@@ -47,6 +51,6 @@ export class FlussoTasMas extends WithActions {
   codErrore: string;
   showDownload: boolean;
   securityToken: string;
-
+  hash: string;
   statoToShow: string;
 }

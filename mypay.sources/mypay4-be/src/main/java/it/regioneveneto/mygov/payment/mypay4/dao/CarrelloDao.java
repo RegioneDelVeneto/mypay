@@ -477,7 +477,7 @@ public interface CarrelloDao extends BaseDao{
       " where "+Carrello.ALIAS + ".mygov_carrello_multi_beneficiario_id = :mygovCarrelloMultiBeneficiarioId"
   )
   @RegisterFieldMapper(Carrello.class)
-  List<Carrello> getByMultiBeneficarioId (Long mygovCarrelloMultiBeneficiarioId);
+  Optional<Carrello> getByMultiBeneficarioId (Long mygovCarrelloMultiBeneficiarioId);
 
 
   @SqlQuery(" select " + Carrello.ALIAS + ALL_FIELDS +", "+AnagraficaStato.FIELDS+","+CarrelloMultiBeneficiario.FIELDS+

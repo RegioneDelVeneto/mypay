@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovStandardTipoDovutoId")
 public class StandardTipoDovuto extends BaseEntity {
 
-  public final static String ALIAS = "StandardTipoDovuto";
-  public final static String FIELDS = ""+ALIAS+".mygov_standard_tipo_dovuto_id as StandardTipoDovuto_mygovStandardTipoDovutoId"+
+  public static final String ALIAS = "StandardTipoDovuto";
+  public static final String FIELDS = ""+ALIAS+".mygov_standard_tipo_dovuto_id as StandardTipoDovuto_mygovStandardTipoDovutoId"+
       ","+ALIAS+".cod_tipo as StandardTipoDovuto_codTipo"+
       ","+ALIAS+".de_tipo as StandardTipoDovuto_deTipo"+
       ","+ALIAS+".cod_xsd_causale as StandardTipoDovuto_codXsdCausale"+

@@ -17,19 +17,22 @@
  */
 import { ToastrService } from 'ngx-toastr';
 import {
-    CookieService, Ente, FieldBean, manageError, OverlaySpinnerService, TipoDovuto, UserService,
-    validateFormFun, WithTitle
+  CookieService, Ente, FieldBean, manageError, OverlaySpinnerService, StorageService, TipoDovuto, UserService,
+  validateFormFun, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
 import { combineLatest, Observable, Subscription } from 'rxjs';
-import { flatMap, map, startWith } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 
 import {
-    Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild
+  Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild
 } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { faTags } from '@fortawesome/free-solid-svg-icons';
 
+import * as _ from 'lodash';
+import { ExtAppSpontaneousPayment } from '../../model/ext-app';
+import { SpontaneoForm } from '../../model/spontaneo-form';
 import { RecaptchaService } from '../../services/recaptcha.service';
 import { SpontaneoService } from '../../services/spontaneo.service';
 
@@ -49,6 +52,8 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
   @Input("cod-ipa-ente")
   private codIpaEnteInput: string;
 
+  hidden: boolean = true;
+
   enteOptions: Ente[];
   enteFilteredOptions: Observable<Ente[]>;
 
@@ -59,13 +64,15 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
 
   codIpaEnteLanding: string;
   private codTipoDovutoLanding: string;
-
+  extAppFlow: boolean = false;
+  private extAppToken: string;
+  private extAppSpontaneousPayment: ExtAppSpontaneousPayment;
+  
   hasSearched: boolean = false;
   blockingError: boolean = false;
 
   enteTipo: FormGroup;
   enteTipoErrors = {};
-  private logged:boolean;
 
   private formChangesSub: Subscription;
   private enteTipoChangeSub: Subscription;
@@ -83,8 +90,8 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
     private renderer: Renderer2,
     private recaptchaService: RecaptchaService,
     private cookieService: CookieService,
+    private storageService: StorageService,
     router: Router,
-    private route:ActivatedRoute,
   ) {
     this.enteTipo = this.formBuilder.group({
       ente: [null, [Validators.required, this.enteValidator]],
@@ -95,6 +102,23 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
 
     this.codIpaEnteLanding = router.getCurrentNavigation()?.extras?.state?.codIpaEnte;
     this.codTipoDovutoLanding = router.getCurrentNavigation()?.extras?.state?.codTipoDovuto;
+    this.extAppToken = router.getCurrentNavigation()?.extras?.state?.extAppToken;
+    this.extAppFlow = ! _.isNil(router.getCurrentNavigation()?.extras?.state?.extAppToken);
+  }
+
+  private extAppError(msg: string){
+    this.blockingError = true;
+    if(!this.extAppSpontaneousPayment.callbackUrl){
+      this.toastrService.error('Errore interno [callbackUrl null]');
+      return;
+    }
+    const redirectUrl = new URL(this.extAppSpontaneousPayment.callbackUrl);
+    redirectUrl.searchParams.append('esito', 'ERR');
+    redirectUrl.searchParams.append('msg', msg);
+    setTimeout(() => {
+      console.log('redirecting to url: '+redirectUrl);
+      window.location.href = redirectUrl.toString();
+    }, 100);
   }
 
   get placeholderTipoDovuto() {
@@ -113,21 +137,36 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
     this.loggedUserAndCookieConsentSub = combineLatest([this.userService.getLoggedUserObs(), this.cookieService.getConsentStateObs()])
     .subscribe( ([loggedUser,cookieConsent]) => {
       if(loggedUser){
-        this.logged = true;
         this.cookieService.unsetMissingNeededConsent();
         this.hasConsent = true;
         this.viewInit();
       } else {
-        this.logged = false;
         console.log("cookie consent state on spontaneo:"+JSON.stringify(cookieConsent));
-        if(cookieConsent.cookieAll || cookieConsent.cookieThirdParty){
+        if(!this.recaptchaService.isEnabled() || cookieConsent.cookieAll || cookieConsent.cookieThirdParty){
           this.recaptchaService.init(this.renderer);
           this.cookieService.unsetMissingNeededConsent();
-          this.viewInit();
+
+          if(this.extAppFlow){
+            this.storageService.getObject<ExtAppSpontaneousPayment>(this.extAppToken).subscribe(extAppSpontaneousPayment => {
+              extAppSpontaneousPayment.token = this.extAppToken;
+              this.extAppSpontaneousPayment = extAppSpontaneousPayment;
+              this.codIpaEnteLanding = extAppSpontaneousPayment.codiceEnte;
+              this.codTipoDovutoLanding = extAppSpontaneousPayment.codiceTipoDovuto;
+              if(!this.codIpaEnteLanding)
+                this.extAppError('ente null');
+              else if(!this.codTipoDovutoLanding)
+                this.extAppError('tipoDovuto null');
+              this.hidden = false;
+              this.onSubmit(this.codIpaEnteLanding, this.codTipoDovutoLanding);
+            }, manageError('Errore recuperando i dati di pagamento', this.toastrService, ()=>{this.blockingError=true}));
+          } else {
+            this.viewInit();
+          }
           this.hasConsent = true;
         } else {
           this.cookieService.setMissingNeededConsent();
           this.hasConsent = false;
+          this.hidden = true;
         }
       }
     });
@@ -154,6 +193,7 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
           map(value => typeof value === 'string' || !value ? value : value.deNomeEnte),
           map(deNomeEnte => deNomeEnte ? this._enteFilter(deNomeEnte) : this.enteOptions.slice())
         );
+      this.hidden = false;
 
       //Set ente, tipoDovuto by the query params if exist.
       if (this.codIpaEnteLanding) {
@@ -168,15 +208,21 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
                 const tipoDovuto = this.tipoDovutoOptions.find(tipo => tipo.codTipo === this.codTipoDovutoLanding);
                 if (tipoDovuto) {
                   this.enteTipo.get('tipoDovuto').setValue(tipoDovuto);
-                  //timeout needed to allow for complete form initialization
-                  this.onSubmit();
+                  this.onSubmit();                
                 }
               }
             }, manageError('Errore caricando l\'elenco dei tipi dovuto', this.toastrService, ()=>{this.blockingError=true}) );
           }
         }
       }
-    }, manageError('Errore caricando l\'elenco degli enti', this.toastrService, ()=>{this.blockingError=true}) );
+    }, 
+    error => {
+      if(this.codIpaEnteLanding && _.startsWith(error, 'Risorsa non trovata')){
+        this.toastrService.info('Questo ente non ha alcun servizio di pagamento spontaneo attivo.');
+        this.hidden = true;
+      } else
+        manageError('Errore caricando l\'elenco degli enti', this.toastrService, ()=>{this.blockingError=true})(error);
+    } );
 
     this.enteTipo.get('tipoDovuto').disable();
     this.tipoDovutoOptionsMap = new Map();
@@ -251,38 +297,39 @@ export class SpontaneoComponent implements OnInit, OnDestroy, WithTitle {
     this.hasSearched = false;
   }
 
-  onSubmit() {
-
-    if(!this.logged){
-      if(!this.recaptchaService.isActive()){
-        this.toastrService.error
-      }
-    }
-
+  onSubmit(codEnte?: string, codTipoDovuto?: string) {
 
     const i = this.enteTipo.value;
-    let redirectLink = (i.tipoDovuto as TipoDovuto).deUrlPagamentoDovuto?.trim();
-    if (redirectLink && redirectLink.length > 0) {
-      window.open(redirectLink);
+    let ente: Ente, tipoDovuto: TipoDovuto;
+    if(codTipoDovuto){
+      ente = new Ente();
+      ente.codIpaEnte = codEnte;
+      tipoDovuto = new TipoDovuto();
+      tipoDovuto.codTipo = codTipoDovuto;
     } else {
-      this.hasSearched = true;
-      const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
-      let initializeFormFun;
-      if(this.logged)
-        initializeFormFun = this.spontaneoService.initializeForm(i.ente, i.tipoDovuto);
-      else
-        initializeFormFun = this.recaptchaService.submitToken('initializeForm').pipe(
-          flatMap(token => this.spontaneoService.initializeFormAnonymous(i.ente, i.tipoDovuto, token))
-        );
-
-      initializeFormFun.subscribe(data => {
-        this.currentEnte = i.ente as Ente;
-        this.currentTipoDovuto = i.tipoDovuto as TipoDovuto;
-        this.fieldBeans = data.fieldBeans;
-        this.importoPrefissato = data.importo ? Number(data.importo) : null;
-        this.overlaySpinnerService.detach(spinner);
-      }, manageError('Errore inizializzando il form', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );
+      ente = i.ente;
+      tipoDovuto = i.tipoDovuto;
+      let redirectLink = tipoDovuto.deUrlPagamentoDovuto?.trim();
+      if (redirectLink && redirectLink.length > 0) {
+        window.open(redirectLink);
+        return;
+      }
     }
+   
+    this.hasSearched = true;
+    const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
+
+    this.recaptchaService.submitWithRecaptchaHandling<SpontaneoForm>('initializeForm', 
+      recaptchaToken => this.spontaneoService.initializeFormAnonymous(ente, tipoDovuto, recaptchaToken),
+      () => this.spontaneoService.initializeForm(ente, tipoDovuto)
+    ).subscribe( data => {
+      this.currentEnte = ente;
+      this.currentTipoDovuto = tipoDovuto;
+      this.fieldBeans = data.fieldBeans;
+      this.importoPrefissato = data.importo ? Number(data.importo) : null;
+      this.overlaySpinnerService.detach(spinner);
+    }, manageError('Errore inizializzando il form', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );
+
   }
 
   /* -- Members for spontaneo-dynamo(my-dynamo) -- */

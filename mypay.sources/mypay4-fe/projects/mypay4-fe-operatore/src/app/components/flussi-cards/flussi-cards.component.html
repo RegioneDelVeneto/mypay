@@ -104,5 +104,27 @@
       <a mat-button routerLink="/flussi-spc/quadratura"><span class="font-bold" aria-labelledby="sr-fq"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
     </mat-card-actions> -->
   </mat-card>
+
+  <div fxShow="false" fxShow.gt-sm class="flex-row-break"></div>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
+    <mat-card-header fxFlex="0 1 auto">
+      <div mat-card-avatar aria-hidden="true"><a tabindex="-1" class="no-decoration" routerLink="/flussi-conservazione"><fa-icon [icon]="iconSpc" size="2x"></fa-icon></a></div>
+      <mat-card-title><a tabindex="0" class="no-decoration" routerLink="/flussi-conservazione" id="sr-fc">Flussi di conservazione</a></mat-card-title>
+      <mat-card-title class="card-action-right">
+        <a mat-button routerLink="/flussi-conservazione"><span class="font-bold" aria-labelledby="sr-fc"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <span>Questa funzionalità permette di scaricare i flussi di conservazione.</span>
+    </mat-card-content>
+    <div fxFlex></div>
+    <!-- <mat-card-actions fxFlex="0 1 auto">
+      <a mat-button routerLink="/flussi-conservazione"><span class="font-bold" aria-labelledby="sr-fc"><u>Vai</u> &nbsp;</span><fa-icon [icon]="iconAngleRight"></fa-icon></a>
+    </mat-card-actions> -->
+  </mat-card>
+
+  <mat-card class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column" class="placeholder-card">
+  </mat-card>
 </div>
 

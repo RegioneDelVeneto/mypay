@@ -28,7 +28,6 @@ import org.jdbi.v3.core.mapper.Nested;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder(toBuilder = true)
@@ -37,10 +36,8 @@ import java.util.List;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovCarrelloId")
 public class Carrello extends BaseEntity {
 
-  public final static List<Integer> VALID_MODELLOPAGAMENTO = List.of(0,1,2,4);
-
-  public final static String ALIAS = "Carrello";
-  public final static String FIELDS = ""+ALIAS+".mygov_carrello_id as Carrello_mygovCarrelloId,"+ALIAS+".version as Carrello_version"+
+  public static final String ALIAS = "Carrello";
+  public static final String FIELDS = ""+ALIAS+".mygov_carrello_id as Carrello_mygovCarrelloId,"+ALIAS+".version as Carrello_version"+
       ","+ALIAS+".mygov_anagrafica_stato_id as Carrello_mygovAnagraficaStatoId,"+ALIAS+".cod_ack_rp as Carrello_codAckRp"+
       ","+ALIAS+".dt_creazione as Carrello_dtCreazione,"+ALIAS+".dt_ultima_modifica_rp as Carrello_dtUltimaModificaRp"+
       ","+ALIAS+".dt_ultima_modifica_e as Carrello_dtUltimaModificaE"+

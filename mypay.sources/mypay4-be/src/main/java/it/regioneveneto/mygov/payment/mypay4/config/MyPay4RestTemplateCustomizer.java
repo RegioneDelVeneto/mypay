@@ -25,17 +25,60 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
+import java.util.Objects;
+
 @Configuration
 @Slf4j
 public class MyPay4RestTemplateCustomizer {
+
+  private static final ThreadLocal<Boolean> disableRedirectHandling = ThreadLocal.withInitial(()->Boolean.FALSE);
+  private static final ThreadLocal<String> customSSLSupport = ThreadLocal.withInitial(()->null);
+
+  private static final ThreadLocal<int[]> customTimeout = ThreadLocal.withInitial(()->null);
+
+  public static void setDisableRedirectHandling(){
+    log.info("setDisableRedirectHandling to TRUE");
+    disableRedirectHandling.set(Boolean.TRUE);
+  }
+
+  public static void setCustomSSLSupport(String prefix){
+    log.info("setCustomSSLSupport to [{}]", prefix);
+    customSSLSupport.set(prefix);
+  }
+
+  public static void setCustomTimeout(int connectTimeout, int readTimeout){
+    int[] customTimeoutValue = { connectTimeout, readTimeout };
+    log.info("setCustomTimeout to connect[{}] read[{}]", connectTimeout, readTimeout);
+    customTimeout.set(customTimeoutValue);
+  }
 
   @Bean
   public RestTemplateCustomizer customRestTemplateCustomizer(Environment env) {
     return restTemplate -> {
       log.debug("starting MyPay4RestTemplateCustomizer");
-      final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
       log.debug("check if proxy support needed");
-      factory.setHttpClient(HttpClientBuilderHelper.create().addProxySupport(env).build());
+      HttpClientBuilderHelper httpClientBuilderHelper = HttpClientBuilderHelper.create(env).addProxySupport();
+      if(Objects.equals(disableRedirectHandling.get(), Boolean.TRUE)) {
+        log.info("creating HttpComponentsClientHttpRequestFactory with disableRedirectHandling=TRUE");
+        httpClientBuilderHelper.disableRedirectHandling();
+        disableRedirectHandling.set(Boolean.FALSE);
+      }
+      if(customSSLSupport.get()!=null) {
+        log.info("creating HttpComponentsClientHttpRequestFactory with customSSLSupport[{}]", customSSLSupport.get());
+        httpClientBuilderHelper.addCustomSSLSupport(customSSLSupport.get());
+        customSSLSupport.remove();
+      }
+
+      final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+      factory.setHttpClient(httpClientBuilderHelper.build());
+      if(customTimeout.get()!=null) {
+        int connectTimeout = customTimeout.get()[0];
+        int readTimeout = customTimeout.get()[1];
+        log.info("creating HttpComponentsClientHttpRequestFactory with customTimeout - connect[{}] read[{}]", connectTimeout, readTimeout);
+        factory.setConnectTimeout(connectTimeout);
+        factory.setReadTimeout(readTimeout);
+        customTimeout.remove();
+      }
       restTemplate.setRequestFactory(factory);
     };
   }

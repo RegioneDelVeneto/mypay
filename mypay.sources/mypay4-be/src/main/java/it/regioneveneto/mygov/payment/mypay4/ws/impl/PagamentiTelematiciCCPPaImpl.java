@@ -17,1166 +17,733 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.ws.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.regioneveneto.mygov.payment.mypay4.bo.CarrelloBo;
-import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaPagatore;
-import it.regioneveneto.mygov.payment.mypay4.dto.CartItem;
-import it.regioneveneto.mygov.payment.mypay4.dto.common.Psp;
+import it.regioneveneto.mygov.payment.mypay4.dto.AttualizzazioneTo;
+import it.regioneveneto.mygov.payment.mypay4.dto.ExportReceiptEvent;
+import it.regioneveneto.mygov.payment.mypay4.dto.OutcomeEmailNotifierEvent;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
-import it.regioneveneto.mygov.payment.mypay4.exception.PaymentOrderException;
-import it.regioneveneto.mygov.payment.mypay4.exception.WSFaultResponseWrapperException;
+import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
+import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
+import it.regioneveneto.mygov.payment.mypay4.logging.LogExecution;
 import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.service.*;
-import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
 import it.regioneveneto.mygov.payment.mypay4.service.common.SystemBlockService;
+import it.regioneveneto.mygov.payment.mypay4.service.pagopa.GpdService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.PagamentiTelematiciEsterniCCPClient;
-import it.regioneveneto.mygov.payment.mypay4.ws.iface.PagamentiTelematiciCCPPa;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants;
-import it.veneto.regione.pagamenti.ente.PaaSILImportaDovutoRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaRPRisposta;
 import it.veneto.regione.pagamenti.pa.*;
-import it.veneto.regione.pagamenti.pa.ppthead.IntestazionePPT;
 import it.veneto.regione.schemas._2012.pagamenti.*;
-import it.veneto.regione.schemas._2012.pagamenti.ente.Versamento;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service("PagamentiTelematiciCCPPaImpl")
 @Slf4j
 @Transactional(propagation = Propagation.SUPPORTS)
-public class PagamentiTelematiciCCPPaImpl implements PagamentiTelematiciCCPPa {
+public class PagamentiTelematiciCCPPaImpl {
 
+	public static final Date MAX_DATE = Utilities.toDate(LocalDate.of(2099,12,31));
+
+	@Value("${pa.gpd.preload}")
+	private boolean gpdPreload;
+	@Autowired
+	private EnteService enteService;
+	@Autowired
+	private DovutoService dovutoService;
+	@Autowired
+	private DovutoElaboratoService dovutoElaboratoService;
+	@Autowired
+	private EnteTipoDovutoService enteTipoDovutoService;
+	@Autowired
+	private PagamentiTelematiciEsterniCCPClient pagamentiTelematiciEsterniCCPClient;
+	@Autowired
+	private AnagraficaSoggettoService anagraficaSoggettoService;
+	@Autowired
+	private SendRtOutcomeService sendRtOutcomeService;
+	@Autowired
+	private ReceiptService receiptService;
   @Autowired
-  JAXBTransformService jaxbTransformService;
-  @Autowired
-  GiornaleService giornalePaService;
-  @Autowired
-  EnteService enteService;
-  @Autowired
-  DovutoService dovutoService;
-  @Autowired
-  DovutoElaboratoService dovutoElaboratoService;
-  @Autowired
-  EnteTipoDovutoService enteTipoDovutoService;
-  @Autowired
-  FlussoService flussoService;
-  @Autowired
-  AnagraficaStatoService anagraficaStatoService;
-  @Autowired
-  UtenteService utenteService;
-  @Autowired
-  AvvisoService avvisoService;
-  @Autowired
-  PagamentiTelematiciEsterniCCPClient pagamentiTelematiciEsterniCCPClient;
-  @Autowired
-  AnagraficaSoggettoService anagraficaSoggettoService;
-  @Autowired
-  PaymentManagerService paymentManagerService;
-  @Autowired
-  PaymentService paymentService;
-
-  @Autowired
-  SystemBlockService systemBlockService;
-
-  private final static String DEBITS = "d";
-
-  public PaaSILVerificaRPRisposta paaSILVerificaRP(PaaSILVerificaRP bodyrichiesta, IntestazionePPT header) {
-    try {
-      String xmlbodyString = jaxbTransformService.marshalling(bodyrichiesta, PaaSILVerificaRP.class);
-      String xmlHeaderString = jaxbTransformService.marshalling(header, IntestazionePPT.class);
-      giornalePaService.registraEvento(
-          null,
-          header.getIdentificativoDominio(),
-          header.getIdentificativoUnivocoVersamento(),
-          header.getCodiceContestoPagamento(),
-          bodyrichiesta.getIdentificativoPSP(),
-          Constants.PAY_PRESSO_PSP,
-          Constants.COMPONENTE_FESP,
-          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-          Constants.GIORNALE_TIPO_EVENTO_PA.paaSILVerificaRP.toString(),
-          Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          header.getIdentificativoDominio(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          Constants.EMPTY,
-          xmlHeaderString + xmlbodyString,
-          Constants.GIORNALE_ESITO_EVENTO.OK.toString()
-      );
-    } catch (Exception e) {
-      log.warn("paaSILVerificaRP [REQUEST] impossible to insert in the event log", e);
-    }
-
-    PaaSILVerificaRPRisposta paaSILVerificaRPRisposta = new PaaSILVerificaRPRisposta();
-    paaSILVerificaRPRisposta.setPaaSILVerificaRPRisposta(new EsitoSILVerificaRP());
-
-    EsitoSILVerificaRP esitoSILVerificaRP = paaSILVerificaRPRisposta.getPaaSILVerificaRPRisposta();
-    esitoSILVerificaRP.setFault(new FaultBean());
-    esitoSILVerificaRP.setDatiPagamentoPA(new PaaTipoDatiPagamentoPA());
-
-    FaultBean faultBean = esitoSILVerificaRP.getFault();
-    PaaTipoDatiPagamentoPA paaTipoDatiPagamentoPA = esitoSILVerificaRP.getDatiPagamentoPA();
-
-    String iuv = header.getIdentificativoUnivocoVersamento();
-
-    Consumer<FaultBean> registraGiornaleEventoError = aFaultBean -> {
-      try {
-        giornalePaService.registraEvento(
-            null,
-            header.getIdentificativoDominio(),
-            header.getIdentificativoUnivocoVersamento(),
-            header.getCodiceContestoPagamento(),
-            bodyrichiesta.getIdentificativoPSP(),
-            Constants.PAY_PRESSO_PSP,
-            Constants.COMPONENTE_FESP,
-            Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-            Constants.GIORNALE_TIPO_EVENTO_PA.paaSILVerificaRP.toString(),
-            Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
-            header.getIdentificativoStazioneIntermediarioPA(),
-            header.getIdentificativoDominio(),
-            header.getIdentificativoStazioneIntermediarioPA(),
-            Constants.EMPTY,
-            aFaultBean.getDescription(),
-            Constants.GIORNALE_ESITO_EVENTO.KO.toString()
-        );
-      } catch (Exception e) {
-        log.warn("paaSILVerificaRP [RESPONSE] impossible to insert in the event log", e);
-      }
-    };
-
-    try {
-      Ente ente = enteService.getEnteByCodFiscale(header.getIdentificativoDominio());
-
-      // Se l'ente non viene trovato ritorna errore
-      if (ente == null) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_CODE);
-        faultBean.setDescription(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setFaultString(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-      boolean isStatoInserito = Utilities.checkIfStatoInserito(ente);
-      if (isStatoInserito) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_CODE);
-        faultBean.setDescription(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setFaultString(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-
-      }
-
-      List<Dovuto> dovuti = dovutoService.searchDovutoByIuvEnte(iuv, ente.getCodIpaEnte());
-
-      // Se non presente nella tabella DOVUTO
-      if (dovuti == null || dovuti.size() == 0) {
-
-        // Lo cerco nella tabella DOVUTO_ELABORATO
-        List<DovutoElaborato> dovutiElaborati = dovutoElaboratoService.searchDovutoElaboratoByIuvEnte(iuv,
-            ente.getCodIpaEnte());
-
-        if ((dovutiElaborati == null) || (dovutiElaborati.size() == 0)) {
-          faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_CODE);
-          faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-          faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-          faultBean.setId(header.getIdentificativoDominio());
-          faultBean.setSerial(0);
-          esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-          registraGiornaleEventoError.accept(faultBean);
-          return paaSILVerificaRPRisposta;
-        }
-
-        for (DovutoElaborato dovutoElaborato : dovutiElaborati) {
-          // CONTROLLO DOVUTO ANNULLATO
-          if (Constants.STATO_DOVUTO_ANNULLATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato())) {
-            faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_CODE);
-            faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_STRING);
-            faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_STRING);
-            faultBean.setId(header.getIdentificativoDominio());
-            faultBean.setSerial(0);
-
-            esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-
-            registraGiornaleEventoError.accept(faultBean);
-
-            return paaSILVerificaRPRisposta;
-          }
-
-          if (Constants.STATO_DOVUTO_COMPLETATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato())
-              && dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento() != null
-              && !dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento().equals(Constants.CODICE_ESITO_PAGAMENTO_KO)) {
-
-            faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_CODE);
-            faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_STRING);
-            faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_STRING);
-            faultBean.setId(header.getIdentificativoDominio());
-            faultBean.setSerial(0);
-
-            esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-
-            registraGiornaleEventoError.accept(faultBean);
-
-            return paaSILVerificaRPRisposta;
-          }
-
-        }
-
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-        faultBean.setDescription("Il pagamento richiesto ha stato non atteso");
-        faultBean.setFaultString("Il pagamento richiesto ha stato non atteso");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-
-      // Se esiste piu di un dovuto nella tabella DOVUTO
-      if (dovuti.size() > 1) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-        faultBean.setDescription("Ci sono piu' dovuti che corrispondono allo stesso iuv");
-        faultBean.setFaultString("Errore pagamento multiplo");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-
-      Dovuto dovuto = dovuti.get(0);
-
-      //check blacklist/whitelist codice fiscale
-      systemBlockService.blockByPayerCf(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco());
-
-      Optional<EnteTipoDovuto> enteTipoDovutoOptional = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), ente.getCodIpaEnte(), false);
-
-      // CHECK SE TIPO DOVUTO CENSITO PER ENTE
-      if (enteTipoDovutoOptional.isEmpty()) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE);
-        faultBean.setDescription("Tipo dovuto [" + dovuto.getCodTipoDovuto() + "]" + "non trovato per ente ["
-            + ente.getCodIpaEnte() + "]");
-        faultBean.setFaultString("Tipo dovuto non trovato per ente");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-      EnteTipoDovuto enteTipoDovuto = enteTipoDovutoOptional.get();
-      if (!enteTipoDovuto.isFlgAttivo()) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_ABILITATO_PER_ENTE);
-        faultBean.setDescription("Tipo dovuto [" + dovuto.getCodTipoDovuto() + "]" + "non abilitato per ente ["
-            + ente.getCodIpaEnte() + " (flgAttivo: false)]");
-        faultBean.setFaultString("Tipo dovuto non abilitato per ente");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-
-      if (enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE);
-        faultBean.setDescription("Pagamento tipo dovuto [" + dovuto.getCodTipoDovuto() + "]"
-            + "non supportato per modello 3 per ente [" + ente.getCodIpaEnte() + "]");
-        faultBean.setFaultString("Pagamento marca da bollo digitale non supportato per modello 3 per ente");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-
-      boolean isValidIdPSPAndTipoDovuto = isValidIdPSPAndTipoDovuto(enteTipoDovuto, bodyrichiesta.getIdentificativoPSP());
-      if (!isValidIdPSPAndTipoDovuto) {
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SEMANTICA_CODE);
-        faultBean.setDescription("Nessun IBAN postale associato al tipo dovuto [ " + enteTipoDovuto.getDeTipo()
-            + " ] per lo IUV [ " + header.getIdentificativoUnivocoVersamento() + " ]");
-        faultBean.setFaultString(FaultCodeConstants.PAA_SEMANTICA_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-
-
-      // EFFETTUA I CONTROLLI
-
-      boolean isDovutoPagabile = checkDovutoPagabile(dovuto, enteTipoDovuto.isFlgScadenzaObbligatoria(), faultBean, header.getIdentificativoDominio());
-
-      // Se non supera i controlli viene ritornato la risposta contentente
-      // l'errore
-      if (!isDovutoPagabile) {
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-      }
-
-      if ((!dovuto.getCodRpDatiVersTipoVersamento().equals(Constants.ALL_PAGAMENTI))
-          && (!dovuto.getCodRpDatiVersTipoVersamento().contains(Constants.PAY_PRESSO_PSP))) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_VERSAMENTO_ERRATO);
-        faultBean.setDescription("Il dovuto non contiene tipo versamento PO");
-        faultBean.setFaultString("Tipo versamento non consentito");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILVerificaRPRisposta;
-
-      }
-
-      // Prepara risposta per FESP
-
-      esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_OK);
-
-      paaTipoDatiPagamentoPA
-          .setImportoSingoloVersamento(dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
-
-      // iban di accredito in base al PSP e al tipo dovuto
-      paaTipoDatiPagamentoPA.setIbanAccredito(
-          getIbanAccredito(ente, enteTipoDovuto, bodyrichiesta.getIdentificativoPSP(), Constants.PAY_PRESSO_PSP));
-      paaTipoDatiPagamentoPA.setBicAccredito(
-          getBicAccredito(ente, enteTipoDovuto, bodyrichiesta.getIdentificativoPSP(), Constants.PAY_PRESSO_PSP));
-
-      // lasciare CredenzialiPagatore a null perche' info non nota
-      paaTipoDatiPagamentoPA.setCredenzialiPagatore(null);
-
-      // ritorna, se presente la causale visual troncata a 140 caratteri,
-      // oppure la causale del dovuto troncata a 140 caratteri.
-      paaTipoDatiPagamentoPA.setCausaleVersamento(calcolaCausaleRispostaCCP(dovuto));
-
-    } catch (java.lang.Exception ex) {
-      log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
-      faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-      faultBean.setDescription("Errore generico: " + ex.getMessage());
-      faultBean.setFaultString("Errore generico: " + ex.getCause());
-      faultBean.setId(header.getIdentificativoDominio());
-      esitoSILVerificaRP.setEsito(FaultCodeConstants.ESITO_KO);
-      registraGiornaleEventoError.accept(faultBean);
-      return paaSILVerificaRPRisposta;
-    }
-
-    try {
-      String xmlString = jaxbTransformService.marshalling(paaSILVerificaRPRisposta, PaaSILVerificaRPRisposta.class);
-      giornalePaService.registraEvento(
-          null,
-          header.getIdentificativoDominio(),
-          header.getIdentificativoUnivocoVersamento(),
-          header.getCodiceContestoPagamento(),
-          bodyrichiesta.getIdentificativoPSP(),
-          Constants.PAY_PRESSO_PSP,
-          Constants.COMPONENTE_FESP,
-          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-          Constants.GIORNALE_TIPO_EVENTO_PA.paaSILVerificaRP.toString(),
-          Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          header.getIdentificativoDominio(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          Constants.EMPTY,
-          xmlString,
-          Constants.GIORNALE_ESITO_EVENTO.OK.toString()
-      );
-    } catch (Exception e) {
-      log.warn("paaSILVerificaRP [RESPONSE] impossible to insert in the event log", e);
-    }
-
-    return paaSILVerificaRPRisposta;
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  public PaaSILAttivaRPRisposta paaSILAttivaRP(PaaSILAttivaRP bodyrichiesta, IntestazionePPT header) {
-    
-    try {
-      String xmlBodyString = jaxbTransformService.marshalling(bodyrichiesta, PaaSILAttivaRP.class);
-      String xmlHeaderString = jaxbTransformService.marshalling(header, IntestazionePPT.class);
-      giornalePaService.registraEvento(
-          null,
-          header.getIdentificativoDominio(),
-          header.getIdentificativoUnivocoVersamento(),
-          header.getCodiceContestoPagamento(),
-          bodyrichiesta.getIdentificativoPSP(),
-          Constants.PAY_PRESSO_PSP,
-          Constants.COMPONENTE_FESP,
-          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-          Constants.GIORNALE_TIPO_EVENTO_PA.paaSILAttivaRP.toString(),
-          Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          header.getIdentificativoDominio(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          Constants.EMPTY,
-          xmlHeaderString + xmlBodyString,
-          Constants.GIORNALE_ESITO_EVENTO.OK.toString()
-      );
-    } catch (Exception e) {
-      log.warn("paaSILAttivaRP [REQUEST] impossible to insert in the event log", e);
-    }
-
-    Consumer<FaultBean> registraGiornaleEventoError = aFaultBean -> {
-      try {
-        giornalePaService.registraEvento(
-            null,
-            header.getIdentificativoDominio(),
-            header.getIdentificativoUnivocoVersamento(),
-            header.getCodiceContestoPagamento(),
-            bodyrichiesta.getIdentificativoPSP(),
-            Constants.PAY_PRESSO_PSP,
-            Constants.COMPONENTE_FESP,
-            Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-            Constants.GIORNALE_TIPO_EVENTO_PA.paaSILAttivaRP.toString(),
-            Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
-            header.getIdentificativoStazioneIntermediarioPA(),
-            header.getIdentificativoDominio(),
-            header.getIdentificativoStazioneIntermediarioPA(),
-            Constants.EMPTY,
-            aFaultBean.getDescription(),
-            Constants.GIORNALE_ESITO_EVENTO.KO.toString()
-        );
-      } catch (Exception e) {
-        log.warn("paaSILVerificaRP [RESPONSE] impossible to insert in the event log", e);
-      }
-    };
-
-    PaaSILAttivaRPRisposta paaSILAttivaRPRisposta = new PaaSILAttivaRPRisposta();
-    paaSILAttivaRPRisposta.setPaaSILAttivaRPRisposta(new EsitoSILAttivaRP());
-    EsitoSILAttivaRP esitoSILAttivaRP = paaSILAttivaRPRisposta.getPaaSILAttivaRPRisposta();
-    esitoSILAttivaRP.setDatiPagamentoPA(new PaaTipoDatiPagamentoPA());
-    esitoSILAttivaRP.setFault(new FaultBean());
-
-    FaultBean faultBean = esitoSILAttivaRP.getFault();
-    PaaTipoDatiPagamentoPA paaTipoDatiPagamentoPA = esitoSILAttivaRP.getDatiPagamentoPA();
-
-
-    Ente ente = enteService.getEnteByCodFiscale(header.getIdentificativoDominio());
-    PaaSILAttivaEsternaRisposta paaSILAttivaEsternaRisposta = null;
-    Versamento ctVersamento = null;
-    if (ente!= null && StringUtils.isNotBlank(ente.getDeUrlEsterniAttiva())) { //ente
-      PaaSILAttivaEsterna bodyEsterna = new PaaSILAttivaEsterna();
-      bodyEsterna.setIdentificativoPSP(bodyrichiesta.getIdentificativoPSP());
-      bodyEsterna.setIdentificativoIntermediarioPSP(bodyrichiesta.getIdentificativoIntermediarioPSP());
-      bodyEsterna.setIdentificativoCanalePSP(bodyrichiesta.getIdentificativoCanalePSP());
-
-      PaaTipoDatiPagamentoPSP paaTipoDatiPagamentoPSP = new PaaTipoDatiPagamentoPSP();
-      if (bodyrichiesta.getDatiPagamentoPSP() != null) {
-        paaTipoDatiPagamentoPSP.setBicAddebito(bodyrichiesta.getDatiPagamentoPSP().getBicAddebito());
-        paaTipoDatiPagamentoPSP.setBicAppoggio(bodyrichiesta.getDatiPagamentoPSP().getBicAppoggio());
-        paaTipoDatiPagamentoPSP.setIbanAddebito(bodyrichiesta.getDatiPagamentoPSP().getIbanAddebito());
-        paaTipoDatiPagamentoPSP.setIbanAppoggio(bodyrichiesta.getDatiPagamentoPSP().getIbanAppoggio());
-        paaTipoDatiPagamentoPSP.setImportoSingoloVersamento(bodyrichiesta.getDatiPagamentoPSP().getImportoSingoloVersamento());
-        paaTipoDatiPagamentoPSP.setSoggettoPagatore(bodyrichiesta.getDatiPagamentoPSP().getSoggettoPagatore());
-        paaTipoDatiPagamentoPSP.setSoggettoVersante(bodyrichiesta.getDatiPagamentoPSP().getSoggettoVersante());
-      }
-      bodyEsterna.setDatiPagamentoPSP(paaTipoDatiPagamentoPSP);
-
-      paaSILAttivaEsternaRisposta = pagamentiTelematiciEsterniCCPClient.paaSILAttivaEsterna(bodyEsterna, header, ente.getDeUrlEsterniAttiva());
-      if (paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta() != null &&
-          paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getFault() != null &&
-          StringUtils.isNotBlank(paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getFault().getFaultCode())) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        FaultBean faultBeanEsterna = paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getFault();
-        faultBean.setFaultCode(faultBeanEsterna.getFaultCode());
-        faultBean.setDescription(faultBeanEsterna.getDescription());
-        faultBean.setFaultString(faultBeanEsterna.getFaultString());
-        faultBean.setId(faultBeanEsterna.getId());
-        faultBean.setSerial(faultBeanEsterna.getSerial());
-        paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().setFault(faultBeanEsterna);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILAttivaRPRisposta;
-      }
-      if (paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta() != null &&
-          ("KO".equalsIgnoreCase(paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getEsito()) ||
-              paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getDovuto() == null)) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_CODE);
-        faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-        faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILAttivaRPRisposta;
-      }
-      //mettere in unica transazione se va in errore nn ho niente su db
-      PaaSILImportaDovutoRisposta paaSILImportaDovutoRisposta = dovutoService.importDovuto(Constants.GIORNALE_TIPO_EVENTO_PA.paaSILAttivaRP.toString(), false, ente.getCodIpaEnte(), ente.getDePassword(), paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getDovuto());
-      //se va in errore sotto devo annullare dovuto inserito qua
-      if ("KO".equalsIgnoreCase(paaSILImportaDovutoRisposta.getEsito())) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_CODE);
-        faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-        faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILAttivaRPRisposta;
-      }
-      try {
-        ctVersamento = jaxbTransformService.unmarshalling(paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getDovuto(), Versamento.class);
-      } catch (MyPayException e) {
-        log.error("paaSILAttivaRP error unmarshalling: [" + e.getMessage() + "]", e);
-        throw new RuntimeException("paaSILAttivaRP error unmarshalling: [" + e.getMessage() + "]", e);
-      }
-      //COSA DEVO SETTARE SU HEADER E BODY PROVENIENTI DA ESTERNI????
-      //header.setIdentificativoUnivocoVersamento(ctVersamento.getDatiVersamento().getIdentificativoUnivocoVersamento());
-    }
-
-    String iuv = header.getIdentificativoUnivocoVersamento();
-
-    try {
-      // Se l'ente non viene trovato ritorna errore
-      if (ente == null) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_CODE);
-        faultBean.setDescription(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setFaultString(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        return paaSILAttivaRPRisposta;
-      }
-      boolean isStatoInserito = Utilities.checkIfStatoInserito(ente) ;
-      if (isStatoInserito) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_CODE);
-        faultBean.setDescription(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setFaultString(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-
-      }
-
-      List<Dovuto> dovuti = dovutoService.searchDovutoByIuvEnte(iuv, ente.getCodIpaEnte());
-      log.debug("post estrazione Dovuto: {}", new ObjectMapper().writeValueAsString(dovuti));
-      // Se non presente nella tabella DOVUTO
-      if (dovuti == null || dovuti.size() == 0) {
-
-        // Lo cerco nella tabella DOVUTO_ELABORATO
-        List<DovutoElaborato> dovutiElaborati = dovutoElaboratoService.searchDovutoElaboratoByIuvEnte(iuv,
-            ente.getCodIpaEnte());
-        log.debug("post estrazione DovutoElaborato: {}", new ObjectMapper().writeValueAsString(dovutiElaborati));
-        if ((dovutiElaborati == null) || (dovutiElaborati.size() == 0)) {
-          faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_CODE);
-          faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-          faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
-          faultBean.setId(header.getIdentificativoDominio());
-          faultBean.setSerial(0);
-          esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-          registraGiornaleEventoError.accept(faultBean);
-          if (paaSILAttivaEsternaRisposta != null)
-            annullaDovuto(ctVersamento, ente);
-          return paaSILAttivaRPRisposta;
-        }
-
-        for (DovutoElaborato dovutoElaborato : dovutiElaborati) {
-          // CONTROLLO DOVUTO ANNULLATO
-          if (Constants.STATO_DOVUTO_ANNULLATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato())) {
-            faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_CODE);
-            faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_STRING);
-            faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_STRING);
-            faultBean.setId(header.getIdentificativoDominio());
-            faultBean.setSerial(0);
-            esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-            registraGiornaleEventoError.accept(faultBean);
-            if (paaSILAttivaEsternaRisposta != null)
-              annullaDovuto(ctVersamento, ente);
-            return paaSILAttivaRPRisposta;
-          }
-
-          if (Constants.STATO_DOVUTO_COMPLETATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato())
-              && dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento() != null
-              && !dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento().equals(Constants.CODICE_ESITO_PAGAMENTO_KO)) {
-            faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_CODE);
-            faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_STRING);
-            faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_STRING);
-            faultBean.setId(header.getIdentificativoDominio());
-            faultBean.setSerial(0);
-            esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-            registraGiornaleEventoError.accept(faultBean);
-            if (paaSILAttivaEsternaRisposta != null)
-              annullaDovuto(ctVersamento, ente);
-            return paaSILAttivaRPRisposta;
-          }
-        }
-
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-        faultBean.setDescription("Il pagamento richiesto ha stato non atteso");
-        faultBean.setFaultString("Il pagamento richiesto ha stato non atteso");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      // Se esiste piu di un dovuto nella tabella DOVUTO
-      if (dovuti.size() > 1) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-        faultBean.setDescription("Ci sono piu' dovuti che corrispondono allo stesso iuv");
-        faultBean.setFaultString("Errore pagamento multiplo");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      Dovuto dovuto = dovuti.get(0);
-
-      //check blacklist/whitelist codice fiscale
-      systemBlockService.blockByPayerCf(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco());
-
-      Optional<EnteTipoDovuto> enteTipoDovutoOptional = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), ente.getCodIpaEnte(), false);
-      // CHECK SE TIPO DOVUTO CENSITO PER ENTE
-      if (enteTipoDovutoOptional.isEmpty()) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE);
-        String description = StringUtils.left("Tipo dovuto [" + dovuto.getCodTipoDovuto() + "]" + "non trovato per ente ["
-            + ente.getCodIpaEnte() + "]", 1024);
-        faultBean.setDescription(description);
-        faultBean.setFaultString("Tipo dovuto non trovato per ente");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-      EnteTipoDovuto enteTipoDovuto = enteTipoDovutoOptional.get();
-      if (!enteTipoDovuto.isFlgAttivo()) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_ABILITATO_PER_ENTE);
-        String description = StringUtils.left("Tipo dovuto [" + dovuto.getCodTipoDovuto() + "]" + "non abilitato per ente ["
-            + ente.getCodIpaEnte() + "(flgAttivo: false)]", 1024);
-        faultBean.setDescription(description);
-        faultBean.setFaultString("Tipo dovuto non abilitato per ente");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      // CHECK SE TIPO DOVUTO CENSITO PER ENTE = MARCA DA BOLLO DIGITALE (NON POSSIBILE PAGAMENTO PRESSO PSP)
-      if (enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE);
-        String description = StringUtils.left("Pagamento tipo dovuto [" + dovuto.getCodTipoDovuto() + "]"
-            + "non supportato per modello 3 per ente [" + ente.getCodIpaEnte() + "]", 1024);
-        faultBean.setDescription(description);
-        faultBean.setFaultString("Pagamento marca da bollo digitale non supportato per modello 3 per ente");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      boolean isValidIdPSPAndTipoDovuto = isValidIdPSPAndTipoDovuto(enteTipoDovuto,
-          bodyrichiesta.getIdentificativoPSP());
-      if (!isValidIdPSPAndTipoDovuto) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SEMANTICA_CODE);
-        String description = StringUtils.left("Nessun IBAN postale associato al tipo dovuto [ " + enteTipoDovuto.getDeTipo()
-            + " ] per lo IUV [ " + header.getIdentificativoUnivocoVersamento() + " ]", 1024);
-        faultBean.setDescription(description);
-        faultBean.setFaultString(FaultCodeConstants.PAA_SEMANTICA_STRING);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      boolean isDovutoPagabile = checkDovutoPagabile(dovuto, enteTipoDovuto.isFlgScadenzaObbligatoria(), faultBean, header.getIdentificativoDominio());
-
-      // Se non supera i controlli viene ritornato la risposta contentente l'errore
-      if (!isDovutoPagabile) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      if ((!dovuto.getCodRpDatiVersTipoVersamento().equals(Constants.ALL_PAGAMENTI))
-          && (!dovuto.getCodRpDatiVersTipoVersamento().contains(Constants.PAY_PRESSO_PSP))) {
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_TIPO_VERSAMENTO_ERRATO);
-        faultBean.setDescription("Il dovuto non contiene tipo versamento PO");
-        faultBean.setFaultString("Tipo versamento non consentito");
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        return paaSILAttivaRPRisposta;
-      }
-
-      Psp pspScelto = new Psp();
-      pspScelto.setIdentificativoPSP(bodyrichiesta.getIdentificativoPSP());
-      pspScelto.setIdentificativoIntermediarioPSP(bodyrichiesta.getIdentificativoIntermediarioPSP());
-      pspScelto.setIdentificativoCanale(bodyrichiesta.getIdentificativoCanalePSP());
-      pspScelto.setModelloPagamento(4);
-      pspScelto.setTipoVersamento(Constants.PAY_PRESSO_PSP);
-      // SE IL DOVUTO E' PAGABILE GENERO IL CARRELLO PER ATTIVARE LA PREPARAZIONE DELLA RP
-      final AnagraficaPagatore anagraficaPagatore = anagraficaSoggettoService.getAnagraficaPagatore(dovuto);
-      CarrelloBo carrello = CarrelloBo.builder()
-          .tipoCarrello(Constants.TIPO_CARRELLO_PAGAMENTO_ATTIVATO_PRESSO_PSP)
-          .codIpaEnte(ente.getCodIpaEnte())
-          .psp(pspScelto)
-          .codiceContestoPagamento(header.getCodiceContestoPagamento())
-          .dovuti(List.of(Optional.of(dovuto).map(d ->
-              CartItem.builder()
-                  .id(d.getMygovDovutoId())
-                  .codIuv(d.getCodIuv())
-                  .codIpaEnte(ente.getCodIpaEnte())
-                  .codTipoDovuto(d.getCodTipoDovuto())
-                  .importo(d.getNumRpDatiVersDatiSingVersImportoSingoloVersamento())
-                  .build()).get()))
-          .intestatario(anagraficaPagatore)
-          .build();
-      log.debug("CarrelloBo.builder: {}", new ObjectMapper().writeValueAsString(carrello));
-
-      try {
-        // SETTA ANAG PAGATORE SOLO SE NON E' VALORIZZATA QUELLA CHE MI ARRIVA
-        Optional<Avviso> avviso = avvisoService.getByIuvEnte(iuv, ente.getCodIpaEnte());
-        if(avviso.isPresent())
-          carrello.setIntestatario(estraiAnagrafica(avviso.get().getCodRpSoggPagIdUnivPagTipoIdUnivoco().charAt(0),
-              avviso.get().getCodRpSoggPagIdUnivPagCodiceIdUnivoco(), avviso.get().getDeRpSoggPagAnagraficaPagatore(),
-              avviso.get().getDeRpSoggPagEmailPagatore(), avviso.get().getDeRpSoggPagIndirizzoPagatore(),
-              avviso.get().getDeRpSoggPagCivicoPagatore(), avviso.get().getCodRpSoggPagCapPagatore(),
-              avviso.get().getDeRpSoggPagLocalitaPagatore(), avviso.get().getDeRpSoggPagProvinciaPagatore(),
-              avviso.get().getCodRpSoggPagNazionePagatore()));
-        else
-          carrello.setIntestatario(anagraficaPagatore);
-
-        CtSoggettoVersante soggettoVersanteReq = bodyrichiesta.getDatiPagamentoPSP().getSoggettoVersante();
-        if (soggettoVersanteReq != null) {
-          CtIdentificativoUnivocoPersonaFG ctIdentificativoUnivocoPersonaFG = soggettoVersanteReq.getIdentificativoUnivocoVersante();
-          if (ctIdentificativoUnivocoPersonaFG != null &&
-              StringUtils.isNotBlank(ctIdentificativoUnivocoPersonaFG.getCodiceIdentificativoUnivoco())) {
-            AnagraficaPagatore anagraficaVersante = new AnagraficaPagatore();
-            if (ctIdentificativoUnivocoPersonaFG.getTipoIdentificativoUnivoco() != null) {
-              anagraficaVersante.setTipoIdentificativoUnivoco(ctIdentificativoUnivocoPersonaFG.getTipoIdentificativoUnivoco().value().charAt(0));
-            }
-            anagraficaVersante.setCodiceIdentificativoUnivoco(ctIdentificativoUnivocoPersonaFG.getCodiceIdentificativoUnivoco());
-            anagraficaVersante.setAnagrafica(soggettoVersanteReq.getAnagraficaVersante());
-            anagraficaVersante.setIndirizzo(soggettoVersanteReq.getIndirizzoVersante());
-            anagraficaVersante.setCivico(soggettoVersanteReq.getCivicoVersante());
-            anagraficaVersante.setCap(soggettoVersanteReq.getCapVersante());
-            anagraficaVersante.setLocalita(soggettoVersanteReq.getLocalitaVersante());
-            anagraficaVersante.setProvincia(soggettoVersanteReq.getProvinciaVersante());
-            anagraficaVersante.setNazione(soggettoVersanteReq.getNazioneVersante());
-            anagraficaVersante.setEmail(soggettoVersanteReq.getEMailVersante());
-            carrello.setVersante(anagraficaVersante);
-          }
-        }
-
-        BigDecimal importoAttiva = bodyrichiesta.getDatiPagamentoPSP().getImportoSingoloVersamento();
-        if (importoAttiva == null) {
-          log.error(FaultCodeConstants.PAA_ATTIVA_RPT_IMPORTO_NON_VALIDO);
-          faultBean.setFaultCode(FaultCodeConstants.PAA_ATTIVA_RPT_IMPORTO_NON_VALIDO);
-          faultBean.setFaultString("Importo non specificato");
-          faultBean.setDescription("Importo nullo");
-          faultBean.setId(header.getIdentificativoDominio());
-          esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-          registraGiornaleEventoError.accept(faultBean);
-          if (paaSILAttivaEsternaRisposta != null)
-            annullaDovuto(ctVersamento, ente);
-          return paaSILAttivaRPRisposta;
-        }
-
-        if (importoAttiva.compareTo(BigDecimal.ZERO) == 0) {
-          log.error(FaultCodeConstants.PAA_ATTIVA_RPT_IMPORTO_NON_VALIDO);
-          faultBean.setFaultCode(FaultCodeConstants.PAA_ATTIVA_RPT_IMPORTO_NON_VALIDO);
-          faultBean.setFaultString("Importo non valido");
-          faultBean.setDescription("Importo zero non valido");
-          faultBean.setId(header.getIdentificativoDominio());
-          esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-          registraGiornaleEventoError.accept(faultBean);
-          if (paaSILAttivaEsternaRisposta != null)
-            annullaDovuto(ctVersamento, ente);
-          return paaSILAttivaRPRisposta;
-        }
-
-        BigDecimal importoCarrello = carrello.getTotalAmount();
-        if (importoAttiva.compareTo(importoCarrello) != 0) {
-          log.error(FaultCodeConstants.PAA_ATTIVA_RPT_IMPORTO_NON_VALIDO);
-          faultBean.setFaultCode(FaultCodeConstants.PAA_ATTIVA_RPT_IMPORTO_NON_VALIDO);
-          faultBean.setFaultString("Importo non valido");
-          faultBean.setDescription("Importo inviato non corrisponde con importo dovuto");
-          faultBean.setId(header.getIdentificativoDominio());
-          esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-          registraGiornaleEventoError.accept(faultBean);
-          if (paaSILAttivaEsternaRisposta != null)
-            annullaDovuto(ctVersamento, ente);
-          return paaSILAttivaRPRisposta;
-        }
-      } catch (Exception e) {
-        log.error("Errore in fase di preparazione anagrafiche",e);
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-        faultBean.setDescription("Errore in fase di preparazione anagrafiche");
-        String faultString = StringUtils.left("Errore in fase di preparazione anagrafiche" + e.getMessage(), 1024);
-        faultBean.setFaultString(faultString);
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        throw new WSFaultResponseWrapperException(paaSILAttivaRPRisposta, e);
-      }
-
-      // SE IL PAGAMENTO E' PAGABILE VIENE INOLTRATO L'INVIO RP
-      log.debug("Il pagamento risulta essere pagabile, viene preparata l' invioRP.");
-
-      NodoSILInviaRPRisposta nodoSILInviaRPRisposta;
-      RP ctRichiestaPagamento;
-      boolean isAttivaEsterna = Objects.nonNull(paaSILAttivaEsternaRisposta) && Objects.nonNull(paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta());
-      PaaTipoDatiPagamentoPA datiPagamentoPA = isAttivaEsterna? paaSILAttivaEsternaRisposta.getPaaSILAttivaEsternaRisposta().getDatiPagamentoPA() : null;
-
-      try {//portare iban da richiesta ws se esterna
-        Map<String, List<CarrelloBo>> mappedCarts = Collections.singletonMap(DEBITS, Collections.singletonList(carrello));
-        List<CarrelloBo> carts = paymentManagerService.placeOrder(ente.getCodIpaEnte(), null, mappedCarts, Constants.TRIGGER_PAYMENT.FROM_PSP);
-        Long idCarrello = carts.get(0).getId();
-        ctRichiestaPagamento = paymentManagerService.buildCtRichiestaPagamento(carts, datiPagamentoPA).get(0);
-        Map<String, Object> returnHashMap = paymentManagerService.buildInviaRp(ctRichiestaPagamento, pspScelto, ente.getCodIpaEnte(), idCarrello);
-        returnHashMap.put("ctRichiestaPagamento", ctRichiestaPagamento);
-
-        nodoSILInviaRPRisposta = paymentService.inviaRP(carts.get(0).getId(), returnHashMap);
-
-      } catch (PaymentOrderException e) {
-        faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-        faultBean.setDescription("Errore in fase di preparazione della richiesta pagamento");
-        faultBean.setFaultString(StringUtils.left(e.getMessage(), 1024));
-        faultBean.setId(header.getIdentificativoDominio());
-        faultBean.setSerial(0);
-        esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-        registraGiornaleEventoError.accept(faultBean);
-        if (paaSILAttivaEsternaRisposta != null)
-          annullaDovuto(ctVersamento, ente);
-        throw new WSFaultResponseWrapperException(paaSILAttivaRPRisposta, e);
-      }
-
-      esitoSILAttivaRP.setEsito(nodoSILInviaRPRisposta.getEsito());
-
-      // Dove trovo valori DATI_PAGAMENTO da info su db (no
-      // codiceContestoPagamento)
-      CtDatiVersamentoRP ctDatiVersamentoRP = ctRichiestaPagamento.getDatiVersamento();
-      if (ctDatiVersamentoRP != null && ctDatiVersamentoRP.getDatiSingoloVersamentos() != null &&
-          ctDatiVersamentoRP.getDatiSingoloVersamentos().size() == 1) {
-        CtDatiSingoloVersamentoRP ctDatiSingoloVersamentoRP = ctDatiVersamentoRP
-            .getDatiSingoloVersamentos().get(0);
-        // ritorna, se presente la causale visual troncata a 140 caratteri,
-        // oppure la causale del dovuto troncata a 140 caratteri.
-        paaTipoDatiPagamentoPA.setCausaleVersamento(calcolaCausaleRispostaCCP(dovuto));
-        paaTipoDatiPagamentoPA.setImportoSingoloVersamento(ctDatiSingoloVersamentoRP.getImportoSingoloVersamento());
-        paaTipoDatiPagamentoPA.setIbanAccredito(ctDatiSingoloVersamentoRP.getIbanAccredito());
-        paaTipoDatiPagamentoPA.setBicAccredito(ctDatiSingoloVersamentoRP.getBicAccredito());
-        paaTipoDatiPagamentoPA.setCredenzialiPagatore(ctDatiSingoloVersamentoRP.getCredenzialiPagatore());
-        paaTipoDatiPagamentoPA.setEnteBeneficiario(buildEnteBeneficiario(ente));
-      }
-    } catch (java.lang.Exception ex) {
-      log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
-      faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-      String faultString = StringUtils.left("Errore generico: " + ex.getCause(), 1024);
-      String description = StringUtils.left("Errore generico: " + ex.getMessage(), 1024);
-      faultBean.setFaultString(faultString);
-      faultBean.setDescription(description);
-      faultBean.setId(header.getIdentificativoDominio());
-      esitoSILAttivaRP.setEsito(FaultCodeConstants.ESITO_KO);
-      registraGiornaleEventoError.accept(faultBean);
-      //TODO??? aggiunto SDM
-      if (paaSILAttivaEsternaRisposta != null)
-        annullaDovuto(ctVersamento, ente);
-      throw new WSFaultResponseWrapperException(paaSILAttivaRPRisposta, ex);
-    }
-
-    try {
-      String xmlString = jaxbTransformService.marshalling(paaSILAttivaRPRisposta, PaaSILAttivaRPRisposta.class);
-      giornalePaService.registraEvento(
-          null,
-          header.getIdentificativoDominio(),
-          header.getIdentificativoUnivocoVersamento(),
-          header.getCodiceContestoPagamento(),
-          bodyrichiesta.getIdentificativoPSP(),
-          Constants.PAY_PRESSO_PSP,
-          Constants.COMPONENTE_FESP,
-          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-          Constants.GIORNALE_TIPO_EVENTO_PA.paaSILAttivaRP.toString(),
-          Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          header.getIdentificativoDominio(),
-          header.getIdentificativoStazioneIntermediarioPA(),
-          Constants.EMPTY,
-          xmlString,
-          Constants.GIORNALE_ESITO_EVENTO.OK.toString()
-      );
-    } catch (Exception e) {
-      log.warn("paaSILAttivaRP [RESPONSE] impossible to insert in the event log", e);
-    }
-
-    return paaSILAttivaRPRisposta;
-  }
-
-
-  private boolean isValidIdPSPAndTipoDovuto(EnteTipoDovuto enteTipoDovuto, String identificativoPSP) {
-    if (!enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
-      if (Constants.IDENTIFICATIVO_PSP_POSTE.equals(identificativoPSP)) {
-        String ibanPostale = enteTipoDovuto.getIbanAccreditoPi();
-        return !StringUtils.isBlank(ibanPostale);
-      }
-    }
-    return true;
-  }
-
-  private String calcolaCausaleRispostaCCP(Dovuto dovuto) {
-    String causale = StringUtils.isNotBlank(dovuto.getDeCausaleVisualizzata())
-        ? dovuto.getDeCausaleVisualizzata() : dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento();
-    return StringUtils.left(causale, 140);
-  }
-
-  private boolean checkDovutoPagabile(Dovuto dovuto, boolean flagScadenzaObbligatoria,
-                                      FaultBean faultBean, String identificativoDominio) {
-
-    // CONTROLLO DOVUTO GIA' INIZIATO
-    if (Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO.equals(dovuto.getMygovAnagraficaStatoId().getCodStato())) {
-      faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_IN_CORSO_CODE);
-      faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_IN_CORSO_STRING);
-      faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_IN_CORSO_STRING);
-      faultBean.setId(identificativoDominio);
-      faultBean.setSerial(0);
-      return false;
-    }
-
-    // CONTROLLO DOVUTO SCADUTO
-    boolean isDovutoScaduto = dovutoService.isDovutoScaduto(dovuto, flagScadenzaObbligatoria);
-    if (isDovutoScaduto) {
-      faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_SCADUTO_CODE);
-      faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_SCADUTO_STRING);
-      faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_SCADUTO_STRING);
-      faultBean.setId(identificativoDominio);
-      faultBean.setSerial(0);
-      return false;
-    }
-
-    // STATO DIVERSO DA PAGABILE
-    if (!Constants.STATO_DOVUTO_DA_PAGARE.equals(dovuto.getMygovAnagraficaStatoId().getCodStato())) {
-      faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-      faultBean.setDescription("Il pagamento richiesto risulta in uno stato non pagabile");
-      faultBean.setFaultString("Il pagamento richiesto risulta in uno stato non pagabile");
-      faultBean.setId(identificativoDominio);
-      faultBean.setSerial(0);
-      return false;
-    }
-
-    return true;
-  }
-
-  private String getIbanAccredito(Ente ente, EnteTipoDovuto enteTipoDovuto, String identificativoPSP,
-                                  String tipoVersamento) {
-    if (!enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
-      if (Constants.IDENTIFICATIVO_PSP_POSTE.equals(identificativoPSP)) {
-        String ibanAccreditoTipoDovuto = enteTipoDovuto.getIbanAccreditoPi();
-
-        // ACCREDITO
-        if (StringUtils.isNotBlank(ibanAccreditoTipoDovuto)) {
-          return ibanAccreditoTipoDovuto;
-        }
-        throw new RuntimeException(
-            "Nessun IBAN postale associato al tipo dovuto [ " + enteTipoDovuto.getDeTipo() + " ]");
-      } else if (Constants.PAY_MYBANK.equals(tipoVersamento)) {
-        String ibanAccreditoPSPTipoDovuto = enteTipoDovuto.getIbanAccreditoPsp();
-        String bicAccreditoPSPTipoDovuto = enteTipoDovuto.getBicAccreditoPsp();
-
-        String ibanAccreditoPiTipoDovuto = enteTipoDovuto.getIbanAccreditoPi();
-        String bicAccreditoPiTipoDovuto = enteTipoDovuto.getBicAccreditoPi();
-
-        // ACCREDITO
-        if (enteTipoDovuto.isBicAccreditoPspSeller() && (StringUtils.isNotBlank(ibanAccreditoPSPTipoDovuto)
-            || StringUtils.isNotBlank(bicAccreditoPSPTipoDovuto))) {
-          if (StringUtils.isNotBlank(ibanAccreditoPSPTipoDovuto)) {
-            return ibanAccreditoPSPTipoDovuto;
-          }
-        } else if (enteTipoDovuto.isBicAccreditoPiSeller() && (StringUtils.isNotBlank(ibanAccreditoPiTipoDovuto)
-            || StringUtils.isNotBlank(bicAccreditoPiTipoDovuto))) {
-          if (StringUtils.isNotBlank(ibanAccreditoPiTipoDovuto)) {
-            return ibanAccreditoPiTipoDovuto;
-          }
-        } else {
-          if (ente.getCodRpDatiVersDatiSingVersBicAccreditoSeller()) {
-            // Recupera dall'ente
-            if (StringUtils.isNotBlank(ente.getCodRpDatiVersDatiSingVersIbanAccredito())) {
-              return ente.getCodRpDatiVersDatiSingVersIbanAccredito();
-            }
-          } else {
-            throw new RuntimeException("Errore nel recupero del iban di accredito per PSP MyBank");
-          }
-        }
-      } else {
-        String ibanAccreditoTipoDovuto = enteTipoDovuto.getIbanAccreditoPsp();
-        String bicAccreditoTipoDovuto = enteTipoDovuto.getBicAccreditoPsp();
-
-        // ACCREDITO
-        if (StringUtils.isNotBlank(ibanAccreditoTipoDovuto) || StringUtils.isNotBlank(bicAccreditoTipoDovuto)) {
-          if (StringUtils.isNotBlank(ibanAccreditoTipoDovuto)) {
-            return ibanAccreditoTipoDovuto;
-          }
-        } else {
-          // Recupera dall'ente
-          if (StringUtils.isNotBlank(ente.getCodRpDatiVersDatiSingVersIbanAccredito())) {
-            return ente.getCodRpDatiVersDatiSingVersIbanAccredito();
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  private String getBicAccredito(Ente ente, EnteTipoDovuto enteTipoDovuto, String identificativoPSP,
-                                 String tipoVersamento) {
-    if (!enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
-      if (Constants.IDENTIFICATIVO_PSP_POSTE.equals(identificativoPSP)) {
-        String bicAccreditoTipoDovuto = enteTipoDovuto.getBicAccreditoPi();
-
-        if (StringUtils.isNotBlank(bicAccreditoTipoDovuto)) {
-          return bicAccreditoTipoDovuto;
-        }
-        throw new RuntimeException(
-            "Nessun BIC postale associato al tipo dovuto [ " + enteTipoDovuto.getDeTipo() + " ]");
-      } else if (Constants.PAY_MYBANK.equals(tipoVersamento)) {
-        String ibanAccreditoPSPTipoDovuto = enteTipoDovuto.getIbanAccreditoPsp();
-        String bicAccreditoPSPTipoDovuto = enteTipoDovuto.getBicAccreditoPsp();
-
-        String ibanAccreditoPiTipoDovuto = enteTipoDovuto.getIbanAccreditoPi();
-        String bicAccreditoPiTipoDovuto = enteTipoDovuto.getBicAccreditoPi();
-
-        // ACCREDITO
-        if (enteTipoDovuto.isBicAccreditoPspSeller() && (StringUtils.isNotBlank(ibanAccreditoPSPTipoDovuto)
-            || StringUtils.isNotBlank(bicAccreditoPSPTipoDovuto))) {
-
-          if (StringUtils.isNotBlank(bicAccreditoPSPTipoDovuto)) {
-            return bicAccreditoPSPTipoDovuto;
-          }
-        } else if (enteTipoDovuto.isBicAccreditoPiSeller() && (StringUtils.isNotBlank(ibanAccreditoPiTipoDovuto)
-            || StringUtils.isNotBlank(bicAccreditoPiTipoDovuto))) {
-
-          if (StringUtils.isNotBlank(bicAccreditoPiTipoDovuto)) {
-            return bicAccreditoPiTipoDovuto;
-          }
-        } else {
-          if (ente.getCodRpDatiVersDatiSingVersBicAccreditoSeller()) {
-            // Recupera dall'ente
-            if (StringUtils.isNotBlank(ente.getCodRpDatiVersDatiSingVersBicAccredito())) {
-              return ente.getCodRpDatiVersDatiSingVersBicAccredito();
-            }
-          } else {
-            throw new RuntimeException("Errore nel recupero del bic di accredito per PSP MyBank");
-          }
-        }
-      } else {
-        String ibanAccreditoTipoDovuto = enteTipoDovuto.getIbanAccreditoPsp();
-        String bicAccreditoTipoDovuto = enteTipoDovuto.getBicAccreditoPsp();
-
-        // ACCREDITO
-        if (StringUtils.isNotBlank(ibanAccreditoTipoDovuto) || StringUtils.isNotBlank(bicAccreditoTipoDovuto)) {
-          if (StringUtils.isNotBlank(bicAccreditoTipoDovuto)) {
-            return bicAccreditoTipoDovuto;
-          }
-        } else {
-          // Recupera dall'ente
-          if (StringUtils.isNotBlank(ente.getCodRpDatiVersDatiSingVersBicAccredito())) {
-            return ente.getCodRpDatiVersDatiSingVersBicAccredito();
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  private void annullaDovuto(Versamento ctDatiVersamento, Ente ente) {
-    String nomeFlusso = "_" + ente.getCodIpaEnte() + "_IMPORT-DOVUTO";
-    Flusso flusso = flussoService.getByIuf(nomeFlusso).get();
-    AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_ANNULLATO,
-        Constants.STATO_TIPO_DOVUTO);
-
-    BigDecimal commissioneCaricoPA = null;
-    if (ctDatiVersamento.getDatiVersamento().getCommissioneCaricoPA() == null) {
-      commissioneCaricoPA = BigDecimal.ZERO;
-    } else {
-      commissioneCaricoPA = ctDatiVersamento.getDatiVersamento().getCommissioneCaricoPA();
-    }
-
-    dovutoElaboratoService.callAnnullaFunction(ente.getMygovEnteId(), flusso.getMygovFlussoId(), 0, anagraficaStato.getMygovAnagraficaStatoId(),
-        null, ctDatiVersamento.getDatiVersamento().getIdentificativoUnivocoDovuto(), ctDatiVersamento.getDatiVersamento().getIdentificativoUnivocoVersamento(),
-        new Date(), "-", ctDatiVersamento.getSoggettoPagatore().getIdentificativoUnivocoPagatore().getTipoIdentificativoUnivoco().toString(),
-        ctDatiVersamento.getSoggettoPagatore().getIdentificativoUnivocoPagatore().getCodiceIdentificativoUnivoco(),
-        ctDatiVersamento.getSoggettoPagatore().getAnagraficaPagatore(),
-        Utilities.bonificaIndirizzoAnagrafica(ctDatiVersamento.getSoggettoPagatore().getIndirizzoPagatore()),
-        Utilities.bonificaCivicoAnagrafica(ctDatiVersamento.getSoggettoPagatore().getCivicoPagatore()),
-        ctDatiVersamento.getSoggettoPagatore().getCapPagatore(), ctDatiVersamento.getSoggettoPagatore().getLocalitaPagatore(),
-        ctDatiVersamento.getSoggettoPagatore().getProvinciaPagatore(), ctDatiVersamento.getSoggettoPagatore().getNazionePagatore(),
-        ctDatiVersamento.getSoggettoPagatore().getEMailPagatore(),
-        ctDatiVersamento.getDatiVersamento().getDataEsecuzionePagamento() != null ? ctDatiVersamento.getDatiVersamento().getDataEsecuzionePagamento().toGregorianCalendar().getTime() : null,
-        ctDatiVersamento.getDatiVersamento().getTipoVersamento(), ctDatiVersamento.getDatiVersamento().getImportoSingoloVersamento().doubleValue(),
-        commissioneCaricoPA.doubleValue(), ctDatiVersamento.getDatiVersamento().getIdentificativoTipoDovuto(),
-        ctDatiVersamento.getDatiVersamento().getCausaleVersamento(),
-        ctDatiVersamento.getDatiVersamento().getDatiSpecificiRiscossione(), utenteService.getByCodFedUserId(ente.getCodIpaEnte() + "-" + Constants.WS_USER).get().getMygovUtenteId(),
-        true);
-  }
-
-  private CtEnteBeneficiario buildEnteBeneficiario(Ente ente) {
-
-    // l'ente sull'rp nn c'e' (prendere da tabella ente)
-    CtEnteBeneficiario enteBeneficiario = new CtEnteBeneficiario();
-
-    CtIdentificativoUnivocoPersonaG idUnivocoPersonaG = new CtIdentificativoUnivocoPersonaG();
-    idUnivocoPersonaG.setCodiceIdentificativoUnivoco(ente.getCodiceFiscaleEnte());
-    enteBeneficiario.setIdentificativoUnivocoBeneficiario(idUnivocoPersonaG);
-
-    enteBeneficiario.setDenominazioneBeneficiario(ente.getDeNomeEnte());
-    return enteBeneficiario;
-  }
-
-  private AnagraficaPagatore estraiAnagrafica(char tipoIdentificativoUnivoco, String codiceIdentificativoUnivoco,
-                                              String anagraficaPagatoreString, String eMailPagatore, String indirizzoPagatore, String civicoPagatore,
-                                              String capPagatore, String localitaPagatore, String provinciaPagatore, String nazionePagatore) {
-
-    return AnagraficaPagatore.builder()
-      .tipoIdentificativoUnivoco(tipoIdentificativoUnivoco)
-      .codiceIdentificativoUnivoco(codiceIdentificativoUnivoco)
-      .anagrafica(anagraficaPagatoreString)
-      .email(eMailPagatore)
-      .indirizzo(indirizzoPagatore)
-      .civico(civicoPagatore)
-      .cap(capPagatore)
-      .nazione(nazionePagatore)
-      .provincia(provinciaPagatore)
-      .localita(localitaPagatore)
-      .build();
-  }
-
+	private SystemBlockService systemBlockService;
+	@Autowired
+	private ApplicationEventPublisher applicationEventPublisher;
+	@Autowired
+	private EsitoService esitoService;
+	@Autowired
+	private CarrelloService carrelloService;
+	@Autowired
+	private TassonomiaService tassonomiaService;
+	@Autowired
+	private AttualizzazioneImportoService attualizzazioneImportoService;
+	@Autowired
+	CarrelloMultiBeneficiarioService carrelloMultiBeneficiarioService;
+	@Autowired
+	DatiMarcaBolloDigitaleService marcaBolloDigitaleService;
+	@Autowired(required = false)
+	private GpdService gpdService;
+
+	private static final String PAYMENT_NOTE_PREFIX = Constants.ID_CART_PREFIX + Constants.DASH_SEPARATOR;
+
+	@Value("${pa.modelloUnico}")
+	private boolean modelloUnico;
+	@Value("${pa.gpd.enabled}")
+	private boolean gpdEnabled;
+
+	@LogExecution()
+	@Transactional(propagation = Propagation.REQUIRED)
+	public PaSendRTRisposta paSendRT(PaSendRT request) {
+		var receipt = request.getReceipt();
+		BiFunction<StOutcome, Pair<String, String>, PaSendRTRisposta> result = (outcome, error) -> {
+			PaSendRTRisposta response = new PaSendRTRisposta();
+			response.setOutcome(outcome);
+			if (Objects.nonNull(error)) {
+				var fault = new FaultBean();
+				fault.setFaultCode(error.getFirst());
+				fault.setDescription(error.getSecond());
+				fault.setFaultString(error.getSecond());
+				fault.setId(receipt.getFiscalCode());
+				fault.setSerial(0);
+				response.setFault(fault);
+			}
+			return response;
+		};
+
+		var ente = enteService.getEnteByCodFiscale(receipt.getFiscalCode());
+		List<Dovuto> dovuti;
+		if (ente == null) {
+			dovuti = Collections.emptyList();
+			log.info("receipt id[{}] noticeNumber[{}] ente[{}] - payment not managed by MyPay", receipt.getReceiptId(), receipt.getNoticeNumber(), receipt.getFiscalCode());
+		} else {
+			dovuti =	Optional.of(receipt.getCreditorReferenceId())
+				.filter(Utilities::isAvviso)
+				.map(iuv -> dovutoService.searchDovutoByIuvEnte(iuv, ente.getCodIpaEnte()))
+				.orElse(new ArrayList<>());
+		}
+		Optional<CarrelloMultiBeneficiario> multiCart = Optional.empty();
+		if(isModelloUnicoWithIdCart(receipt.getPaymentNote()) && !dovuti.isEmpty()) {
+			String idSession = receipt.getPaymentNote() .substring(PAYMENT_NOTE_PREFIX.length());
+			multiCart = carrelloMultiBeneficiarioService.getByIdSession(idSession);
+			carrelloMultiBeneficiarioService.updateCarrelloMultiBeneficiarioStatus(
+				multiCart.orElseThrow(() -> new NotFoundException("carrello not found for idSession "+idSession)).getMygovCarrelloMultiBeneficiarioId(),
+				Constants.STATO_CARRELLO_PAGATO, true);
+		}
+		Carrello cart = null;
+		if(!dovuti.isEmpty())
+			cart = carrelloService.upsert(sendRtOutcomeService.buildFakeCart(receipt, dovuti.get(0), multiCart));
+
+		Long mygovReceiptId;
+		if (modelloUnico) {
+			List<DovutoElaborato> elaborati = new ArrayList<>();
+			AtomicInteger indexTransfer = new AtomicInteger(1);
+			for (Dovuto dovuto : dovuti) {
+				sendRtOutcomeService.processOutComeForSendRT(receipt, request.getReceiptBytes(), dovuto, cart, indexTransfer.getAndIncrement())
+					.ifPresent(elaborati::add);
+				if (gpdPreload) {
+					gpdService.managePreload('A', dovuto, null);
+				}
+			}
+			mygovReceiptId = receiptService.insertNewReceipt(receipt, request.getReceiptBytes(), elaborati.stream().findFirst());
+			elaborati.forEach(esitoService::handlePushEsito);
+		} else {
+			if (dovuti.size() > 1)
+				return result.apply(StOutcome.KO, Pair.of(FaultCodeConstants.PAA_SYSTEM_ERROR, "Errore pagamento multiplo"));
+
+			Optional<DovutoElaborato> dovutoElaborato = Optional.empty();
+			if (!dovuti.isEmpty()) {
+				var dovuto = dovuti.get(0);
+				//if dovuto in state "da pagare" -> modello 3 -> receipt should be processed
+				//if dovuto in state "pagamento in corso" -> modello 1 and RT yet not processed -> postpone receipt processing
+				if (request.isForce() || dovuto.getMygovAnagraficaStatoId().getCodStato().equalsIgnoreCase(Constants.STATO_DOVUTO_DA_PAGARE))
+					dovutoElaborato = sendRtOutcomeService.processOutComeForSendRT(receipt, request.getReceiptBytes(), dovuto, cart, dovuti.size());
+				else if (dovuto.getMygovAnagraficaStatoId().getCodStato().equalsIgnoreCase(Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO))
+					return result.apply(StOutcome.KO, Pair.of(FaultCodeConstants.PAA_WAIT, "postpone processing of receipt"));
+			} else if (ente != null) {
+				var dovutoElaboratoList = dovutoElaboratoService
+					.getByIuvEnteStato(receipt.getCreditorReferenceId(), ente.getCodIpaEnte(), Constants.STATO_DOVUTO_COMPLETATO, true, null);
+
+				if (CollectionUtils.isNotEmpty(dovutoElaboratoList)) {
+					var dovutoElaboratoOkList = dovutoElaboratoList.stream().filter(de -> Objects.equals(de.getCodEDatiPagCodiceEsitoPagamento(), Constants.CODICE_ESITO_PAGAMENTO_OK_OBJ)).collect(Collectors.toUnmodifiableList());
+					if (dovutoElaboratoOkList.isEmpty()) {
+						//anomaly: there are at least 1 D.E. status KO, but 0 D.E. status OK
+						log.error("received receipt but for ente[{}] iuv[{}] only exist dovutoElaborato KO", ente.getCodIpaEnte(), receipt.getCreditorReferenceId());
+						throw new MyPayException("invalid dovutoElaborato state for ente/iuv " + ente.getCodIpaEnte() + "/" + receipt.getCreditorReferenceId());
+					} else {
+						dovutoElaborato = dovutoElaboratoOkList.stream().max(Comparator.comparing(DovutoElaborato::getDtUltimoCambioStato));
+					}
+				}
+			}
+			mygovReceiptId = receiptService.insertNewReceipt(receipt, request.getReceiptBytes(), dovutoElaborato);
+
+			//only for modello 1, add data from receipt to dovuto_elaborato_multibeneficiario (that has been already inserted when RT arrived at primary ente)
+			dovutoElaborato.filter(d -> ObjectUtils.notEqual(d.getModelloPagamento(), Constants.MODELLO_PAG.TRE.getValue())).ifPresent(d ->
+				dovutoElaboratoService.getDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(d.getMygovDovutoElaboratoId()).ifPresent(dme ->
+					receipt.getTransferList().getTransfers()
+						.stream()
+						.skip(1).findFirst()
+						.ifPresent(ctTransferPA ->
+							dovutoElaboratoService.updateFromReceipt(dme.getMygovDovutoMultibeneficiarioElaboratoId(),
+								ctTransferPA.getRemittanceInformation(), ctTransferPA.getTransferCategory()))));
+
+			dovutoElaborato.ifPresent(esitoService::handlePushEsito);
+		}
+		if (cart!=null && cart.getMygovCarrelloId()!=null)
+			applicationEventPublisher.publishEvent(OutcomeEmailNotifierEvent.builder()
+				.mygovCarrelloId(cart.getMygovCarrelloId())
+				.build());
+		//in case of receipt for multi-beneficiary payment, export to MyPivot
+		if(receipt.getTransferList().getTransfers()
+			.stream()
+			.map(CtTransferPAReceipt::getFiscalCodePA)
+			.anyMatch(Predicate.not(receipt.getFiscalCode()::equals))) {
+			applicationEventPublisher.publishEvent(ExportReceiptEvent.builder()
+				.mygovReceiptId(mygovReceiptId)
+				.build());
+		}
+		return result.apply(StOutcome.OK,null);
+	}
+
+	@LogExecution()
+	public PaVerifyPaymentNoticeRisposta paVerifyPaymentNotice(PaVerifyPaymentNotice request) {
+
+		BiFunction<String, String, PaVerifyPaymentNoticeRisposta> returnFault = (String code, String descr) -> {
+			PaVerifyPaymentNoticeRisposta response = new PaVerifyPaymentNoticeRisposta();
+			response.setFault(new FaultBean());
+			response.getFault().setFaultCode(code);
+			response.getFault().setDescription(descr);
+			response.getFault().setFaultString(descr);
+			response.getFault().setId(request.getQrCodeFiscalCode());
+			response.getFault().setSerial(0);
+			return response;
+		};
+
+		try{
+			Ente ente = enteService.getEnteByCodFiscale(request.getQrCodeFiscalCode());
+			if (ente == null || Utilities.checkIfStatoInserito(ente))
+				return returnFault.apply(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_CODE, FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
+
+			if(StringUtils.isNotBlank(ente.getDeUrlEsterniAttiva())){
+				PaExternalVerifyPaymentNoticeReq externalReq = new PaExternalVerifyPaymentNoticeReq();
+				externalReq.setIdBrokerPA(request.getIdBrokerPA());
+				externalReq.setIdStation(request.getIdStation());
+				externalReq.setIdPA(request.getIdPA());
+				externalReq.setQrCodeFiscalCode(request.getQrCodeFiscalCode());
+				externalReq.setNoticeNumber(request.getNoticeNumber());
+
+				PaExternalVerifyPaymentNoticeRes externalRes = pagamentiTelematiciEsterniCCPClient.paExternalVerifyPaymentNotice(externalReq, ente.getDeUrlEsterniAttiva());
+				PaVerifyPaymentNoticeRisposta response = new PaVerifyPaymentNoticeRisposta();
+				if(externalRes.getFault()!=null){
+					response.setFault(new FaultBean());
+					response.getFault().setFaultCode(externalRes.getFault().getFaultCode());
+					response.getFault().setFaultString(externalRes.getFault().getFaultString());
+					response.getFault().setDescription(externalRes.getFault().getDescription());
+				} else {
+					response.setFiscalCodePA(externalRes.getFiscalCodePA());
+					response.setCompanyName(externalRes.getCompanyName());
+					response.setOfficeName(externalRes.getOfficeName());
+					response.setPaymentDescription(externalRes.getPaymentDescription());
+					response.setAmount(externalRes.getAmount());
+					response.setDueDate(externalRes.getDueDate());
+					response.setDetailDescription(response.getDetailDescription());
+					response.setAllCCP(response.isAllCCP());
+				}
+				return response;
+			}
+
+			String iuv;
+			try{
+				iuv = Utilities.numeroAvvisoToIuvValidator(request.getNoticeNumber());
+			} catch(ValidatorException ve){
+				log.warn("invalid IUV for notice number {}/{}", request.getQrCodeFiscalCode(), request.getNoticeNumber());
+				return returnFault.apply(FaultCodeConstants.PAA_IUV_NON_VALIDO_CODE, FaultCodeConstants.PAA_IUV_NON_VALIDO_STRING);
+			}
+
+			List<Dovuto> dovuti = dovutoService.searchDovutoByIuvEnte(iuv, ente.getCodIpaEnte());
+			if (dovuti == null || dovuti.size() == 0) {
+
+				List<DovutoElaborato> dovutiElaborati = dovutoElaboratoService.searchDovutoElaboratoByIuvEnte(iuv, ente.getCodIpaEnte());
+
+				if ((dovutiElaborati == null) || (dovutiElaborati.size() == 0))
+					return returnFault.apply(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_CODE, FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
+
+				for (DovutoElaborato dovutoElaborato : dovutiElaborati) {
+					if (Constants.STATO_DOVUTO_ANNULLATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato()))
+						return returnFault.apply(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_CODE, FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_STRING);
+
+					if (Constants.STATO_DOVUTO_COMPLETATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato())
+						&& dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento() != null
+						&& !dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento().equals(Constants.CODICE_ESITO_PAGAMENTO_KO))
+						return returnFault.apply(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_CODE, FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_STRING);
+				}
+
+				return returnFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, "Il pagamento richiesto ha stato non atteso");
+			}
+
+			// Se esiste piu di un dovuto nella tabella DOVUTO
+			if (dovuti.size() > 1)
+				return returnFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, "Errore pagamento multiplo");
+
+			Dovuto dovuto = dovuti.get(0);
+
+			//check blacklist/whitelist codice fiscale
+			systemBlockService.blockByPayerCf(Optional.ofNullable(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco()).orElse(Constants.CODICE_FISCALE_ANONIMO));
+
+			Optional<DovutoMultibeneficiario> dovutoMultibeneficiario = Optional.ofNullable(dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId()));
+
+			Optional<EnteTipoDovuto> enteTipoDovutoOptional = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), ente.getCodIpaEnte(), false);
+
+			if (enteTipoDovutoOptional.isEmpty())
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE, "Tipo dovuto non trovato per ente");
+
+			EnteTipoDovuto enteTipoDovuto = enteTipoDovutoOptional.get();
+			if (!enteTipoDovuto.isFlgAttivo())
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_ABILITATO_PER_ENTE, "Tipo dovuto non abilitato per ente");
+
+			if (enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE))
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE, "Pagamento marca da bollo digitale non supportato per modello 3 per ente");
+
+			FaultBean faultBean = new FaultBean();
+			if (!checkDovutoPagabile(dovuto, enteTipoDovuto.isFlgScadenzaObbligatoria(), faultBean, request.getQrCodeFiscalCode()))
+				return returnFault.apply(faultBean.getFaultCode(), faultBean.getFaultString());
+
+			if ((!dovuto.getCodRpDatiVersTipoVersamento().equals(Constants.ALL_PAGAMENTI))
+				&& (!dovuto.getCodRpDatiVersTipoVersamento().contains(Constants.PAY_PRESSO_PSP)))
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_VERSAMENTO_ERRATO, "Tipo versamento non consentito");
+
+			//implementazione PND Start
+			BigDecimal importoPosizione = BigDecimal.ZERO;
+			String bilancioStr = null;
+			if(!gpdEnabled) {
+				try {
+					AttualizzazioneTo attualizzazione = attualizzazioneImportoService.attualizzaImporto(iuv, enteTipoDovuto, ente);
+					importoPosizione = attualizzazione.getImportoPosizione();
+					bilancioStr = attualizzazione.getBilancio();
+				} catch (AttualizzaImportoException ae) {
+					if (ae.isBlocking())
+						return returnFault.apply(FaultCodeConstants.PAA_DOVUTO_NON_PAGABILE, "[" + ae.getCode() + "] " + ae.getMessage());
+					else
+						log.warn("Eccezione gestita nell'attualizzazione dell'importo, ignoring it", ae);
+				} catch (Exception e) {
+					log.warn("Eccezione nell'attualizzazione dell'importo, ignoring it", e);
+				}
+			}
+			if (importoPosizione == null || importoPosizione.compareTo(BigDecimal.ZERO) <= 0) {
+				importoPosizione = dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento() ;
+			}
+			else {  // aggiornare importo su DB
+				dovuto.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(importoPosizione);
+				if (bilancioStr != null) {
+					dovuto.setBilancio(bilancioStr);
+				}
+				dovutoService.upsert(dovuto);
+			}
+
+			PaVerifyPaymentNoticeRisposta response = new PaVerifyPaymentNoticeRisposta();
+			response.setFiscalCodePA(request.getQrCodeFiscalCode());
+			response.setCompanyName(ente.getDeNomeEnte());
+			response.setOfficeName(null);
+			response.setAmount(
+					importoPosizione.add(
+					dovutoMultibeneficiario.map(DovutoMultibeneficiario::getNumRpDatiVersDatiSingVersImportoSingoloVersamento)
+						.orElse(BigDecimal.ZERO).setScale(2)));
+			if(dovuto.getDtRpDatiVersDataEsecuzionePagamento()!=null)
+				response.setDueDate(Utilities.toXMLGregorianCalendar(dovuto.getDtRpDatiVersDataEsecuzionePagamento()));
+			response.setPaymentDescription(calcolaCausaleRispostaCCP(dovuto, enteTipoDovuto));
+			response.setDetailDescription(null);
+			response.setAllCCP(StringUtils.isNotBlank(enteTipoDovuto.getIbanAccreditoPi()));
+
+			return response;
+
+		} catch (Exception ex) {
+			log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
+			return returnFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, "Errore generico: "+ex.getMessage());
+		}
+
+	}
+
+	@LogExecution()
+	public PaGetPaymentRisposta paGetPayment(PaGetPayment request) {
+
+		BiFunction<String, String, PaGetPaymentRisposta> returnFault = (String code, String descr) -> {
+			PaGetPaymentRisposta response = new PaGetPaymentRisposta();
+			response.setFault(new FaultBean());
+			response.getFault().setFaultCode(code);
+			response.getFault().setDescription(descr);
+			response.getFault().setFaultString(descr);
+			response.getFault().setId(request.getQrCodeFiscalCode());
+			response.getFault().setSerial(0);
+			return response;
+		};
+
+		try{
+			Ente ente = enteService.getEnteByCodFiscale(request.getQrCodeFiscalCode());
+			if (ente == null || Utilities.checkIfStatoInserito(ente))
+				return returnFault.apply(FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_CODE, FaultCodeConstants.PAA_ID_DOMINIO_ERRATO_STRING);
+
+			if(StringUtils.isNotBlank(ente.getDeUrlEsterniAttiva())){
+				PaExternalGetPaymentReq externalReq = new PaExternalGetPaymentReq();
+				externalReq.setIdPA(request.getIdPA());
+				externalReq.setIdBrokerPA(request.getIdBrokerPA());
+				externalReq.setIdStation(request.getIdStation());
+				externalReq.setQrCodeFiscalCode(request.getQrCodeFiscalCode());
+				externalReq.setNoticeNumber(request.getNoticeNumber());
+				externalReq.setAmount(request.getAmount());
+				externalReq.setPaymentNote(request.getPaymentNote());
+				externalReq.setTransferType(request.getTransferType());
+				externalReq.setDueDate(request.getDueDate());
+				PaExternalGetPaymentRes externalRes = pagamentiTelematiciEsterniCCPClient.paExternalGetPayment(externalReq, ente.getDeUrlEsterniAttiva());
+				PaGetPaymentRisposta response = new PaGetPaymentRisposta();
+				if(externalRes.getFault()!=null){
+					response.setFault(new FaultBean());
+					response.getFault().setFaultCode(externalRes.getFault().getFaultCode());
+					response.getFault().setFaultString(externalRes.getFault().getFaultString());
+					response.getFault().setDescription(externalRes.getFault().getDescription());
+				} else {
+					response.setCreditorReferenceId(externalRes.getCreditorReferenceId());
+					response.setPaymentAmount(externalRes.getPaymentAmount());
+					response.setDueDate(externalRes.getDueDate());
+					response.setRetentionDate(externalRes.getRetentionDate());
+					response.setLastPayment(externalRes.isLastPayment());
+					response.setDescription(externalRes.getDescription());
+					response.setCompanyName(externalRes.getCompanyName());
+					response.setOfficeName(externalRes.getOfficeName());
+					response.setDebtor(externalRes.getDebtor());
+					response.getTransferLists().addAll(externalRes.getTransferLists());
+				}
+				return response;
+			}
+
+			String iuv;
+			try{
+				iuv = Utilities.numeroAvvisoToIuvValidator(request.getNoticeNumber());
+			} catch(ValidatorException ve){
+				log.warn("invalid IUV for notice number {}/{}", request.getQrCodeFiscalCode(), request.getNoticeNumber());
+				return returnFault.apply(FaultCodeConstants.PAA_IUV_NON_VALIDO_CODE, FaultCodeConstants.PAA_IUV_NON_VALIDO_STRING);
+			}
+
+			List<Dovuto> dovuti = dovutoService.searchDovutoByIuvEnte(iuv, ente.getCodIpaEnte());
+			if (dovuti == null || dovuti.size() == 0) {
+				List<DovutoElaborato> dovutiElaborati = dovutoElaboratoService.searchDovutoElaboratoByIuvEnte(iuv, ente.getCodIpaEnte());
+
+				if ((dovutiElaborati == null) || (dovutiElaborati.size() == 0))
+					return returnFault.apply(FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_CODE, FaultCodeConstants.PAA_PAGAMENTO_SCONOSCIUTO_STRING);
+
+				for (DovutoElaborato dovutoElaborato : dovutiElaborati) {
+					if (Constants.STATO_DOVUTO_ANNULLATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato()))
+						return returnFault.apply(FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_CODE, FaultCodeConstants.PAA_PAGAMENTO_ANNULLATO_STRING);
+
+					if (Constants.STATO_DOVUTO_COMPLETATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato())
+						&& dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento() != null
+						&& !dovutoElaborato.getCodEDatiPagCodiceEsitoPagamento().equals(Constants.CODICE_ESITO_PAGAMENTO_KO))
+						return returnFault.apply(FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_CODE, FaultCodeConstants.PAA_PAGAMENTO_DUPLICATO_STRING);
+				}
+
+				return returnFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, "Il pagamento richiesto ha stato non atteso");
+			}
+
+			if (!isModelloUnicoWithIdCart(request.getPaymentNote())) {
+				// Se esiste piu di un dovuto nella tabella DOVUTO
+				if (dovuti.size() > 1)
+					return returnFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, "Errore pagamento multiplo");
+			}
+
+			Dovuto dovuto = dovuti.get(0);
+
+			//check blacklist/whitelist codice fiscale
+			systemBlockService.blockByPayerCf(Optional.ofNullable(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco()).orElse(Constants.CODICE_FISCALE_ANONIMO));
+
+			Optional<DovutoMultibeneficiario> dovutoMultibeneficiario = Optional.ofNullable(dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId()));
+
+			Optional<EnteTipoDovuto> enteTipoDovutoOptional = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), ente.getCodIpaEnte(), false);
+
+			if (enteTipoDovutoOptional.isEmpty())
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE, "Tipo dovuto non trovato per ente");
+
+			EnteTipoDovuto enteTipoDovuto = enteTipoDovutoOptional.get();
+			if (!enteTipoDovuto.isFlgAttivo())
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_ABILITATO_PER_ENTE, "Tipo dovuto non abilitato per ente");
+
+			if (!isModelloUnicoWithIdCart(request.getPaymentNote()) && enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE))
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_DOVUTO_NON_VALIDO_PER_ENTE, "Pagamento marca da bollo digitale non supportato per modello 3 per ente");
+
+			FaultBean faultBean = new FaultBean();
+			if (!checkDovutoPagabile(dovuto, enteTipoDovuto.isFlgScadenzaObbligatoria(), faultBean, request.getQrCodeFiscalCode()))
+				return returnFault.apply(faultBean.getFaultCode(), faultBean.getFaultString());
+
+			if ((!dovuto.getCodRpDatiVersTipoVersamento().equals(Constants.ALL_PAGAMENTI))
+				&& (!dovuto.getCodRpDatiVersTipoVersamento().contains(Constants.PAY_PRESSO_PSP)))
+				return returnFault.apply(FaultCodeConstants.PAA_TIPO_VERSAMENTO_ERRATO, "Tipo versamento non consentito");
+
+
+			//retrieve dueDate
+			XMLGregorianCalendar dueDate = Utilities.toXMLGregorianCalendar(enteTipoDovuto.isFlgScadenzaObbligatoria() ?
+				dovuto.getDtRpDatiVersDataEsecuzionePagamento() : MAX_DATE, true);
+
+			//retrieve iban
+			String iban = getIbanAccredito(ente, enteTipoDovuto,
+				Objects.equals(request.getTransferType(),StTransferType.POSTAL) ? Constants.IDENTIFICATIVO_PSP_POSTE : null,
+				Constants.PAY_PRESSO_PSP);
+
+			//retrieve transfer category
+			String transferCategory = tassonomiaService.getCleanTransferCategory(dovuto, enteTipoDovuto);
+
+			//retrieve causale
+			String causale = calcolaCausaleRispostaCCP(dovuto, enteTipoDovuto);
+
+			BigDecimal importoPosizione = BigDecimal.ZERO;
+			String bilancioStr = null;
+
+			if(!gpdEnabled) {
+				try {
+					AttualizzazioneTo attualizzazione = attualizzazioneImportoService.attualizzaImporto(iuv, enteTipoDovuto, ente);
+					importoPosizione = attualizzazione.getImportoPosizione();
+					bilancioStr = attualizzazione.getBilancio();
+				} catch (AttualizzaImportoException ae) {
+					if (ae.isBlocking())
+						return returnFault.apply(FaultCodeConstants.PAA_DOVUTO_NON_PAGABILE, "[" + ae.getCode() + "] " + ae.getMessage());
+					else
+						log.warn("Eccezione gestita nell'attualizzazione dell'importo, ignoring it", ae);
+				} catch (Exception e) {
+					log.warn("Eccezione nell'attualizzazione dell'importo, ignoring it", e);
+				}
+			}
+			if (importoPosizione == null || importoPosizione.compareTo(BigDecimal.ZERO) <= 0) {
+				importoPosizione = dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento() ;
+			}
+			else {  // aggiornare importo su DB
+				dovuto.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(importoPosizione);
+				if (bilancioStr != null) {
+					dovuto.setBilancio(bilancioStr);
+				}
+				dovutoService.upsert(dovuto);
+			}
+
+
+			PaGetPaymentRisposta response = new PaGetPaymentRisposta();
+			response.setCreditorReferenceId(dovuto.getCodIuv());
+			response.setDueDate(dueDate);
+			response.setRetentionDate(Utilities.toXMLGregorianCalendar(DateTime.now().plusHours(1).toDate(), true)); //the data validity of this response: set to 1 hour
+			//response.setLastPayment(false);  //currently MyPay and pagoPa do not support installment payments
+			response.setDescription(causale);
+			response.setCompanyName(ente.getDeRpEnteBenefDenominazioneBeneficiario());
+			response.setOfficeName(null); //not supported by MyPay
+
+			var anagraficaPagatore = anagraficaSoggettoService.getAnagraficaPagatore(dovuto);
+			anagraficaSoggettoService.mapAnagraficaSoggetto(anagraficaPagatore, CtSoggettoPagatore.class).ifPresent(response::setDebtor);
+
+			AtomicInteger indexTransfer = new AtomicInteger(1);
+			if(dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento().compareTo(BigDecimal.ZERO)>0) {
+				CtTransferPA transferPA = new CtTransferPA();
+				transferPA.setIdTransfer(indexTransfer.getAndIncrement());
+				transferPA.setFiscalCodePA(ente.getCodiceFiscaleEnte());
+				if (enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
+					var bolloDigitale = marcaBolloDigitaleService.getById(dovuto.getMygovDatiMarcaBolloDigitaleId());
+					transferPA.setRichiestaMarcaDaBollo(new CtRichiestaMarcaDaBollo());
+					transferPA.getRichiestaMarcaDaBollo().setTipoBollo(bolloDigitale.getTipoBollo());
+					transferPA.getRichiestaMarcaDaBollo().setHashDocumento(Base64.decodeBase64(bolloDigitale.getHashDocumento())); //hashDocumento is base64-encoded
+					transferPA.getRichiestaMarcaDaBollo().setProvinciaResidenza(bolloDigitale.getProvinciaResidenza());
+				} else {
+					transferPA.setIBAN(iban);
+				}
+				transferPA.setTransferAmount(importoPosizione);
+				String remittanceInformation = carrelloService.generateCausaleAgIDFormat(dovuto.getCodIuv(), dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento(),
+					StringUtils.firstNonBlank(dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento(), causale));
+				transferPA.setRemittanceInformation(StringUtils.left(remittanceInformation, 140));
+				transferPA.setTransferCategory(transferCategory);
+				CtMetadata metadata = new CtMetadata();
+				CtMapEntry entry = new CtMapEntry();
+				entry.setKey("datiSpecificiRiscossione");
+				entry.setValue(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
+				metadata.getMapEntries().add(entry);
+				transferPA.setMetadata(metadata);
+				response.getTransferLists().add(transferPA);
+			}
+			if(dovutoMultibeneficiario.isPresent()){
+				DovutoMultibeneficiario dm = dovutoMultibeneficiario.get();
+				CtTransferPA transferPA2 = new CtTransferPA();
+				transferPA2.setIdTransfer(indexTransfer.get());
+				transferPA2.setFiscalCodePA(dm.getCodiceFiscaleEnte());
+				transferPA2.setIBAN(dm.getCodRpDatiVersDatiSingVersIbanAccredito());
+				transferPA2.setTransferAmount(dm.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+				String remittanceInformation2 = carrelloService.generateCausaleAgIDFormat(dovuto.getCodIuv(), dm.getNumRpDatiVersDatiSingVersImportoSingoloVersamento(),
+					StringUtils.firstNonBlank(dm.getDeRpDatiVersDatiSingVersCausaleVersamento(), dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento(), calcolaCausaleRispostaCCP(dovuto, enteTipoDovuto)));
+				transferPA2.setRemittanceInformation(StringUtils.left(remittanceInformation2, 140));
+				if(StringUtils.isNotBlank(dm.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione())){
+					Matcher matcher = Constants.DATI_SPECIFICI_RISCOSSIONE_REGEX.matcher(dm.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
+					if(matcher.find())
+						transferPA2.setTransferCategory(matcher.group(1));
+					else
+						throw new ValidatorException("invalid datiSpecificiRiscossione format ["+dm.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione()+"]");
+				} else {
+					transferPA2.setTransferCategory(transferCategory);
+				}
+				response.getTransferLists().add(transferPA2);
+			}
+			if (isModelloUnicoWithIdCart(request.getPaymentNote()) && dovutoMultibeneficiario.isEmpty()) {
+				dovuti.stream().skip(1).forEach(item -> {
+					var enteTipoDovutoNth = enteTipoDovutoService.getByCodTipo(item.getCodTipoDovuto(), ente.getCodIpaEnte());
+					var transferPAnth = new CtTransferPA();
+					transferPAnth.setIdTransfer(indexTransfer.getAndIncrement());
+					transferPAnth.setFiscalCodePA(ente.getCodiceFiscaleEnte());
+					if (enteTipoDovutoNth.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
+						var bolloDigitale = marcaBolloDigitaleService.getById(item.getMygovDatiMarcaBolloDigitaleId());
+						transferPAnth.setRichiestaMarcaDaBollo(new CtRichiestaMarcaDaBollo());
+						transferPAnth.getRichiestaMarcaDaBollo().setTipoBollo(bolloDigitale.getTipoBollo());
+						transferPAnth.getRichiestaMarcaDaBollo().setHashDocumento(Base64.decodeBase64(bolloDigitale.getHashDocumento())); //hashDocumento is base64-encoded
+						transferPAnth.getRichiestaMarcaDaBollo().setProvinciaResidenza(bolloDigitale.getProvinciaResidenza());
+					} else {
+						String ibanNth = getIbanAccredito(ente, enteTipoDovutoNth,
+							Objects.equals(request.getTransferType(),StTransferType.POSTAL) ? Constants.IDENTIFICATIVO_PSP_POSTE : null,
+							Constants.PAY_PRESSO_PSP);
+						transferPAnth.setIBAN(ibanNth);
+					}
+					transferPAnth.setTransferAmount(item.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+					String remittanceInformation = carrelloService.generateCausaleAgIDFormat(item.getCodIuv(), item.getNumRpDatiVersDatiSingVersImportoSingoloVersamento(),
+						StringUtils.firstNonBlank(item.getDeRpDatiVersDatiSingVersCausaleVersamento(), calcolaCausaleRispostaCCP(item, enteTipoDovutoNth)));
+					transferPAnth.setRemittanceInformation(StringUtils.left(remittanceInformation, 140));
+					transferPAnth.setTransferCategory(tassonomiaService.getCleanTransferCategory(item, enteTipoDovutoNth));
+					CtMetadata metadata = new CtMetadata();
+					CtMapEntry entry = new CtMapEntry();
+					entry.setKey("datiSpecificiRiscossione");
+					entry.setValue(item.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
+					metadata.getMapEntries().add(entry);
+					transferPAnth.setMetadata(metadata);
+					response.getTransferLists().add(transferPAnth);
+				});
+			}
+			response.setPaymentAmount(response.getTransferLists().stream().map(CtTransferPA::getTransferAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+
+			return response;
+
+		} catch (Exception ex) {
+			log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
+			return returnFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, "Errore generico: "+ex.getMessage());
+		}
+
+	}
+
+	public static String calcolaCausaleRispostaCCP(Dovuto dovuto, EnteTipoDovuto enteTipoDovuto) {
+		return StringUtils.left(StringUtils.firstNonBlank(
+			dovuto.getDeCausaleVisualizzata(), dovuto.getDeRpDatiVersDatiSingVersCausaleVersamento(), enteTipoDovuto.getDeTipo()).trim(), 140);
+	}
+
+	public boolean checkDovutoPagabile(Dovuto dovuto, boolean flagScadenzaObbligatoria,
+	                                   FaultBean faultBean, String identificativoDominio) {
+
+		// CONTROLLO DOVUTO GIA' INIZIATO
+		if (Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO.equals(dovuto.getMygovAnagraficaStatoId().getCodStato())) {
+			faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_IN_CORSO_CODE);
+			faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_IN_CORSO_STRING);
+			faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_IN_CORSO_STRING);
+			faultBean.setId(identificativoDominio);
+			faultBean.setSerial(0);
+			return false;
+		}
+
+		// CONTROLLO DOVUTO SCADUTO
+		boolean isDovutoScaduto = dovutoService.isDovutoScaduto(dovuto, flagScadenzaObbligatoria);
+		if (isDovutoScaduto) {
+			faultBean.setFaultCode(FaultCodeConstants.PAA_PAGAMENTO_SCADUTO_CODE);
+			faultBean.setDescription(FaultCodeConstants.PAA_PAGAMENTO_SCADUTO_STRING);
+			faultBean.setFaultString(FaultCodeConstants.PAA_PAGAMENTO_SCADUTO_STRING);
+			faultBean.setId(identificativoDominio);
+			faultBean.setSerial(0);
+			return false;
+		}
+
+		// STATO DIVERSO DA PAGABILE
+		if (!Constants.STATO_DOVUTO_DA_PAGARE.equals(dovuto.getMygovAnagraficaStatoId().getCodStato())) {
+			faultBean.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
+			faultBean.setDescription("Il pagamento richiesto risulta in uno stato non pagabile");
+			faultBean.setFaultString("Il pagamento richiesto risulta in uno stato non pagabile");
+			faultBean.setId(identificativoDominio);
+			faultBean.setSerial(0);
+			return false;
+		}
+
+		return true;
+	}
+
+	public static String getIbanAccredito(Ente ente, EnteTipoDovuto enteTipoDovuto, String identificativoPSP,
+	                               String tipoVersamento) {
+		if (!enteTipoDovuto.getCodTipo().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE)) {
+			if (Constants.IDENTIFICATIVO_PSP_POSTE.equals(identificativoPSP)) {
+				String ibanAccreditoTipoDovuto = enteTipoDovuto.getIbanAccreditoPi();
+
+				// ACCREDITO
+				if (StringUtils.isNotBlank(ibanAccreditoTipoDovuto)) {
+					return ibanAccreditoTipoDovuto;
+				}
+				throw new RuntimeException(
+					"Nessun IBAN postale associato al tipo dovuto [ " + enteTipoDovuto.getDeTipo() + " ]");
+			} else if (Constants.PAY_MYBANK.equals(tipoVersamento)) {
+				String ibanAccreditoPSPTipoDovuto = enteTipoDovuto.getIbanAccreditoPsp();
+				String bicAccreditoPSPTipoDovuto = enteTipoDovuto.getBicAccreditoPsp();
+
+				String ibanAccreditoPiTipoDovuto = enteTipoDovuto.getIbanAccreditoPi();
+				String bicAccreditoPiTipoDovuto = enteTipoDovuto.getBicAccreditoPi();
+
+				// ACCREDITO
+				if (enteTipoDovuto.isBicAccreditoPspSeller() && (StringUtils.isNotBlank(ibanAccreditoPSPTipoDovuto)
+					|| StringUtils.isNotBlank(bicAccreditoPSPTipoDovuto))) {
+					if (StringUtils.isNotBlank(ibanAccreditoPSPTipoDovuto)) {
+						return ibanAccreditoPSPTipoDovuto;
+					}
+				} else if (enteTipoDovuto.isBicAccreditoPiSeller() && (StringUtils.isNotBlank(ibanAccreditoPiTipoDovuto)
+					|| StringUtils.isNotBlank(bicAccreditoPiTipoDovuto))) {
+					if (StringUtils.isNotBlank(ibanAccreditoPiTipoDovuto)) {
+						return ibanAccreditoPiTipoDovuto;
+					}
+				} else {
+					if (ente.getCodRpDatiVersDatiSingVersBicAccreditoSeller()) {
+						// Recupera dall'ente
+						if (StringUtils.isNotBlank(ente.getCodRpDatiVersDatiSingVersIbanAccredito())) {
+							return ente.getCodRpDatiVersDatiSingVersIbanAccredito();
+						}
+					} else {
+						throw new RuntimeException("Errore nel recupero del iban di accredito per PSP MyBank");
+					}
+				}
+			} else {
+				String ibanAccreditoTipoDovuto = enteTipoDovuto.getIbanAccreditoPsp();
+
+				// ACCREDITO
+
+				if (StringUtils.isNotBlank(ibanAccreditoTipoDovuto)) {
+					return ibanAccreditoTipoDovuto;
+
+				} else {
+					// Recupera dall'ente
+					if (StringUtils.isNotBlank(ente.getCodRpDatiVersDatiSingVersIbanAccredito())) {
+						return ente.getCodRpDatiVersDatiSingVersIbanAccredito();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private boolean isModelloUnicoWithIdCart(String paymentNote) {
+		return modelloUnico && StringUtils.isNotBlank(paymentNote) && Pattern.compile("^(" + PAYMENT_NOTE_PREFIX + ").*$").matcher(paymentNote).matches();
+	}
 }

@@ -48,11 +48,17 @@ public class PagamentiTelematiciDovutiPagatiHelper {
     return Optional.of(faultBean);
   };
 
-  public static Optional<FaultBean> verificaExportDovuti(String codIpaEnte, ExportDovuti dovuti) {
-    if (dovuti == null || !codIpaEnte.equals(dovuti.getMygovEnteId().getCodIpaEnte())) {
-      String faultString = Optional.ofNullable(dovuti).map(d -> String.format("Ente [%s] non autorizzato per requestToken [%s]", codIpaEnte, d.getCodRequestToken()))
-          .orElse("Dovuti null");
-      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, faultString);
+  public static Optional<FaultBean> verificaExportDovuti(String codIpaEnte, ExportDovuti dovuti, String requestToken) {
+    if (dovuti == null)
+      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, String.format("nessun record trovato per Ente [%s] e requestToken [%s]", codIpaEnte, requestToken));
+    if (!codIpaEnte.equals(dovuti.getMygovEnteId().getCodIpaEnte()))
+      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, String.format("Ente [%s] non autorizzato per requestToken [%s]", codIpaEnte, requestToken));
+    return Optional.empty();
+  }
+
+  public static Optional<FaultBean> verificaPasswordMyPivot(String passwordMypivot, String appBePasswordMyPivot) {
+    if ( !StringUtils.isEmpty(passwordMypivot) && !StringUtils.equals(passwordMypivot, appBePasswordMyPivot) ) {
+      return manageFault.apply(passwordMypivot, CODE_PAA_PASSWORD_ALLINEAMENTO_MYPIVOT_NON_VALIDA, "Password allineamento MyPivot non valida");
     }
     return Optional.empty();
   }
@@ -77,18 +83,13 @@ public class PagamentiTelematiciDovutiPagatiHelper {
     return Optional.empty();
   }
 
-  public static Optional<FaultBean> verificaImportDovuti(String codIpaEnte, ImportDovuti dovuti) {
-    if (dovuti == null || !codIpaEnte.equals(dovuti.getMygovEnteId().getCodIpaEnte())) {
-      String faultString = Optional.ofNullable(dovuti).map(d -> String.format("Ente [%s] non autorizzato per requestToken [%s]", codIpaEnte, d.getCodRequestToken()))
-          .orElse("Dovuti null");
-      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, faultString);
-    }
-    else  {
-      if (dovuti.getMygovAnagraficaStatoId()==null) {
-        String faultString = String.format("Ente [%s] - token in attesa elaborazione [%s]", codIpaEnte, dovuti.getCodRequestToken());
-        return manageFault.apply(codIpaEnte, CODE_PAA_ATTESA_ELABORAZIONE, faultString);
-      }
-    }
+  public static Optional<FaultBean> verificaImportDovuti(String codIpaEnte, ImportDovuti dovuti, String requestToken) {
+    if (dovuti == null)
+      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, String.format("nessun record trovato per Ente [%s] e requestToken [%s]", codIpaEnte, requestToken));
+    if (!codIpaEnte.equals(dovuti.getMygovEnteId().getCodIpaEnte()))
+      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, String.format("Ente [%s] non autorizzato per requestToken [%s]", codIpaEnte, requestToken));
+    if (dovuti.getMygovAnagraficaStatoId() == null)
+      return manageFault.apply(codIpaEnte, CODE_PAA_REQUEST_TOKEN_NON_VALIDO, String.format("Ente [%s] - token in attesa elaborazione [%s]", codIpaEnte, requestToken));
     return Optional.empty();
   }
 
@@ -113,7 +114,7 @@ public class PagamentiTelematiciDovutiPagatiHelper {
     Optional.ofNullable(carrello.getCodEDataOraMessaggioRicevuta()).map(Utilities::toXMLGregorianCalendar)
         .ifPresent(ctPagatiConRicevuta::setDataOraMessaggioRicevuta);
     ctPagatiConRicevuta.setRiferimentoMessaggioRichiesta(carrello.getCodERiferimentoMessaggioRichiesta());
-    Optional.ofNullable(carrello.getCodERiferimentoDataRichiesta()).map(Utilities::toXMLGregorianCalendar)
+    Optional.ofNullable(carrello.getCodERiferimentoDataRichiesta()).map(d -> Utilities.toXMLGregorianCalendar(d, true))
         .ifPresent(ctPagatiConRicevuta::setRiferimentoDataRichiesta);
 
     CtDominio ctDominio = new CtDominio();
@@ -200,7 +201,7 @@ public class PagamentiTelematiciDovutiPagatiHelper {
       ctDatiSingoloPagamentoPagatiConRicevuta.setSingoloImportoPagato(dovutoElaborato.getNumEDatiPagDatiSingPagSingoloImportoPagato());
 
       Optional.ofNullable(dovutoElaborato.getDeEDatiPagDatiSingPagEsitoSingoloPagamento()).ifPresent(ctDatiSingoloPagamentoPagatiConRicevuta::setEsitoSingoloPagamento);
-      Optional.ofNullable(dovutoElaborato.getDtEDatiPagDatiSingPagDataEsitoSingoloPagamento()).map(Utilities::toXMLGregorianCalendar)
+      Optional.ofNullable(dovutoElaborato.getDtEDatiPagDatiSingPagDataEsitoSingoloPagamento()).map(d -> Utilities.toXMLGregorianCalendar(d, true))
           .ifPresent(ctDatiSingoloPagamentoPagatiConRicevuta::setDataEsitoSingoloPagamento);
       ctDatiSingoloPagamentoPagatiConRicevuta.setIdentificativoUnivocoRiscossione(dovutoElaborato.getCodEDatiPagDatiSingPagIdUnivocoRiscoss());
       ctDatiSingoloPagamentoPagatiConRicevuta.setCausaleVersamento(dovutoElaborato.getDeEDatiPagDatiSingPagCausaleVersamento());

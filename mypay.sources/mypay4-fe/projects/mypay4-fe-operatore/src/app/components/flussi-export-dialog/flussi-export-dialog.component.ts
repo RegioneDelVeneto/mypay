@@ -18,7 +18,7 @@
 import { DateTime } from 'luxon';
 import { ToastrService } from 'ngx-toastr';
 import {
-    DateValidators, Ente, manageError, OverlaySpinnerService, TipoDovuto, validateFormFun
+  DateValidators, Ente, manageError, OverlaySpinnerService, TipoDovuto, validateFormFun
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -39,7 +39,7 @@ export class FlussiExportDialogComponent implements OnInit, OnDestroy {
 
   @ViewChild('iForm') insertFormDirective;
 
-  versioniTracciato: string[] = ['1.0', '1.1', '1.2'];
+  versioniTracciato: string[] = ['1.0', '1.1', '1.2', '1.3'];
 
   tipoDovutoOptionsMap: Map<String, TipoDovuto[]>;
   tipoDovutoOptions: TipoDovuto[];
@@ -81,7 +81,7 @@ export class FlussiExportDialogComponent implements OnInit, OnDestroy {
       //retrieve list of tipoDovuto and prepare autocomplete
       this.insertForm.controls['tipoDovuto'].setValue(null);
       if(!this.tipoDovutoOptionsMap.has(ente.codIpaEnte)){
-        this.enteService.getListTipoDovutoByEnteAsOperatore(ente).subscribe(tipiDovuto => {
+        this.enteService.getListTipoDovutoByEnteAsOperatore(ente, true).subscribe(tipiDovuto => {
           this.tipoDovutoOptionsMap.set(ente.codIpaEnte, tipiDovuto);
           this.tipoDovutoOptions = this.tipoDovutoOptionsMap.get(ente.codIpaEnte);
           this.tipoDovutoFilteredOptions = this.insertForm.get('tipoDovuto').valueChanges

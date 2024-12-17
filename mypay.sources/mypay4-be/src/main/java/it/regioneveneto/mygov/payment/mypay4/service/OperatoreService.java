@@ -162,6 +162,10 @@ public class OperatoreService implements UtenteProfileProvider{
         });
   }
 
+  public List<Operatore> getAll(){
+    return operatoreDao.getAll();
+  }
+
   @Transactional(propagation = Propagation.REQUIRED)
   public EnteRolesTo addAssociationOperatoreEnte(UserWithAdditionalInfo user, String username, Long idEnte, COUPLING_MODE couplingMode, String email){
     boolean forceUserEnteAssociation = COUPLING_MODE.ENTE.equals(couplingMode) || COUPLING_MODE.ENTE_DOVUTI.equals(couplingMode);

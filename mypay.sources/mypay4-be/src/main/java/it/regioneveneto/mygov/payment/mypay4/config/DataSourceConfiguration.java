@@ -58,7 +58,7 @@ public class DataSourceConfiguration {
     ds.setMinimumIdle(dataSourcePaReadWriteMinimumIdle);
     ds.setMaximumPoolSize(dataSourcePaReadWriteMaximumPoolSize);
     ds.setAutoCommit(false);
-    log.info("creating data source [pa] with minimumIdle:"+ds.getMinimumIdle()+" maximumPoolSize:"+ds.getMaximumPoolSize());
+    log.info("creating data source [pa] with minimumIdle:{} maximumPoolSize:{}",ds.getMinimumIdle(),ds.getMaximumPoolSize());
     return ds;
   }
 
@@ -81,7 +81,7 @@ public class DataSourceConfiguration {
     ds.setMinimumIdle(dataSourcePaReadOnlyMinimumIdle);
     ds.setMaximumPoolSize(dataSourcePaReadOnlyMaximumPoolSize);
     ds.setAutoCommit(false);
-    log.info("creating data source [paReadOnly] with minimumIdle:"+ds.getMinimumIdle()+" maximumPoolSize:"+ds.getMaximumPoolSize());
+    log.info("creating data source [paReadOnly] with minimumIdle:{} maximumPoolSize:{}",ds.getMinimumIdle(),ds.getMaximumPoolSize());
     return ds;
   }
 
@@ -89,7 +89,7 @@ public class DataSourceConfiguration {
   @Primary
   public DataSource routingDataSource(@Qualifier("dsPaReadWrite") DataSource datasourceReadWrite,
                                       @Qualifier("dsPaReadOnly") Optional<DataSource> datasourceReadOnly) {
-    if(dataSourcePaReadOnlyEnabled)
+    if(dataSourcePaReadOnlyEnabled && datasourceReadOnly.isPresent())
       return new TransactionRoutingDataSource("pa", datasourceReadWrite, datasourceReadOnly.get());
     else
       return datasourceReadWrite;
@@ -113,7 +113,7 @@ public class DataSourceConfiguration {
     ds.setMinimumIdle(dataSourceFespMinimumIdle);
     ds.setMaximumPoolSize(dataSourceFespMaximumPoolSize);
     ds.setAutoCommit(false);
-    log.info("creating data source [fesp] with minimumIdle:"+ds.getMinimumIdle()+" maximumPoolSize:"+ds.getMaximumPoolSize());
+    log.info("creating data source [fesp] with minimumIdle:{} maximumPoolSize:{}",ds.getMinimumIdle(),ds.getMaximumPoolSize());
     return ds;
   }
 

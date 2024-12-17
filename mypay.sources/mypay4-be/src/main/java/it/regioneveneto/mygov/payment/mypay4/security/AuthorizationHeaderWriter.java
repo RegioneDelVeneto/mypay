@@ -20,14 +20,12 @@ package it.regioneveneto.mygov.payment.mypay4.security;
 import io.jsonwebtoken.Claims;
 import it.regioneveneto.mygov.payment.mypay4.storage.JwtTokenUsageStorage;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.AbstractMap;
@@ -40,33 +38,21 @@ public class AuthorizationHeaderWriter implements HeaderWriter {
 	@Value("${jwt.rolling-token.enabled:true}")
 	private boolean rollingTokenEnabled;
 
-	@Value("${HOSTNAME:unknown}")
-	private String hostname;
-	private String serverId;
-
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
 
 	@Autowired
 	JwtTokenUsageStorage jwtTokenUsageService;
 
-	@PostConstruct
-	public void runAfterObjectCreated() {
-		serverId = StringUtils.substring(hostname, StringUtils.lastOrdinalIndexOf(hostname, "-", 2) + 1);
-	}
-
 	@Override
 	public void writeHeaders(HttpServletRequest request, HttpServletResponse response) {
-
-		//add header for hostname serving the request (aka kubernetes pod name in case of kubernetes deployment) for debug purposes
-		response.setHeader("ServerId", serverId);
 
 		if(response.containsHeader(JwtRequestFilter.AUTHORIZATION_HEADER))
 			return;
 
 		boolean removeCookie = request.getAttribute(JwtAuthenticationEntryPoint.TOKEN_ERROR_CODE_ATTRIB)!=null &&
-        !request.getAttribute(JwtAuthenticationEntryPoint.TOKEN_ERROR_CODE_ATTRIB).equals(JwtAuthenticationEntryPoint.TOKEN_ERROR_CODE_MISSING) &&
-        jwtTokenUtil.isTokenInCookie();
+				!JwtAuthenticationEntryPoint.NOT_REMOVE_AUTH.contains((String)request.getAttribute(JwtAuthenticationEntryPoint.TOKEN_ERROR_CODE_ATTRIB)) &&
+				jwtTokenUtil.isTokenInCookie();
 
 		boolean forceUpdateToken = request.getAttribute(JwtRequestFilter.FORCE_TOKEN_UPDATE_ATTRIBUTE)!=null;
 

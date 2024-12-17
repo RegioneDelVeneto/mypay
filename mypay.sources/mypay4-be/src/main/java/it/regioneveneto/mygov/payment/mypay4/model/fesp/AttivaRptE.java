@@ -35,8 +35,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovAttivaRptEId")
 public class AttivaRptE extends BaseEntity {
 
-  public final static String ALIAS = "FESP_AttivaRptE";
-  public final static String FIELDS = "" + ALIAS + ".mygov_attiva_rpt_e_id as FESP_AttivaRptE_mygovAttivaRptEId," + ALIAS + ".version as FESP_AttivaRptE_version" +
+  public static final String ALIAS = "FESP_AttivaRptE";
+  public static final String FIELDS = "" + ALIAS + ".mygov_attiva_rpt_e_id as FESP_AttivaRptE_mygovAttivaRptEId," + ALIAS + ".version as FESP_AttivaRptE_version" +
       "," + ALIAS + ".cod_attivarpt_id_psp as FESP_AttivaRptE_codAttivarptIdPsp" +
       "," + ALIAS + ".cod_attivarpt_identificativo_intermediario_pa as FESP_AttivaRptE_codAttivarptIdentificativoIntermediarioPa" +
       "," + ALIAS + ".cod_attivarpt_identificativo_stazione_intermediario_pa as FESP_AttivaRptE_codAttivarptIdentificativoStazioneIntermediarioPa" +

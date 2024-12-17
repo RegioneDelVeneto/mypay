@@ -17,10 +17,13 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dto;
 
+import it.regioneveneto.mygov.payment.mypay4.dto.fesp.DovutoEntePrimarioTo;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -37,10 +40,12 @@ public class DovutoTo extends BaseTo implements Serializable {
   private String causale;
   private String causaleVisualizzata;
   private String importo;
+  private long importoAsCent;
   private String valuta;
   private String codStato;
   private String deEnte;
   private String codIpaEnte;
+  private String codiceFiscaleEnte;
   private String codTipoDovuto;
   private String deTipoDovuto;
   private LocalDate dataScadenza;
@@ -55,4 +60,16 @@ public class DovutoTo extends BaseTo implements Serializable {
   private AnagraficaPagatore intestatario;
 
   private String securityTokenAvviso;
+  private boolean annullabile;
+
+  private DovutoEntePrimarioTo entePrimarioDetail;
+  private DovutoMultibeneficiarioTo dovutoMultibeneficiario;
+  private boolean isMultibeneficiario;
+  private boolean flgIuvVolatile;
+
+  private boolean urlNotificaPnd;
+
+  public boolean isPayable(){
+    return StringUtils.equals(codStato, Constants.STATO_DOVUTO_DA_PAGARE);
+  }
 }

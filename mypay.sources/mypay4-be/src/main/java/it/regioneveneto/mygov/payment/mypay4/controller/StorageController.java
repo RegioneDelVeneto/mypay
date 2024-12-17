@@ -48,8 +48,8 @@ import java.util.UUID;
 @ConditionalOnWebApplication
 public class StorageController {
 
-  private final static String AUTHENTICATED_PATH ="storage";
-  private final static String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="storage";
+  private static final String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   StorageService storageService;

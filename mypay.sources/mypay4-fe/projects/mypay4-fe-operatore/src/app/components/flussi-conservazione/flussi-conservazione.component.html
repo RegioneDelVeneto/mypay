@@ -1,0 +1,93 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<ng-template #helpPage>
+    <div>
+      <p>Esportazione flussi Conservazione</p>
+      <p>L'operatore di un ente può scaricare i dati sui dovuti pagati in un certo intervallo di tempo (solo per i dovuti ai
+        quali è abilitato). Per fare questo è necessario prenotare l'esportazione di un nuovo flusso oppure visualizzare un
+        export già effettuato.</p>
+      <p>L'esportazione dei dati non è immediata. Il sistema invierà una mail all'operatore quando
+        l'esportazione è stata eseguita e il flusso è pronto per essere scaricato.</p>
+    </div>
+  </ng-template>
+
+<div class="container">
+
+  <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+
+    <div class="title-row">
+      <h1 class="mat-h1 bold">
+        <fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}} 
+		<my-pay-help [template]="helpPage"></my-pay-help>
+      </h1>
+    </div>
+
+    <div class="w100">
+      <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mb-3 mx-0 mat-button-bar">
+        <div fxFlex></div>
+        <button fxFlex="30%" fxFlex.gt-sm="20" fxFlex="20em" type="button" mat-flat-button (click)="openDialog()"
+          color="accent">Prenota Export Conservazione</button>
+      </div>
+    </div>
+
+    <div class="w100 mypay-search-form">
+      <form fxFlex novalidate #sForm="ngForm" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+        <mat-card #cardSearch class="mat-elevation-z0 mypay-search-card" fxFlex="1 1 0" fxLayout="column">
+          <mat-card-content class="white">
+            <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" fxFlex.gt-sm appearance="{{'appearance'|global}}">
+                <mat-label>Nome Flusso</mat-label>
+                <input matInput formControlName="nomeFlusso" placeholder="Inserire un testo">
+                <mat-error *ngIf="searchFormErrors['nomeFlusso']">{{ searchFormErrors.nomeFlusso }}</mat-error>
+              </mat-form-field>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="23%" appearance="{{'appearance'|global}}">
+                <mat-label>Data esportazione dal</mat-label>
+                <input matInput required formControlName="dateFrom" [matDatepicker]="searchPickerFrom">
+                <mat-datepicker-toggle matSuffix [for]="searchPickerFrom"></mat-datepicker-toggle>
+                <mat-datepicker #searchPickerFrom></mat-datepicker>
+                <mat-error *ngIf="searchFormErrors['dateFrom']">{{ searchFormErrors.dateFrom }}</mat-error>
+              </mat-form-field>
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="23%" appearance="{{'appearance'|global}}">
+                <mat-label>Data esportazione al</mat-label>
+                <input matInput required formControlName="dateTo" [matDatepicker]="searchPickerTo">
+                <mat-datepicker-toggle matSuffix [for]="searchPickerTo"></mat-datepicker-toggle>
+                <mat-datepicker #searchPickerTo></mat-datepicker>
+                <mat-error *ngIf="searchFormErrors['dateTo']">{{ searchFormErrors.dateTo }}</mat-error>
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <div fxLayout="row wrap" fxLayoutAlign="end center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+              <button type="button" mat-flat-button (click)="onReset()" color="primary">Reset</button>
+              <button type="submit" mat-flat-button [disabled]="searchForm.invalid || blockingError"
+                color="accent">Cerca</button>
+            </div>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+    </div>
+
+    <p *ngIf="hasSearched && tableData?.length==0">Nessun dato trovato con i criteri di ricerca impostati.</p>
+    <my-pay-table-operatore #myPayTable [tableData]="tableData" [tableColumns]="tableColumns" [hasDetail]="false"
+      [paginatorData]="paginatorData" [parentRef]="this">
+    </my-pay-table-operatore>
+  </div>
+
+</div>

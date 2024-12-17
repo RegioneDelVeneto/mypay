@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovImportDovutiId")
 public class ExportDovuti extends BaseEntity {
 
-  public final static String ALIAS = "ExportDovuti";
-  public final static String FIELDS =
+  public static final String ALIAS = "ExportDovuti";
+  public static final String FIELDS =
       " "+ALIAS+".mygov_export_dovuti_id as ExportDovuti_mygovExportDovutiId"+
       ","+ALIAS+".version as ExportDovuti_version"+
       ","+ALIAS+".mygov_ente_id as ExportDovuti_mygovEnteId"+
@@ -51,7 +51,9 @@ public class ExportDovuti extends BaseEntity {
       ","+ALIAS+".mygov_utente_id as ExportDovuti_mygovUtenteId"+
       ","+ALIAS+".flg_ricevuta as ExportDovuti_flgRicevuta"+
       ","+ALIAS+".flg_incrementale as ExportDovuti_flgIncrementale"+
-      ","+ALIAS+".versione_tracciato as ExportDovuti_versioneTracciato";
+      ","+ALIAS+".versione_tracciato as ExportDovuti_versioneTracciato"+
+      ","+ALIAS+".flg_mypivot as ExportDovuti_flgMypivot"+
+      ","+ALIAS+".mygov_anagrafica_stato_multibeneficiario_id as ExportDovuti_mygovAnagraficaStatoMultibeneficiarioId";
 
   private Long mygovExportDovutiId;
   private int version;
@@ -72,4 +74,7 @@ public class ExportDovuti extends BaseEntity {
   private boolean flgRicevuta;
   private boolean flgIncrementale;
   private String versioneTracciato;
+  private boolean flgMypivot;
+  @Nested(AnagraficaStato.ALIAS)
+  private AnagraficaStato mygovAnagraficaStatoMultibeneficiarioId;
 }

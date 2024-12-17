@@ -1,0 +1,1 @@
+ALTER TABLE public.mygov_export_dovuti ALTER mygov_anagrafica_stato_multibeneficiario_id SET DEFAULT null;

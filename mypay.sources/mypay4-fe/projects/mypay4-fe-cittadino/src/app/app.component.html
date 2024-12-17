@@ -21,7 +21,7 @@
 <mat-sidenav-container *ngIf="coreElemActivated.sidenav" aria-label="Pagina" role="main" style="height: calc(100% - 64px)" [hasBackdrop]="false">
   <mat-sidenav #sidenav mode="over" aria-label="Sidebar" role="navigation"
   [fixedInViewport]="true">
-    <div class="side-user-item" role="navigation" cdkTrapFocus>
+    <div class="side-user-item" role="navigation" aria-label="Sidebar-header" cdkTrapFocus>
       <fa-icon [icon]="iconUser" size="3x" class="padding-right side-menu-item"
       style="vertical-align: middle;" aria-label="Immagine del profilo" tabindex="0"></fa-icon>
       <span *ngIf="userService.isLogged()" class="side-menu-item" style="overflow-y: auto"  role="textbox" aria-labelledby="Accesso"><mat-label id="Accesso">Ciao, {{userService.getLoggedUserString()}}</mat-label></span>
@@ -40,7 +40,7 @@
            aria-label="{{item.getSidebarLabel()}}"
            role="button">
           <mat-label class="side-user-icon">
-            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+            <img *ngIf="item.hasImgIcon()" alt="menu-item-icon" [src]="item.icon" class="side-user-icon-img"/>
             <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon" size="lg" aria-hidden="true"></fa-icon>
           </mat-label>
           <mat-label id="{{item.getAriaLabel()}}" class="side-menu-item">{{item.getSidebarLabel()}}</mat-label>
@@ -71,7 +71,7 @@
 </ng-container>
 
 <ng-template #mainContentTemplate>
-  <div class="main-container"
+  <div class="main-container" #mainContentContainer
       fxLayout="row wrap"
       fxLayoutAlign="center start"
       aria-label="Content" id="Content">

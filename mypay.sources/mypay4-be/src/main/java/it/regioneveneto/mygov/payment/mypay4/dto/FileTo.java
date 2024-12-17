@@ -37,6 +37,14 @@ public class FileTo extends BaseTo implements Serializable {
   private LocalDateTime dataProduzione;
   private LocalDateTime dataCreazione;
   private Long dimensione;
+  private String codFedUserId;
+  private String operatore;
 
+  private Boolean showDownload;
   private String securityToken;
+
+  private LocalDateTime dataInizio;
+  private LocalDateTime dataFine;
+  private String stato;
+  private Long id;
 }

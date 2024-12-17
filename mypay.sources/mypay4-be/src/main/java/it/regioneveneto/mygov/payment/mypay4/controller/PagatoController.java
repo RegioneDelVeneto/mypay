@@ -28,13 +28,27 @@ import it.regioneveneto.mygov.payment.mypay4.dto.DovutoOperatoreTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.BadRequestException;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
-import it.regioneveneto.mygov.payment.mypay4.model.*;
+import it.regioneveneto.mygov.payment.mypay4.model.AnagraficaStato;
+import it.regioneveneto.mygov.payment.mypay4.model.Carrello;
+import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.DovutoElaborato;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
+import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
 import it.regioneveneto.mygov.payment.mypay4.security.JwtTokenUtil;
 import it.regioneveneto.mygov.payment.mypay4.security.Operatore;
 import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
-import it.regioneveneto.mygov.payment.mypay4.service.*;
+import it.regioneveneto.mygov.payment.mypay4.service.AnagraficaStatoService;
+import it.regioneveneto.mygov.payment.mypay4.service.CarrelloService;
+import it.regioneveneto.mygov.payment.mypay4.service.DovutoElaboratoService;
+import it.regioneveneto.mygov.payment.mypay4.service.DovutoService;
+import it.regioneveneto.mygov.payment.mypay4.service.EnteService;
+import it.regioneveneto.mygov.payment.mypay4.service.EnteTipoDovutoService;
+import it.regioneveneto.mygov.payment.mypay4.service.JasperService;
+import it.regioneveneto.mygov.payment.mypay4.service.RecaptchaService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.io.InputStreamResource;
@@ -53,11 +67,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Tag(name = "Pagamenti effettuati", description = "Gestione dei pagamenti effettuati")
 @RestController("Gestione pagati")
@@ -65,10 +79,10 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class PagatoController {
 
-  private final static String AUTHENTICATED_PATH ="pagati";
-  private final static String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
-  private final static String A2A_PATH= MyPay4AbstractSecurityConfig.PATH_A2A+"/"+ AUTHENTICATED_PATH;
+  static final String AUTHENTICATED_PATH ="pagati";
+  private static final String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String A2A_PATH= MyPay4AbstractSecurityConfig.PATH_A2A+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   private DovutoElaboratoService dovutoElaboratoService;
@@ -89,13 +103,13 @@ public class PagatoController {
   private AnagraficaStatoService anagraficaStatoService;
 
   @Autowired
-  JasperService jasperService;
+  private JasperService jasperService;
 
   @Autowired
   private RecaptchaService recaptchaService;
 
   @Autowired
-  JwtTokenUtil jwtTokenUtil;
+  private JwtTokenUtil jwtTokenUtil;
 
   @Operation(summary = "Ricerca pagamenti elaborati",
       description = "Ricerca pagamenti effettuati, da parte dell'utente loggato, usando una serie di filtri opzionali",
@@ -107,8 +121,10 @@ public class PagatoController {
       @Parameter(description = "Data pagamento A") @RequestParam LocalDate to,
       @Parameter(description = "Codice ente beneficiario del pagamento") @RequestParam(required = false) String codIpaEnte,
       @Parameter(description = "Causale del pagamento (filtro per sottostringa)") @RequestParam(required = false) String causale,
-      @Parameter(description = "Codice tipo dovuto del pagamento") @RequestParam(required = false) String codTipoDovuto){
-    return dovutoElaboratoService.searchDovutoElaborato(codIpaEnte, user.getCodiceFiscale(), from, to, causale, codTipoDovuto);
+      @Parameter(description = "Codice tipo dovuto del pagamento") @RequestParam(required = false) String codTipoDovuto,
+      @Parameter(description = "Codice stato del pagamento") @RequestParam(name = "state", required = false) String codStato
+      ){
+    return dovutoElaboratoService.searchDovutoElaborato(codIpaEnte, user.getCodiceFiscale(), from, to, causale, codTipoDovuto, codStato);
   }
 
   @Operation(summary = "Ultimi pagamenti effettuati",
@@ -120,83 +136,52 @@ public class PagatoController {
       @Parameter(description = "numero degli ultimi pagamenti da ritornare",
           schema = @Schema(maximum = "10", minimum = "1") )
       @RequestParam Integer num){
-    List<DovutoElaborato> listDovutoElaborato = dovutoElaboratoService.searchLastDovutoElaborato(user.getCodiceFiscale(), num);
     if(num <1 || num > 10){
       throw new BadRequestException("num must be between 1 and 10");
     }
-    return listDovutoElaborato.stream().map(dovutoElaboratoService::mapDovutoElaboratoToDto).collect(Collectors.toList());
+    return dovutoElaboratoService.searchLastDovutoElaborato(user.getCodiceFiscale(), num);
   }
 
   @GetMapping(AUTHENTICATED_PATH +"/{id}/rt")
   public ResponseEntity<Resource> download(
       @AuthenticationPrincipal UserWithAdditionalInfo user,
       @PathVariable Long id,
-      @RequestParam(required = false) String securityToken) throws Exception {
-
-    //check if given DovutoElaborato exists
-    DovutoElaborato dovutoElaborato = dovutoElaboratoService.getById(id);
-
-    //for avvisi not belonging to logged user (or when anonymous), verify security token
-    // (to be sure that user found id in a legitimate way, i.e. searching with iuv and codice fiscale)
-    if(!user.getCodiceFiscale().equals(dovutoElaborato.getCodRpSoggPagIdUnivPagCodiceIdUnivoco())) {
-      try {
-        String oid = jwtTokenUtil.parseSecurityToken(user, securityToken);
-        if (!("" + id).equals(oid)) {
-          throw new MyPayException("codice sicurezza non valido");
-        }
-      } catch(Exception e){
-        log.warn("error parsing security code", e);
-        throw new MyPayException("codice sicurezza non valido");
-      }
-    }
-
-    return this.downloadImpl(id, dovutoElaborato);
+      @RequestParam(required = false) String securityToken) throws MyPayException {
+    return this.downloadImpl(id, user, securityToken);
   }
 
   @GetMapping(ANONYMOUS_PATH+"/{id}/rt")
   public ResponseEntity<Resource> downloadAnonymous(
       @PathVariable Long id,
       @RequestParam String recaptcha,
-      @RequestParam String securityToken) throws Exception {
-
+      @RequestParam String securityToken) {
     boolean captchaVerified = recaptchaService.verify(recaptcha,"downloadRt");
     if(!captchaVerified){
       throw new MyPayException("Errore verifica recaptcha");
     }
-
-    DovutoElaborato dovutoElaborato = dovutoElaboratoService.getById(id);
-
-    //for avvisi not belonging to logged user (or when anonymous), verify security token
-    // (to be sure that user found id in a legitimate way, i.e. searching with iuv and codice fiscale)
-    try {
-      String oid = jwtTokenUtil.parseSecurityToken(null, securityToken);
-      if (!("" + id).equals(oid)) {
-        throw new MyPayException("codice sicurezza non valido");
-      }
-    } catch(Exception e){
-      log.warn("error parsing security code", e);
-      throw new MyPayException("codice sicurezza non valido");
-    }
-
-    return this.downloadImpl(id, dovutoElaborato);
+    return this.downloadImpl(id, null, securityToken);
   }
 
-  @GetMapping(A2A_PATH+"/info/{codIpaEnte}/{iuv}")
+  @GetMapping(A2A_PATH+"/info/{codFiscaleEnte}/{iuv}")
   public Map<String, String> getRtInfo(
-      @PathVariable String codIpaEnte,
+      @PathVariable String codFiscaleEnte,
       @PathVariable String iuv) {
 
-    Ente ente = Optional.ofNullable(enteService.getEnteByCodIpa(codIpaEnte))
-        .orElseThrow(()->new NotFoundException("ente not found"));
+    //method previously worked with COD_IPA of ente: to preserve back-compatibility if the input param is a fiscal code
+    // (i.e. 11 numbers) it is treated as fiscal code, otherwise as cod_ipa
+    Ente ente = Optional.of(codFiscaleEnte).map(Constants.CF_PERSONA_GIURIDICA_REGEX.matcher(codFiscaleEnte).matches()
+        ? enteService::getEnteByCodFiscale : enteService::getEnteByCodIpa)
+      .orElseThrow(()->new NotFoundException("ente not found"));
 
     String iud=null, deStato=null, anagPagatore=null, cfPagatore=null;
     boolean found = false;
 
-    //first search on dovuto elaborato (reduce on dt_ultima_modifica_rp, containing hh:mm:ss)
+    //first search on dovuto elaborato (pick the first sorted by dt_ultima_modifica_rp DESC, mygov_dovuto_elaborato_id DESC )
     DovutoElaborato dovutoElaborato = dovutoElaboratoService.searchDovutoElaboratoByIuvEnte(iuv, ente.getCodIpaEnte())
       .stream()
-      .filter(dovElab -> dovElab.getDtUltimaModificaRp()!=null)
-      .reduce((accumulator, element) -> accumulator.getDtUltimaModificaRp().after(element.getDtUltimaModificaRp())?accumulator:element)
+      .filter(dovElab -> dovElab.getDtUltimaModificaRp() != null)
+      .max(Comparator.comparing(DovutoElaborato::getDtUltimaModificaRp)
+        .thenComparing(DovutoElaborato::getMygovDovutoElaboratoId))
       .orElse(null);
 
     if(dovutoElaborato!=null){
@@ -237,7 +222,37 @@ public class PagatoController {
     return info;
   }
 
-  private ResponseEntity<Resource> downloadImpl(Long id, DovutoElaborato dovutoElaborato) throws Exception {
+  ResponseEntity<Resource> downloadImpl(Long id, UserWithAdditionalInfo user, String securityToken) throws MyPayException {
+
+    DovutoElaborato dovutoElaborato = dovutoElaboratoService.getById(id);
+    if(dovutoElaborato==null){
+      log.warn("dovuto elaborato with id[{}] not found", id);
+      throw new NotFoundException("dato non trovato");
+    }
+
+    //for avvisi not belonging to logged user (or when anonymous), verify security token
+    // (to be sure that user found id in a legitimate way, i.e. searching with iuv and codice fiscale)
+    boolean skipSecurityTokenCheck = user!=null
+      && (StringUtils.equalsIgnoreCase(user.getCodiceFiscale(), dovutoElaborato.getCodRpSoggPagIdUnivPagCodiceIdUnivoco())
+      || StringUtils.equalsIgnoreCase(user.getCodiceFiscale(), dovutoElaborato.getCodRpSoggVersIdUnivVersCodiceIdUnivoco()));
+
+    if(!skipSecurityTokenCheck){
+      try {
+        String oid = jwtTokenUtil.parseSecurityToken(user, securityToken);
+        if (!("" + id).equals(oid)) {
+          throw new MyPayException("codice sicurezza non valido");
+        }
+      } catch(Exception e){
+        log.warn("error parsing security code", e);
+        throw new MyPayException("codice sicurezza non valido");
+      }
+    }
+
+    //retrive 'importo singolo versamento' from dovuto multibeneficiario elaborato
+    BigDecimal importoDovutoMB = dovutoElaboratoService.getImportoDovutoMultibeneficiarioElaboratoByIdDovuto(id);
+    if(importoDovutoMB != null)
+      dovutoElaborato.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(dovutoElaborato.getNumEDatiPagDatiSingPagSingoloImportoPagato().add(importoDovutoMB));
+
     //check if it in correct status
     if(dovutoElaborato==null || !AnagraficaStato.STATO_DOVUTO_COMPLETATO.equals(dovutoElaborato.getMygovAnagraficaStatoId().getCodStato()))
       throw new RuntimeException("La ricevuta telematica richiesta ["+id+"] non esiste o non si dispone dell'autorizzazione per visualizzarla");
@@ -265,9 +280,8 @@ public class PagatoController {
           .body(new InputStreamResource(isReport));
 
     } catch (Exception e) {
-      log.error(e.getMessage());
-      log.error("Si e verificato un errore nella generazione della ricevuta telematica per il dovuto elaborato con id: "+dovutoElaborato.getMygovDovutoElaboratoId(), e);
-      throw e;
+      log.error("Si e verificato un errore nella generazione ricevuta telematica per il dovuto elaborato: {}", dovutoElaborato.getMygovDovutoElaboratoId(), e);
+      throw new MyPayException("error downloading avviso", e);
     }
   }
 
@@ -279,6 +293,12 @@ public class PagatoController {
     //check if given DovutoElaborato exists
     DovutoElaborato dovutoElaborato = dovutoElaboratoService.getById(id);
     List<EnteTipoDovuto> authorizedTipoDovuto = enteTipoDovutoService.getByMygovEnteIdAndOperatoreUsername(dovutoElaborato.getNestedEnte().getMygovEnteId(), user.getUsername());
+
+    //retrive importo dovuto multibeneficiario elaborato
+    BigDecimal importoMB = dovutoElaboratoService.getImportoDovutoMultibeneficiarioElaboratoByIdDovuto(id);
+    if(importoMB != null)
+      dovutoElaborato.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(dovutoElaborato.getNumEDatiPagDatiSingPagSingoloImportoPagato().add(importoMB));
+
 
     boolean error = authorizedTipoDovuto.stream().filter(etd -> etd.getCodTipo().equals(dovutoElaborato.getCodTipoDovuto())).count() != 1;
     //check if it in correct status
@@ -325,7 +345,7 @@ public class PagatoController {
       @RequestParam(required = false) String causale, @RequestParam(required = false) String codFiscale,
       @RequestParam(required = false) String iud, @RequestParam(required = false) String iuv){
 
-    return dovutoElaboratoService.searchDovutoElaboratoNellArchivio(user.getUsername(),
+    return dovutoElaboratoService.searchDovutoElaboratoForOperatore(user.getUsername(),
         mygovEnteId, codStato, myGovEnteTipoDovutoId, nomeFlusso, from, to, codFiscale, causale, iud, iuv);
   }
 
@@ -337,9 +357,5 @@ public class PagatoController {
 
     return dovutoElaboratoService.getDetailsForOperatore(user.getUsername(), mygovEnteId, mygovPagatoId);
   }
-
-
-
-
 
 }

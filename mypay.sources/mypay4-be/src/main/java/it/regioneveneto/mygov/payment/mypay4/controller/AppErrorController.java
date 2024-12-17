@@ -61,6 +61,8 @@ import java.util.stream.Collectors;
 @RequestMapping("${server.error.path:${error.path:/error}}")
 public class AppErrorController extends AbstractErrorController {
 
+  private static final String ERROR_VIEW = "error";
+
   private final ErrorProperties errorProperties;
 
   @Value("${app.fe.cittadino.absolute-path}")
@@ -76,29 +78,33 @@ public class AppErrorController extends AbstractErrorController {
     this.errorProperties = serverProperties.getError();
   }
 
+  @SuppressWarnings("java:S3752")
   @RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
   public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
     Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-    String view, title, subtitle, detail;
+    String view;
+    String title;
+    String subtitle;
+    String detail;
     if(Objects.equals(statusCode, HttpStatus.NOT_FOUND.value()) ||
       Objects.equals(statusCode, HttpStatus.I_AM_A_TEAPOT.value()) ){
-      view = "error";
+      view = ERROR_VIEW;
       title = "Risorsa non trovata";
       subtitle = "La risorsa richiesta non è disponibile";
       detail = "";
     } else if(Objects.equals(statusCode, HttpStatus.UNAUTHORIZED.value())){
-      view = "error";
+      view = ERROR_VIEW;
       title = "Non autorizzato";
       subtitle = "Non si dispone dei permessi per accedere alla risorsa richiesta";
       detail = "";
     } else {
       // generic system error
-      view = "error";
+      view = ERROR_VIEW;
       title = "Errore di sistema";
       subtitle = "Si è verificato un errore imprevisto";
       detail = "Si prega di riprovare in seguito";
     }
-    //Exception e = (Exception) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+    //to retrieve exception "Exception e = (Exception) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);"
 
     ModelAndView modelAndView = new ModelAndView();
     modelAndView.setViewName(view);
@@ -110,6 +116,7 @@ public class AppErrorController extends AbstractErrorController {
     return modelAndView;
   }
 
+  @SuppressWarnings("java:S3752")
   @RequestMapping
   public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
     HttpStatus status = getStatus(request);
@@ -126,14 +133,14 @@ public class AppErrorController extends AbstractErrorController {
       status = HttpStatus.BAD_REQUEST;
       try {
         Pattern pattern = Pattern.compile(".*?\\((\\d+)\\).*?\\((\\d+)\\)");
-        Matcher matcher = pattern.matcher(errorAttributes.getOrDefault("message", "").toString());
+        Matcher matcher = pattern.matcher(errorAttributes.getOrDefault(it.regioneveneto.mygov.payment.mypay4.config.ErrorAttributes.ERROR_MESSAGE, "").toString());
         if (matcher.find() && matcher.groupCount()==2)
             message = String.format("dimensione file (%s) superiore a quella consentita (%s)",
               Optional.ofNullable(matcher.group(1)).map(Long::parseLong).map(Utilities::humanReadableByteCountBin).orElse(null),
               Optional.ofNullable(matcher.group(2)).map(Long::parseLong).map(Utilities::humanReadableByteCountBin).orElse(null));
         else {
-          pattern = Pattern.compile(".*?\\s(\\d+)\\s.*?");
-          matcher = pattern.matcher(errorAttributes.getOrDefault("message", "").toString());
+          pattern = Pattern.compile(".*?\\s(\\d+)\\s.*");
+          matcher = pattern.matcher(errorAttributes.getOrDefault(it.regioneveneto.mygov.payment.mypay4.config.ErrorAttributes.ERROR_MESSAGE, "").toString());
           if (matcher.find() && matcher.groupCount()==1)
             message = String.format("dimensione file superiore a quella consentita (%s)",
               Optional.ofNullable(matcher.group(1)).map(Long::parseLong).map(Utilities::humanReadableByteCountBin).orElse(null));

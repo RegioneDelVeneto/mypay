@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class BackofficeEnteTipoDovutoController {
 
-  private final static String AUTHENTICATED_PATH ="admin/tipiDovuto";
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="admin/tipiDovuto";
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   private EnteTipoDovutoService enteTipoDovutoService;

@@ -45,23 +45,25 @@ public interface FlussoTassonomiaDao extends BaseDao {
           " ,de_nome_file" +
           " ,cod_request_token" +
           " ,cod_errore" +
+          " ,hash" +
           ") values (" +
           " nextval('mygov_flusso_tassonomia_mygov_flusso_tassonomia_id_seq')" +
-          " ,:d.version" +
-          " ,:d.mygovAnagraficaStatoId.mygovAnagraficaStatoId" +
-          " ,:d.iuft" +
-          " ,:d.numRigheTotali" +
-          " ,:d.numRigheElaborateCorrettamente" +
-          " ,coalesce(:d.dtCreazione, now())" +
-          " ,coalesce(:d.dtUltimaModifica, now())" +
-          " ,:d.deNomeOperatore" +
-          " ,:d.dePercorsoFile" +
-          " ,:d.deNomeFile" +
-          " ,:d.codRequestToken" +
-          " ,:d.codErrore)"
+          " ,:ft.version" +
+          " ,:ft.mygovAnagraficaStatoId.mygovAnagraficaStatoId" +
+          " ,:ft.iuft" +
+          " ,:ft.numRigheTotali" +
+          " ,:ft.numRigheElaborateCorrettamente" +
+          " ,coalesce(:ft.dtCreazione, now())" +
+          " ,coalesce(:ft.dtUltimaModifica, now())" +
+          " ,:ft.deNomeOperatore" +
+          " ,:ft.dePercorsoFile" +
+          " ,:ft.deNomeFile" +
+          " ,:ft.codRequestToken" +
+          " ,:ft.codErrore"+
+          " ,:ft.hash)"
   )
   @GetGeneratedKeys("mygov_flusso_tassonomia_id")
-  Long insert(@BindBean("d") FlussoTassonomia d);
+  Long insert(@BindBean("ft") FlussoTassonomia ft);
 
   @SqlQuery(
       "    select "+FlussoTassonomia.ALIAS+ALL_FIELDS+", "+ AnagraficaStato.FIELDS +
@@ -74,4 +76,43 @@ public interface FlussoTassonomiaDao extends BaseDao {
           " order by " + FlussoTassonomia.ALIAS + ".dt_creazione desc")
   @RegisterFieldMapper(FlussoTassonomia.class)
   List<FlussoTassonomia> searchTassonomie(String nomeTassonomia, LocalDate dateFrom, LocalDate dateTo);
+
+  @SqlQuery(
+    "    select "+FlussoTassonomia.ALIAS+ALL_FIELDS+", "+ AnagraficaStato.FIELDS +
+        "  from mygov_flusso_tassonomia " + FlussoTassonomia.ALIAS +
+        "  join mygov_anagrafica_stato "+ AnagraficaStato.ALIAS+
+        "    on "+AnagraficaStato.ALIAS+".mygov_anagrafica_stato_id = "+FlussoTassonomia.ALIAS+".mygov_anagrafica_stato_id " +
+        " order by " + FlussoTassonomia.ALIAS + ".mygov_flusso_tassonomia_id desc" +
+        " limit 1"
+  )
+  @RegisterFieldMapper(FlussoTassonomia.class)
+  FlussoTassonomia getLast();
+
+  @SqlUpdate(
+    "    update mygov_flusso_tassonomia set " +
+    " ,version = :ft.version" +
+    " ,mygov_anagrafica_stato_id = :ft.mygovAnagraficaStatoId.mygovAnagraficaStatoId" +
+    " ,iuft = :ft.iuft" +
+    " ,num_righe_totali = :ft.numRigheTotali" +
+    " ,num_righe_elaborate_correttamente = :ft.numRigheElaborateCorrettamente" +
+    " ,dt_creazione = :ft.dtCreazione" +
+    " ,dt_ultima_modifica = :ft.dtUltimaModifica" +
+    " ,de_nome_operatore = :ft.deNomeOperatore" +
+    " ,de_percorso_file = :ft.dePercorsoFile" +
+    " ,de_nome_file = :ft.deNomeFile" +
+    " ,cod_request_token = :ft.codRequestToken" +
+    " ,cod_errore = :ft.codErrore" +
+    " where mygov_flusso_tassonomia_id = :ft.mygov_flusso_tassonomia_id"
+  )
+  int update(@BindBean("ft") FlussoTassonomia ft);
+
+  @SqlQuery(
+    "    select "+FlussoTassonomia.ALIAS+ALL_FIELDS+", "+ AnagraficaStato.FIELDS +
+      "  from mygov_flusso_tassonomia " + FlussoTassonomia.ALIAS +
+      "  join mygov_anagrafica_stato "+ AnagraficaStato.ALIAS+
+      "    on "+AnagraficaStato.ALIAS+".mygov_anagrafica_stato_id = "+FlussoTassonomia.ALIAS+".mygov_anagrafica_stato_id " +
+      " where "+FlussoTassonomia.ALIAS+".mygov_flusso_tassonomia_id = :mygovFlussoTassonomiaId"
+  )
+  @RegisterFieldMapper(FlussoTassonomia.class)
+  FlussoTassonomia getById(Long mygovFlussoTassonomiaId);
 }

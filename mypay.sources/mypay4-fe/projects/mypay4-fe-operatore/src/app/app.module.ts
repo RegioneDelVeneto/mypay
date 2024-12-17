@@ -15,6 +15,7 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import { Settings } from 'luxon';
 import { FileSaverModule } from 'ngx-filesaver';
 import { MAT_LUXON_DATE_ADAPTER_OPTIONS, MatLuxonDateModule } from 'ngx-material-luxon';
 import { ToastContainerModule, ToastrModule } from 'ngx-toastr';
@@ -36,7 +37,7 @@ import {
     CookieService, DecodeHtmlPipe, DetailFilterPipe, DynamicOverlay, DynamicOverlayContainer,
     DynamicPipe, FileSizePipe, getItalianPaginatorIntl, GlobalPipe, JoinPipe, MapPipe,
     MyPayBreadcrumbsComponent, OverlaySpinnerContainerComponent, OverlaySpinnerService,
-    TabbingClickDirective, TokenInterceptor
+    RemoveSpaceDirective, TabbingClickDirective, TokenInterceptor, TrimDirective, YesNoPipe
 } from 'projects/mypay4-fe-common/src/public-api';
 
 import { OverlayModule } from '@angular/cdk/overlay';
@@ -131,8 +132,12 @@ import {
 } from './components/my-pay-table-operatore/my-pay-table-operatore.component';
 import { NotAuthorizedComponent } from './components/not-authorized/not-authorized.component';
 import { SidenavService } from './services/sidenav.service';
+import { TaxonomyComponent} from './components/admin/taxonomy/taxonomy.component';
+import { FlussiConservazioneComponent } from './components/flussi-conservazione/flussi-conservazione.component';
+import { FlussiConservazioneDialogComponent } from './components/flussi-conservazione-dialog/flussi-conservazione-dialog.component';
 
 registerLocaleData(localeIt, localeItExtra);
+Settings.defaultLocale = 'it-it';
 
 export function bootstrapMyPayConfig(configurationService: ConfigurationService) {
   return () => configurationService.bootstrapConfig();
@@ -154,6 +159,7 @@ export function bootstrapMyPayConfig(configurationService: ConfigurationService)
     DovutiComponent,
     DovutiDetailsComponent,
     DynamicPipe,
+    YesNoPipe,
     EnteDetailsComponent,
     EnteListComponent,
     EnteOverlayComponent,
@@ -182,6 +188,7 @@ export function bootstrapMyPayConfig(configurationService: ConfigurationService)
     NotAuthorizedComponent,
     OverlaySpinnerContainerComponent,
     RegistroComponent,
+    RemoveSpaceDirective,
     TabbingClickDirective,
     TassonomieComponent,
     TipoAnagraficaComponent,
@@ -189,9 +196,13 @@ export function bootstrapMyPayConfig(configurationService: ConfigurationService)
     TipoEntiAnagraficaComponent,
     TipoListComponent,
     ToDoComponent,
+    TrimDirective,
     UtenteComponent,
     UtentiComponent,
     GiornaleComponent,
+    TaxonomyComponent,
+    FlussiConservazioneComponent,
+    FlussiConservazioneDialogComponent,
   ],
   imports: [
     AppRoutingModule,
@@ -250,6 +261,7 @@ export function bootstrapMyPayConfig(configurationService: ConfigurationService)
     DynamicOverlay,
     DynamicOverlayContainer,
     DynamicPipe,
+    YesNoPipe,
     FileSizePipe,
     ForcedMailValidationGuard,
     GlobalPipe,

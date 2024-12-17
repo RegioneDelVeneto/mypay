@@ -32,8 +32,8 @@ import lombok.NoArgsConstructor;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class TipiVersamento extends BaseEntity {
 
-  public final static String ALIAS = "FESP_TipiVersamento";
-  public final static String FIELDS = ""+ALIAS+".id as FESP_TipiVersamento_id,"+ALIAS+".tipo_versamento as FESP_TipiVersamento_tipoVersamento"+
+  public static final String ALIAS = "FESP_TipiVersamento";
+  public static final String FIELDS = ""+ALIAS+".id as FESP_TipiVersamento_id,"+ALIAS+".tipo_versamento as FESP_TipiVersamento_tipoVersamento"+
       ","+ALIAS+".iuv_codice_tipo_versamento_id as FESP_TipiVersamento_iuvCodiceTipoVersamentoId"+
       ","+ALIAS+".descrizione as FESP_TipiVersamento_descrizione";
 

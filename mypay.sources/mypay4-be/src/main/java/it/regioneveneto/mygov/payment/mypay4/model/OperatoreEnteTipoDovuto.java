@@ -32,8 +32,8 @@ import org.jdbi.v3.core.mapper.Nested;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovOperatoreEnteTipoDovutoId")
 public class OperatoreEnteTipoDovuto extends BaseEntity {
 
-  public final static String ALIAS = "OperatoreEnteTipoDovuto";
-  public final static String FIELDS = ""+ALIAS+".mygov_operatore_ente_tipo_dovuto_id as OperatoreEnteTipoDovuto_mygovOperatoreEnteTipoDovutoId"+
+  public static final String ALIAS = "OperatoreEnteTipoDovuto";
+  public static final String FIELDS = ""+ALIAS+".mygov_operatore_ente_tipo_dovuto_id as OperatoreEnteTipoDovuto_mygovOperatoreEnteTipoDovutoId"+
       ","+ALIAS+".mygov_ente_tipo_dovuto_id as OperatoreEnteTipoDovuto_mygovEnteTipoDovutoId"+
       ","+ALIAS+".flg_attivo as OperatoreEnteTipoDovuto_flgAttivo"+
       ","+ALIAS+".mygov_operatore_id as OperatoreEnteTipoDovuto_mygovOperatoreId";

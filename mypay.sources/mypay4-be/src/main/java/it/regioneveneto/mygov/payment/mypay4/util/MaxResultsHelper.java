@@ -31,19 +31,19 @@ public class MaxResultsHelper {
   @Value("${jdbc.limit.default:1000}")
   private int defaultQueryLimit;
 
-  public <T> List<T> manageMaxResults(Function<Integer, List<T>> queryFunction, Supplier<Integer> countFunction, int maxResults){
+  public <T> ListWithCount<T> manageMaxResults(Function<Integer, List<T>> queryFunction, Supplier<Integer> countFunction, int maxResults){
     return manageMaxResults(queryFunction, null, countFunction, maxResults);
   }
 
-  public <T> List<T> manageMaxResults(Function<Integer, List<T>> queryFunction, Supplier<Integer> countFunction){
+  public <T> ListWithCount<T> manageMaxResults(Function<Integer, List<T>> queryFunction, Supplier<Integer> countFunction){
     return manageMaxResults(queryFunction, countFunction, this.defaultQueryLimit);
   }
 
-  public <T, R> List<R> manageMaxResults(Function<Integer, List<T>> queryFunction, Function<T, R> mapper, Supplier<Integer> countFunction){
+  public <T, R> ListWithCount<R> manageMaxResults(Function<Integer, List<T>> queryFunction, Function<T, R> mapper, Supplier<Integer> countFunction){
     return manageMaxResults(queryFunction, mapper, countFunction, this.defaultQueryLimit);
   }
 
-  public <T, R> List<R> manageMaxResults(Function<Integer, List<T>> queryFunction, Function<T, R> mapper, Supplier<Integer> countFunction, int maxResults){
+  public <T, R> ListWithCount<R> manageMaxResults(Function<Integer, List<T>> queryFunction, Function<T, R> mapper, Supplier<Integer> countFunction, int maxResults){
     List<T> resultsToMap = queryFunction.apply(maxResults);
     List<R> results;
     if(mapper!=null)

@@ -17,7 +17,9 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.service;
 
+import it.regioneveneto.mygov.payment.mypay4.dto.HandlePaymentNotificationEvent;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
+import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
@@ -31,11 +33,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,6 +50,9 @@ public class EsitoService {
 
   @Value("${app.be.absolute-path}")
   private String appBeAbsolutePath;
+
+  @Resource
+  private EsitoService self;
 
   @Autowired
   EnteFunzionalitaService enteFunzionalitaService;
@@ -75,6 +82,8 @@ public class EsitoService {
   MessageSource messageSource;
   @Autowired
   MailService mailService;
+  @Autowired
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Transactional(propagation = Propagation.REQUIRED)
   public void elaboraEsito(Esito ctEsito, String tipoFirma, byte[] rt, IntestazionePPT header) {
@@ -104,20 +113,12 @@ public class EsitoService {
           Long id = dovutoElaborato.getMygovDovutoElaboratoId();
           idDovutiElaborati.add(id);
           indiceDatiSingoloPagamento++;
-          Flusso flusso = flussoService.getById(dovutoElaborato.getMygovFlussoId().getMygovFlussoId());
-          String codIpaEnte = flusso.getMygovEnteId().getCodIpaEnte();
-
-          try {
-            boolean isPushAttiva = enteFunzionalitaService.isActiveByCodIpaEnte(Constants.FUNZIONALITA_INOLTRO_ESITO_PAGAMENTO_PUSH, codIpaEnte, true);
-            log.debug("Inoltro esito push attivo per ente {}: {}", codIpaEnte, isPushAttiva);
-            EnteTipoDovuto enteTipoDovuto = enteTipoDovutoService.getOptionalByCodTipo(dovutoElaborato.getCodTipoDovuto(), codIpaEnte, false).orElseThrow();
-            log.debug("Esito push del dovuto {}: {}", dovutoElaborato.getCodTipoDovuto(), enteTipoDovuto.isFlgNotificaEsitoPush());
-            if (isPushAttiva && enteTipoDovuto.isFlgNotificaEsitoPush()) {
-              pushEsitoSilService.insertNewPushEsitoSil(id);
-            }
-          } catch (Exception e) {
-            log.debug("Verifica esito push per ente " + codIpaEnte + " fallita");
-          }
+        /*IUV_MULTI_16 Multi-beneficiary IUV management if defined
+         *Inserts the dovuto MB in the mygov_dovuto_multibenerficiario_elaborato if the original dovuto was a dovuto MB
+        */
+        DovutoMultibeneficiario dovutoMultibenef = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+        Optional.ofNullable(dovutoMultibenef).ifPresent(dm -> dovutoElaboratoService.insertDovutoMultibenefElaborato(dovuto, dm, dovutoElaborato.getMygovDovutoElaboratoId()));
+        self.handlePushEsito(dovutoElaborato);
         }
       }
     } else {
@@ -134,6 +135,13 @@ public class EsitoService {
 
         Long id = dovutoElaborato.getMygovDovutoElaboratoId();
         idDovutiElaborati.add(id);
+
+        /*IUV_MULTI_16 Multi-beneficiary IUV management if defined
+         *Inserts the dovuto MB in the mygov_dovuto_multibenerficiario_elaborato if the original dovuto was a dovuto MB
+         */
+        DovutoMultibeneficiario dovutoMultibenef = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+        Optional.ofNullable(dovutoMultibenef).ifPresent(dm -> dovutoElaboratoService.insertDovutoMultibenefElaborato(dovuto, dm, dovutoElaborato.getMygovDovutoElaboratoId()));
+
         indiceDatiSingoloPagamento++;
       }
     }
@@ -145,6 +153,12 @@ public class EsitoService {
         if(dovutiInCarrello.size() > indexDovutoInEsito) {
           Dovuto dovuto = dovutiInCarrello.get(indexDovutoInEsito);
           dovutoCarrelloService.deleteDovutoCarrelloByIdDovuto(dovuto.getMygovDovutoId());
+        /*IUV_MULTI_16 Multi-beneficiary IUV management if defined
+         *Delete the dovuto MB from the mygov_dovuto_multibeneficiario table if the dovuto that I am canceling is a dovuto MB
+         */
+        DovutoMultibeneficiario dovutoMultibenef = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+        Optional.ofNullable(dovutoMultibenef).ifPresent(dm -> dovutoService.deleteDovMultibenef(dm));
+        /**Remove dovuto**/
           dovutoService.removeDovuto(dovuto);
           if (dovuto.getCodTipoDovuto().equals(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE) && dovuto.getMygovDatiMarcaBolloDigitaleId() != null)
             datiMarcaBolloDigitaleService.remove(dovuto.getMygovDatiMarcaBolloDigitaleId());
@@ -160,6 +174,12 @@ public class EsitoService {
             if(dovutiInCarrello.size() > indexDovutoInEsito) {
               Dovuto dovuto = dovutiInCarrello.get(indexDovutoInEsito);
               dovutoCarrelloService.deleteDovutoCarrelloByIdDovuto(dovuto.getMygovDovutoId());
+            /*IUV_MULTI_16 Multi-beneficiary IUV management if defined
+             *Delete the dovuto MB from the mygov_dovuto_multibeneficiario table if the dovuto that I am canceling is a dovuto MB
+             */
+            DovutoMultibeneficiario dovutoMultibenef = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+            Optional.ofNullable(dovutoMultibenef).ifPresent(dm -> dovutoService.deleteDovMultibenef(dm));
+            /**Remove dovuto**/
               dovutoService.removeDovuto(dovuto);
             }
           }
@@ -181,6 +201,12 @@ public class EsitoService {
                 elaboraDovutoNonPagato(dovuto.getMygovDovutoId(), carrello.getMygovCarrelloId());
               } else {
                 dovutoCarrelloService.deleteDovutoCarrelloByIdDovuto(dovuto.getMygovDovutoId());
+              /*IUV_MULTI_16 Multi-beneficiary IUV management if defined
+               *Delete the dovuto MB from the mygov_dovuto_multibeneficiario table if the dovuto that I am canceling is a dovuto MB
+               */
+              DovutoMultibeneficiario dovutoMultibenef = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+              Optional.ofNullable(dovutoMultibenef).ifPresent(dm -> dovutoService.deleteDovMultibenef(dm));
+              /**Remove dovuto**/
                 dovutoService.removeDovuto(dovuto);
               }
             }
@@ -202,12 +228,47 @@ public class EsitoService {
       dovutoElaboratoService.updatePaaSILInviaEsitoRisposta(idDovutoElaborato, paaSILInviaEsitoRisposta);
     }
   }
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void handlePushEsito(DovutoElaborato dovutoElaborato) {
+    String codIpaEnte=null;
+    if(dovutoElaborato.getNestedEnte()!=null)
+      codIpaEnte = dovutoElaborato.getNestedEnte().getCodIpaEnte();
+    if(StringUtils.isBlank(codIpaEnte) && dovutoElaborato.getMygovFlussoId()!=null && dovutoElaborato.getMygovFlussoId().getMygovEnteId()!=null)
+      codIpaEnte = dovutoElaborato.getMygovFlussoId().getMygovEnteId().getCodIpaEnte();
+    if(StringUtils.isBlank(codIpaEnte) && dovutoElaborato.getMygovFlussoId()!=null)
+      codIpaEnte =Optional.ofNullable(dovutoElaborato.getMygovFlussoId().getMygovFlussoId()).map(flussoService::getById)
+        .map(Flusso::getMygovEnteId).map(Ente::getCodIpaEnte).orElse(null);
+
+    if(!StringUtils.isBlank(codIpaEnte))
+      try {
+        boolean isPushAttiva = enteFunzionalitaService.isActiveByCodIpaEnte(Constants.FUNZIONALITA_INOLTRO_ESITO_PAGAMENTO_PUSH, codIpaEnte, true);
+        log.debug("Inoltro esito push attivo per ente {}: {}", codIpaEnte, isPushAttiva);
+        var enteTipoDovuto = enteTipoDovutoService.getOptionalByCodTipo(dovutoElaborato.getCodTipoDovuto(), codIpaEnte, false).orElseThrow(()-> new NotFoundException("EnteTipoDovuto not found"));
+        log.debug("Esito push del dovuto {}: {}", dovutoElaborato.getCodTipoDovuto(), enteTipoDovuto.isFlgNotificaEsitoPush());
+        if (isPushAttiva && enteTipoDovuto.isFlgNotificaEsitoPush()) {
+          final String codIpaEnteFinal = codIpaEnte;
+          pushEsitoSilService.insertNewPushEsitoSil(dovutoElaborato.getMygovDovutoElaboratoId()).ifPresent(pushEsitoSil -> {
+            applicationEventPublisher.publishEvent(HandlePaymentNotificationEvent.builder()
+                .mygovPushEsitoSilId(pushEsitoSil.longValue())
+                .codIpaEnte(codIpaEnteFinal)
+                .iuv(dovutoElaborato.getValidIuv())
+                .build());
+          });
+
+        }
+      } catch (Exception e) {
+        log.debug("Verifica esito push per ente {} fallita", codIpaEnte);
+      }
+  }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public void elaboraDovutoNonPagato(Long idDovuto, Long idCarrello) {
     Dovuto dovuto = dovutoService.getById(idDovuto);
     if (StringUtils.isBlank(dovuto.getCodIuv()) && dovuto.getMygovFlussoId().getFlgSpontaneo()) {
       dovutoCarrelloService.deleteDovutoCarrelloByIdDovuto(idDovuto);
+      /**Multi-beneficiary IUV management if defined**/
+      DovutoMultibeneficiario dovutoMultibenef = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+      Optional.ofNullable(dovutoMultibenef).ifPresent(dm -> dovutoService.deleteDovMultibenef(dm));
       dovutoService.removeDovuto(dovuto);
     } else {
       dovutoCarrelloService.deleteDovutoCarrelloByIdDovuto(idDovuto);
@@ -242,7 +303,7 @@ public class EsitoService {
         for (DovutoElaborato dovutoElaborato : listaDovutiElaborati) {
           if (Utilities.isAvviso(dovutoElaborato.getValidIuv()) && dovutoElaborato.getDeESilinviaesitoEsito().equals("OK")) {
             AvvisoDigitale avvisoDigitale = avvisoDigitaleService.getByIdDominioECodiceAvviso(ente.getCodiceFiscaleEnte(),
-                "0" + ente.getApplicationCode() + dovutoElaborato.getValidIuv());
+                Utilities.iuvToNumeroAvviso(dovutoElaborato.getValidIuv(), ente.getApplicationCode(), false));
             AnagraficaStato anagStato = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_AVVISO_DIGITALE_NUOVO,
                 Constants.STATO_AVVISO_DIGITALE_TIPO_STATO);
             if (Objects.nonNull(avvisoDigitale) && avvisoDigitale.getMygovAnagraficaStatoId().equals(anagStato)) {
@@ -319,7 +380,7 @@ public class EsitoService {
         String emailPagatore = StringUtils.firstNonBlank(cart.getDeESoggPagEmailPagatore(), cart.getDeRpSoggPagEmailPagatore());
         String emailVersante = StringUtils.firstNonBlank(cart.getDeESoggVersEmailVersante(), cart.getDeRpSoggVersEmailVersante());
         if(StringUtils.isBlank(emailPagatore) && StringUtils.isBlank(emailVersante)) {
-          if(List.of(Constants.TIPO_CARRELLO_AVVISO_ANONIMO,
+          if(Set.of(Constants.TIPO_CARRELLO_AVVISO_ANONIMO,
                   Constants.TIPO_CARRELLO_SPONTANEO_ANONIMO)
               .contains(cart.getTipoCarrello())) {
             carrelloService.updateFlgNotificaEsitoByIdMessaggioRichiesta(codRpIdMessaggioRichiesta, null);
@@ -328,7 +389,7 @@ public class EsitoService {
         }
 
         if(StringUtils.isBlank(emailPagatore) && StringUtils.isBlank(emailVersante)
-            && List.of(Constants.TIPO_CARRELLO_PAGAMENTO_ATTIVATO_PRESSO_PSP,
+            && Set.of(Constants.TIPO_CARRELLO_PAGAMENTO_ATTIVATO_PRESSO_PSP,
             Constants.TIPO_CARRELLO_ESTERNO_ANONIMO,
             Constants.TIPO_CARRELLO_ESTERNO_ANONIMO_MULTIENTE,
             Constants.TIPO_CARRELLO_AVVISO_ANONIMO_ENTE
@@ -383,4 +444,9 @@ public class EsitoService {
     }
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void handleOutcomeEmailNotifier(Long mygovCarrelloId) {
+    carrelloService.getByIdLockOrSkip(mygovCarrelloId)
+      .ifPresentOrElse(self::sendEmailEsito, () -> log.info("handleOutcomeEmailNotifier, skip because carrello missing or locked [{}]", mygovCarrelloId));
+  }
 }

@@ -113,7 +113,7 @@ export class DovutoService {
   }
 
   removeDovuto(ente: Ente, mygovDovutoId: number): Observable<any> {
-    return this.apiInvokerService.get<any>(this.baseUrlService.getOperatoreUrl() + 'dovuti/remove/' + ente.mygovEnteId + '/' + mygovDovutoId);
+    return this.apiInvokerService.post<any>(this.baseUrlService.getOperatoreUrl() + 'dovuti/remove/' + ente.mygovEnteId + '/' + mygovDovutoId, null);
   }
 
   askRicevuta(ente: Ente, mygovDovutoId: number): Observable<string> {

@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovImportDovutiId")
 public class ImportDovuti extends BaseEntity {
 
-  public final static String ALIAS = "ImportDovuti";
-  public final static String FIELDS =
+  public static final String ALIAS = "ImportDovuti";
+  public static final String FIELDS =
       " "+ALIAS+".mygov_import_dovuti_id as ImportDovuti_mygovImportDovutiId"+
       ","+ALIAS+".version as ImportDovuti_version"+
       ","+ALIAS+".mygov_ente_id as ImportDovuti_mygovEnteId"+

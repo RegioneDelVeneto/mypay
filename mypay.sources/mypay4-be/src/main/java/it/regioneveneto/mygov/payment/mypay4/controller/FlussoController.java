@@ -24,11 +24,13 @@ import it.regioneveneto.mygov.payment.mypay4.dto.FlussoImportTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.FlussoTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.model.Ente;
+import it.regioneveneto.mygov.payment.mypay4.model.ExportConservazione;
 import it.regioneveneto.mygov.payment.mypay4.model.Flusso;
 import it.regioneveneto.mygov.payment.mypay4.queue.QueueProducer;
 import it.regioneveneto.mygov.payment.mypay4.security.Operatore;
 import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
 import it.regioneveneto.mygov.payment.mypay4.service.EnteService;
+import it.regioneveneto.mygov.payment.mypay4.service.FlussoConservazioneService;
 import it.regioneveneto.mygov.payment.mypay4.service.FlussoService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import lombok.extern.slf4j.Slf4j;
@@ -56,10 +58,13 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class FlussoController {
 
-  public final static String FILE_TYPE_FLUSSI_IMPORT = "FLUSSI_IMPORT";
-  public final static String FILE_TYPE_FLUSSI_EXPORT = "FLUSSI_EXPORT";
-  public final static String FILE_TYPE_FLUSSI_RENDICONTAZIONE = "FLUSSI_RENDIC";
-  public final static String FILE_TYPE_FLUSSI_QUADRATURA = "FLUSSI_QUADR";
+  public static final String FILE_TYPE_FLUSSI_IMPORT = "FLUSSI_IMPORT";
+  public static final String FILE_TYPE_FLUSSI_EXPORT = "FLUSSI_EXPORT";
+  public final static String FILE_TYPE_FLUSSI_EXPORT_SCADUTI = "FLUSSI_EXPORT_SCADUTI";
+  public static final String FILE_TYPE_FLUSSI_RENDICONTAZIONE = "FLUSSI_RENDIC";
+  public static final String FILE_TYPE_FLUSSI_QUADRATURA = "FLUSSI_QUADR";
+
+  public static final String FILE_TYPE_FLUSSI_CONSERVAZIONE = "FLUSSI_CONSERVAZIONE";
 
   @Autowired
   FlussoService flussoService;
@@ -69,6 +74,9 @@ public class FlussoController {
 
   @Autowired
   MyBoxController myBoxController;
+
+  @Autowired
+  private FlussoConservazioneService flussoConservazioneService;
 
   @Autowired
   QueueProducer queueProducer;
@@ -93,20 +101,18 @@ public class FlussoController {
                                            @PathVariable Long mygovEnteId,
                                            @RequestParam(required = false) String nomeFlusso,
                                            @RequestParam LocalDate from, @RequestParam LocalDate to){
-    List<FlussoImportTo> flussi = flussoService.getByEnteIufCreateDt(mygovEnteId, nomeFlusso, from, to);
-
     // check if user is app-admin..
     boolean isAdmin = user.isSysAdmin() ||
       // .. or ente-admin
       user.getEntiRoles().getOrDefault(enteService.getEnteById(mygovEnteId).getCodIpaEnte(), Set.of())
         .contains(Operatore.Role.ROLE_ADMIN.name());
 
+    //if app/ente admin, then remove constraint to only find your own import request
+    List<FlussoImportTo> flussi = flussoService.getByEnteIufCreateDt(mygovEnteId, isAdmin ? null : user.getUsername(), nomeFlusso, from, to);
+
     //generate security token (to allow download)
     flussi.forEach(flussoImportTo -> {
           // only user who requested the import or is admin app/ente can download it
-          flussoImportTo.setShowDownload(
-              BooleanUtils.isTrue(flussoImportTo.getShowDownload()) &&
-              (isAdmin || StringUtils.equals(flussoImportTo.getCodFedUserId(), user.getUsername())) );
           if(BooleanUtils.isTrue(flussoImportTo.getShowDownload()))
             flussoImportTo.setSecurityToken(
                 myBoxController.generateSecurityToken(FILE_TYPE_FLUSSI_IMPORT, flussoImportTo.getPath(), user, mygovEnteId));
@@ -148,12 +154,23 @@ public class FlussoController {
   @Operatore(value = "mygovEnteId", roles = {Operatore.Role.ROLE_OPER})
   public List<FileTo> flussiExport(@AuthenticationPrincipal UserWithAdditionalInfo user, @PathVariable Long mygovEnteId,
                                         @RequestParam(required = false) String nomeFlusso, @RequestParam LocalDate from, @RequestParam LocalDate to){
-    List<FileTo> files = flussoService.flussiExport(mygovEnteId, user.getCodiceFiscale(), nomeFlusso, from, to);
+    // check if user is app-admin..
+    boolean isAdmin = user.isSysAdmin() ||
+      // .. or ente-admin
+      user.getEntiRoles().getOrDefault(enteService.getEnteById(mygovEnteId).getCodIpaEnte(), Set.of())
+        .contains(Operatore.Role.ROLE_ADMIN.name());
+
+    //if app/ente admin, then remove constraint to only find your own export request
+    List<FileTo> files = flussoService.flussiExport(mygovEnteId, isAdmin ? null : user.getUsername(), nomeFlusso, from, to);
 
     //generate security token (to allow download)
     files.stream()
         .filter(fileTo -> StringUtils.isNotBlank(fileTo.getPath()))
-        .forEach(fileTo -> fileTo.setSecurityToken(myBoxController.generateSecurityToken(FILE_TYPE_FLUSSI_EXPORT, fileTo.getPath(), user, mygovEnteId)));
+        .forEach(fileTo -> {
+          if(BooleanUtils.isTrue(fileTo.getShowDownload()))
+            fileTo.setSecurityToken(
+              myBoxController.generateSecurityToken(FILE_TYPE_FLUSSI_EXPORT, fileTo.getPath(), user, mygovEnteId));
+        });
 
     return files;
   }
@@ -182,7 +199,7 @@ public class FlussoController {
 
   private List<FileTo> flussiSPC(UserWithAdditionalInfo user, Constants.FLG_TIPO_FLUSSO flgTipoFlusso, Long mygovEnteId,
                                       String flgProdOrDisp, LocalDate from, LocalDate to) {
-    List<FileTo> files = flussoService.flussiSPC(flgTipoFlusso, mygovEnteId, user.getCodiceFiscale(), flgProdOrDisp, from, to);
+    List<FileTo> files = flussoService.flussiSPC(flgTipoFlusso, mygovEnteId, flgProdOrDisp, from, to);
 
     //generate security token (to allow download)
     files.forEach(fileTo -> fileTo.setSecurityToken(myBoxController.generateSecurityToken(
@@ -190,5 +207,37 @@ public class FlussoController {
         fileTo.getPath(), user, mygovEnteId)));
 
     return files;
+  }
+
+  @GetMapping("export/conservazione/insert/{mygovEnteId}")
+  @Operatore(value = "mygovEnteId", roles = {Operatore.Role.ROLE_OPER})
+  public long flussiExportConservazioneInsert(@AuthenticationPrincipal UserWithAdditionalInfo user, @PathVariable Long mygovEnteId,
+                                              @RequestParam String tipoTracciato, @RequestParam LocalDate from,
+                                              @RequestParam LocalDate to){
+    long insertedRec = flussoService.flussiExportConservazioneInsert(mygovEnteId, user.getCodiceFiscale(), tipoTracciato, from, to);
+    return insertedRec;
+  }
+
+  @GetMapping("export/conservazione/{mygovEnteId}")
+  @Operatore(value = "mygovEnteId", roles = {Operatore.Role.ROLE_OPER})
+  public List<FileTo> flussiExportConservazione(@AuthenticationPrincipal UserWithAdditionalInfo user, @PathVariable Long mygovEnteId,
+                                                @RequestParam(required = false) String nomeFlusso, @RequestParam LocalDate from, @RequestParam LocalDate to){
+    List<FileTo> files = flussoService.flussiExportConservazione(mygovEnteId, user.getCodiceFiscale(), nomeFlusso, from, to);
+
+    //generate security token (to allow download)
+    files.stream().filter(fileTo -> StringUtils.isNotBlank(fileTo.getPath())).forEach(fileTo -> {
+      fileTo.setSecurityToken(myBoxController.generateSecurityToken(FILE_TYPE_FLUSSI_CONSERVAZIONE, fileTo.getPath(), user, mygovEnteId));
+    });
+
+    return files;
+  }
+
+  @GetMapping("conservazione/reload/{mygovEnteId}/{id}")
+  @Operatore(value = "mygovEnteId", roles = {Operatore.Role.ROLE_OPER})
+  public void reload(@AuthenticationPrincipal UserWithAdditionalInfo user,
+                     @PathVariable Long mygovEnteId, @PathVariable Long id) {
+
+    ExportConservazione exportConservazione = flussoConservazioneService.getFlussoConservazioneByID(id);
+    flussoConservazioneService.updateExportConservazione(exportConservazione, null, Constants.STATO_EXPORT_LOAD,exportConservazione.getNumDimensioneFileGenerato());
   }
 }

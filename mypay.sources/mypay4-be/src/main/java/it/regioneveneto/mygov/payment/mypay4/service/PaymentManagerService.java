@@ -18,26 +18,46 @@
 package it.regioneveneto.mygov.payment.mypay4.service;
 
 import it.regioneveneto.mygov.payment.mypay4.bo.CarrelloBo;
+import it.regioneveneto.mygov.payment.mypay4.controller.fesp.LandingController;
 import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaPagatore;
 import it.regioneveneto.mygov.payment.mypay4.dto.BasketTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.CartItem;
+import it.regioneveneto.mygov.payment.mypay4.dto.EsitoTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.common.Psp;
+import it.regioneveneto.mygov.payment.mypay4.dto.pagopa.checkout.Cart;
+import it.regioneveneto.mygov.payment.mypay4.dto.pagopa.checkout.CartInfo;
+import it.regioneveneto.mygov.payment.mypay4.dto.pagopa.checkout.PaymentInfo;
+import it.regioneveneto.mygov.payment.mypay4.dto.pagopa.checkout.PaymentNotice;
+import it.regioneveneto.mygov.payment.mypay4.dto.pagopa.checkout.ReturnUrls;
 import it.regioneveneto.mygov.payment.mypay4.exception.PaymentOrderException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
-import it.regioneveneto.mygov.payment.mypay4.model.*;
+import it.regioneveneto.mygov.payment.mypay4.model.Carrello;
+import it.regioneveneto.mygov.payment.mypay4.model.CarrelloMultiBeneficiario;
+import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
+import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
+import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
+import it.regioneveneto.mygov.payment.mypay4.service.pagopa.CheckoutService;
+import it.regioneveneto.mygov.payment.mypay4.service.pagopa.PaymentNoticeService;
+import it.regioneveneto.mygov.payment.mypay4.storage.ContentStorage;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants.TRIGGER_PAYMENT;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
+import it.regioneveneto.mygov.payment.mypay4.util.VerificationUtils;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.*;
-import it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT;
 import it.veneto.regione.pagamenti.pa.PaaTipoDatiPagamentoPA;
 import it.veneto.regione.schemas._2012.pagamenti.CtDatiVersamentoRP;
+import it.veneto.regione.schemas._2012.pagamenti.EntiSecondariRP;
 import it.veneto.regione.schemas._2012.pagamenti.RP;
+import it.veneto.regione.schemas._2012.pagamenti.ente.CtDatiVersamentoDovutiEntiSecondari;
+import it.veneto.regione.schemas._2012.pagamenti.ente.DovutiEntiSecondari;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
+import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -47,10 +67,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+
+import static it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants.PAA_SYSTEM_ERROR;
 
 @Service
 @Slf4j
@@ -58,46 +90,75 @@ import java.util.stream.Collectors;
 public class PaymentManagerService {
 
 	@Resource
-	PaymentManagerService self;
+	private PaymentManagerService self;
 	@Autowired
-	SpontaneoService spontaneoService;
+	private SpontaneoService spontaneoService;
 	@Autowired
-	PaymentService paymentService;
+	private PaymentService paymentService;
 	@Autowired
-	JAXBTransformService jaxbTransformService;
+	private JAXBTransformService jaxbTransformService;
 	@Autowired
-	DovutoCarrelloService dovutoCarrelloService;
+	private DovutoCarrelloService dovutoCarrelloService;
 	@Autowired
-	CarrelloService carrelloService;
+	private CarrelloService carrelloService;
 	@Autowired
-	CarrelloMultiBeneficiarioService carrelloMultiBeneficiarioService;
+	private CarrelloMultiBeneficiarioService carrelloMultiBeneficiarioService;
 	@Autowired
-	DovutoService dovutoService;
+	private DovutoService dovutoService;
 	@Autowired
-	EnteTipoDovutoService enteTipoDovutoService;
+	private EnteTipoDovutoService enteTipoDovutoService;
 	@Autowired
-	EnteService enteService;
+	private EnteService enteService;
 	@Autowired
-	MessageSource messageSource;
+	private MessageSource messageSource;
+	@Autowired
+	private StorageService storageService;
+	@Autowired
+	private CheckoutService checkoutService;
+
+	@Autowired
+	private PaymentNoticeService paymentNoticeService;
 
 	@Value("${pa.codIpaEntePredefinito}")
 	private String codIpaEnteDefault;
 
-	private final static String SPONTANEOUS = "s";
-	private final static String DEBITS = "d";
+	@Value("${pa.modelloUnico}")
+	private boolean modelloUnico;
+
+	@Value("${app.be.absolute-path}")
+	private String appBeAbsolutePath;
+
+	private static final String SPONTANEOUS = "s";
+	private static final String DEBITS = "d";
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public NodoSILInviaCarrelloRPRisposta checkoutCarrello(BasketTo basketTo){
+	public EsitoTo checkoutCarrello(UserWithAdditionalInfo user, BasketTo basketTo){
 
 		if (basketTo == null || basketTo.getItems().isEmpty()) {
 			log.error("Invalid Carrello - empty cart");
 			throw new ValidatorException(messageSource.getMessage("pa.messages.carrelloVuoto", null, Locale.ITALY));
 		}
+		if (basketTo.getItems().size() > 5) {
+			log.error("Invalid Carrello - more than 5 elements");
+			throw new ValidatorException(messageSource.getMessage("pa.messages.carrelloContieneTroppiDovuti", null, Locale.ITALY));
+		}
+		if (!modelloUnico && basketTo.getDovutiEntiSecondari() != null && basketTo.getItems().size() > 1) {
+			log.error("Invalid Carrello - if multiBeneficiario is present the cart size must be equals to 1");
+			throw new ValidatorException(messageSource.getMessage("pa.messages.carrellomultiBeneficiarioInvalidSize", null, Locale.ITALY));
+		}
+
+		//optimization to not repeat multiple times query of dovuto
+		List<Dovuto> paymentsWithIuv = new ArrayList<>();
 		basketTo.getItems().forEach(item -> {
-			if (StringUtils.isBlank(item.getCodIuv())) {
+			if (item.getId()==null) {
 				spontaneoService.validateCart(item);
+				item.setCodIuv(null);
 			} else {
-				this.debitValidation(item);
+				Dovuto dovuto = this.debitValidation(item);
+				if(StringUtils.isNotBlank(dovuto.getCodIuv())) {
+					item.setCodIuv(dovuto.getCodIuv());
+					paymentsWithIuv.add(dovuto);
+				}
 			}
 		});
 
@@ -110,12 +171,76 @@ public class PaymentManagerService {
 
 		String urlEsito = basketTo.getBackUrlInviaEsito();
 		String codIpaEnteCaller = StringUtils.defaultString(basketTo.getEnteCaller(), codIpaEnteDefault);
-		Map<String, List<CarrelloBo>> BOMap = self.buildPaymentBO(basketTo);
-		List<CarrelloBo> carts = self.placeOrder(codIpaEnteCaller, urlEsito, BOMap, Constants.TRIGGER_PAYMENT.ON_LINE);
-		List<RP> rpList = self.buildCtRichiestaPagamento(carts,null);
-		NodoSILInviaCarrelloRP nc = self.buildInviaCarrelloRp(rpList, codIpaEnteCaller);
-		NodoSILInviaCarrelloRPRisposta ncr = paymentService.inviaCarrelloRP(carts.get(0).getIdCarrelloMulti(), nc);
-		return ncr;
+
+		if(modelloUnico){
+			boolean hasCartIdSession = StringUtils.isNotBlank(basketTo.getIdSession());
+			basketTo.setIdSession(Optional.ofNullable(basketTo.getIdSession()).orElseGet(Utilities::getRandomUUIDWithTimestamp));
+			Cart pagoPaCart = new Cart();
+			pagoPaCart.setAllCCP(false);
+			String emailNotice = StringUtils.firstNonBlank(
+					Utilities.ifNotNull(basketTo.getVersante(), AnagraficaPagatore::getEmail),
+					basketTo.getItems().stream().map(CartItem::getIntestatario).filter(Objects::nonNull).map(AnagraficaPagatore::getEmail).filter(StringUtils::isNotBlank).findFirst().orElse(null) );
+			pagoPaCart.setEmailNotice(emailNotice);
+			pagoPaCart.setIdCart(String.join(Constants.DASH_SEPARATOR, Constants.ID_CART_PREFIX, basketTo.getIdSession()));
+			pagoPaCart.setPaymentNotices(new ArrayList<>());
+
+			List<Long> mygovDovutoIdList = new ArrayList<>();
+			List<PaymentInfo> paymentsWithoutIuv = paymentNoticeService.filterPaymentsWithoutIuv(basketTo);
+			for (PaymentInfo paymentInfo : paymentsWithoutIuv) {
+				log.debug("checkout - loop createPaymentNoticeByPaymentInfo processing started");
+				paymentNoticeService.createDebit(paymentInfo);
+				paymentInfo.getItems().stream().map(CartItem::getId).forEach(mygovDovutoIdList::add);
+				PaymentNotice paymentNotice = paymentNoticeService.createPaymentNoticeByPaymentInfo(paymentInfo);
+				pagoPaCart.getPaymentNotices().add(paymentNotice);
+				log.debug("checkout - loop createPaymentNoticeByPaymentInfo processing ended");
+			}
+
+			for (Dovuto dovuto : paymentsWithIuv) {
+				log.debug("checkout - loop createPaymentNoticeByDebit processing started");
+				PaymentNotice paymentNotice = paymentNoticeService.createPaymentNoticeByDebit(dovuto);
+				pagoPaCart.getPaymentNotices().add(paymentNotice);
+				log.debug("checkout - loop createPaymentNoticeByDebit processing ended");
+			}
+
+			carrelloMultiBeneficiarioService.insertCarrelloMultiBeneficiario(codIpaEnteCaller, Constants.STATO_CARRELLO_PAGAMENTO_IN_CORSO, urlEsito, basketTo.getIdSession(), hasCartIdSession);
+			CartInfo cartInfo = CartInfo.builder()
+				.mygovDovutoIdIuvVolatiliList(mygovDovutoIdList)
+				.paymentNotices(pagoPaCart.getPaymentNotices())
+				.idCart(basketTo.getIdSession())
+				.codIpaEnteCaller(codIpaEnteCaller)
+				.backUrl(urlEsito)
+				.build();
+
+			ContentStorage.StorageToken tokenCartInfo = storageService.putObject(StorageService.WS_USER, cartInfo);
+
+			log.info("sending cart to checkout, cartId[{}] tokenId[{}]", cartInfo.getIdCart(), tokenCartInfo.getId());
+			pagoPaCart.setReturnUrls(ReturnUrls.builder()
+					.returnOkUrl(appBeAbsolutePath + LandingController.PAYMENT_OUTCOME_URL+"/ok?id="+tokenCartInfo.getId())
+					.returnErrorUrl(appBeAbsolutePath + LandingController.PAYMENT_OUTCOME_URL+"/ko?id="+tokenCartInfo.getId())
+					.returnCancelUrl(appBeAbsolutePath + LandingController.PAYMENT_OUTCOME_URL+"/cn?id="+tokenCartInfo.getId())
+					.build());
+
+			return checkoutService.sendCart(pagoPaCart);
+		} else {
+			Map<String, List<CarrelloBo>> BOMap = self.buildPaymentBO(basketTo);
+			List<CarrelloBo> carts = self.placeOrder(codIpaEnteCaller, urlEsito, BOMap, Constants.TRIGGER_PAYMENT.ON_LINE, basketTo.getDovutiEntiSecondari());
+			List<RP> rpList = self.buildCtRichiestaPagamento(carts,null);
+			NodoSILInviaCarrelloRP nc = self.buildInviaCarrelloRp(rpList, codIpaEnteCaller, basketTo.getDovutiEntiSecondari());
+			NodoSILInviaCarrelloRPRisposta ncr = paymentService.inviaCarrelloRP(carts.get(0).getIdCarrelloMulti(), nc);
+			UnaryOperator<FaultBean> fault = obj -> Optional.ofNullable(obj)
+				.orElse(VerificationUtils.getFespFaultBean("NODO_INVIA_CARRELLO", PAA_SYSTEM_ERROR,
+					messageSource.getMessage("pa.errore.internalError", null, Locale.ITALY))
+				);
+
+			return Optional.ofNullable(ncr).map(obj ->
+					EsitoTo.builder()
+						.esito(obj.getEsito())
+						.url(obj.getUrl())
+						.faultBean(fault.apply(ncr.getFault()))
+						.returnMsg(fault.apply(ncr.getFault()).getFaultString())
+						.build())
+				.orElse(null);
+		}
 	}
 
 	public Map<String, List<CarrelloBo>> buildPaymentBO(BasketTo basketTo) {
@@ -169,15 +294,22 @@ public class PaymentManagerService {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public List<CarrelloBo> placeOrder(String codIpaEnteCaller, String backUrl, Map<String, List<CarrelloBo>> mappedCarts, TRIGGER_PAYMENT triggerPayment) {
+  public List<CarrelloBo> placeOrder(String codIpaEnteCaller, String backUrl, Map<String, List<CarrelloBo>> mappedCarts, TRIGGER_PAYMENT triggerPayment, DovutiEntiSecondari dovutiEntiSecondari) {
 		List<CarrelloBo> boList = new ArrayList<>();
 		CarrelloMultiBeneficiario carrelloMultiBeneficiario =null;
 		//id session is fixed when cart is created through paaSILInviaDovuto or paaSILInviaCarrelloDovuti, and it's the same for every dovuto in this case
-		Optional<String> idSessionFixed = mappedCarts.values().stream().findFirst().flatMap(x -> x.stream().findFirst())
-			.map(CarrelloBo::getIdSession).filter(StringUtils::isNotBlank);
-		idSessionFixed.ifPresent(id -> log.debug("idSessionFixed: {}", id));
+		Optional<CarrelloBo> firstCarrello = mappedCarts.values().stream().findFirst().flatMap(x -> x.stream().findFirst());
+		Optional<String> idSessionFixed = firstCarrello.map(CarrelloBo::getIdSession).filter(StringUtils::isNotBlank);
+		idSessionFixed.ifPresent(idSession -> {
+			//check if idSession carrello is expired (without grace time)
+			if(storageService.isTokenWithTimestampExpired(idSession, 0)){
+				log.warn("session expired id[{}] carrello[{}]", idSession, ReflectionToStringBuilder.toString(firstCarrello.get()));
+				throw new PaymentOrderException(messageSource.getMessage("pa.carrello.sessioneScadutaError", null, Locale.ITALY));
+			} else
+				log.debug("idSessionFixed: {}", idSession);
+		});
 		if (triggerPayment.equals(TRIGGER_PAYMENT.ON_LINE))
-			carrelloMultiBeneficiario = carrelloMultiBeneficiarioService.insertCarrelloMultiBeneficiario(codIpaEnteCaller, Constants.STATO_CARRELLO_PREDISPOSTO, backUrl, idSessionFixed);
+			carrelloMultiBeneficiario = carrelloMultiBeneficiarioService.insertCarrelloMultiBeneficiario(codIpaEnteCaller, Constants.STATO_CARRELLO_PREDISPOSTO, backUrl, idSessionFixed.orElse(Utilities.getRandomUUIDWithTimestamp()), idSessionFixed.isPresent());
 		List<CarrelloBo> debits = mappedCarts.getOrDefault(DEBITS, Collections.emptyList());
 		try {
 			if (!debits.isEmpty()) {
@@ -205,7 +337,7 @@ public class PaymentManagerService {
 					Optional.ofNullable(carrelloMultiBeneficiario).ifPresent((obj -> cartBO.setIdCarrelloMulti(obj.getMygovCarrelloMultiBeneficiarioId())));
 					Ente ente = enteService.getEnteByCodIpa(cartBO.getCodIpaEnte());
 					for (CartItem item : cartBO.getDovuti()) {
-						long newId = dovutoService.insertDovutoFromSpontaneo(item, ente, false);
+            var newId = dovutoService.insertDovutoFromSpontaneo(item, ente, (null != dovutiEntiSecondari), dovutiEntiSecondari, false);
 						log.debug("insert Dovuto base, new Id: " + newId);
 						item.setId(newId);
 					}
@@ -217,6 +349,8 @@ public class PaymentManagerService {
 				}
 				log.debug("placeOrder - loop insertDovutoFromSpontaneo processing end");
 			}
+		} catch (PaymentOrderException poe) {
+			throw poe;
 		} catch (Exception e) {
 			log.error("placeOrder - Error due processing insertCarrello", e);
 			throw new PaymentOrderException(messageSource.getMessage("pa.carrello.salvataggioCarrelloError", null, Locale.ITALY));
@@ -225,7 +359,7 @@ public class PaymentManagerService {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public NodoSILInviaCarrelloRP buildInviaCarrelloRp(List<RP> rpList, String codIpaEnteCaller) {
+  public NodoSILInviaCarrelloRP buildInviaCarrelloRp(List<RP> rpList, String codIpaEnteCaller, DovutiEntiSecondari dovutiEntiSecondari) {
 		log.debug("buildInviaCarrelloRp - processing start");
 		ListaRP listaRP = new ListaRP();
 		try {
@@ -256,6 +390,29 @@ public class PaymentManagerService {
 		NodoSILInviaCarrelloRP nc = new NodoSILInviaCarrelloRP();
 		nc.setListaRP(listaRP);
 		nc.setIdentificativoDominioEnteChiamante(identificativoDominioEnteChiamante);
+
+    // Multi-beneficiary IUV management if defined (IUV_MULTI_09)
+    if (null != dovutiEntiSecondari) {
+      CtDatiVersamentoDovutiEntiSecondari ctDatiVersamentoDovutiEntiSecondari = dovutiEntiSecondari.getDatiVersamentoEntiSecondari();
+      EntiSecondariRP entiSecondariRP = new EntiSecondariRP();
+      entiSecondariRP.setCodiceFiscaleBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getCodiceFiscaleBeneficiario());
+      entiSecondariRP.setDenominazioneBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getDenominazioneBeneficiario());
+      entiSecondariRP.setIbanAccreditoBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getIbanAccreditoBeneficiario());
+      entiSecondariRP.setIndirizzoBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getIndirizzoBeneficiario());
+      entiSecondariRP.setCivicoBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getCivicoBeneficiario());
+      entiSecondariRP.setCapBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getCapBeneficiario());
+      entiSecondariRP.setLocalitaBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getLocalitaBeneficiario());
+      entiSecondariRP.setProvinciaBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getProvinciaBeneficiario());
+      entiSecondariRP.setNazioneBeneficiario(ctDatiVersamentoDovutiEntiSecondari.getNazioneBeneficiario());
+      entiSecondariRP.setImportoSingoloVersamento(ctDatiVersamentoDovutiEntiSecondari.getImportoSingoloVersamento());
+
+      ListaEntiSecondariRP listaEntiSecondariRP = new ListaEntiSecondariRP();
+      ElementoEntiSecondariRP elementoEntiSecondariRP = new ElementoEntiSecondariRP();
+      elementoEntiSecondariRP.setEntiSecondariRP(jaxbTransformService.marshallingAsBytes(entiSecondariRP, EntiSecondariRP.class));
+      listaEntiSecondariRP.getElementoEntiSecondariRPs().add(elementoEntiSecondariRP);
+      nc.setListaEntiSecondariRP(listaEntiSecondariRP);
+    }
+
 		log.debug("buildInviaCarrelloRp - processing end");
 		return nc;
 	}
@@ -273,7 +430,7 @@ public class PaymentManagerService {
 				AnagraficaPagatore anagraficaPagatore = carrelloBo.getIntestatario();
 				String iuv = paymentService.generateIUV(preparedCart, ente);
 				preparedCart.setCodRpDatiVersIdUnivocoVersamento(iuv);
-				String codiceContestoPagamento = paymentService.generateCCP(preparedCart);
+				String codiceContestoPagamento = paymentService.generateCCP(preparedCart, ente);
 				preparedCart.setCodRpDatiVersCodiceContestoPagamento(codiceContestoPagamento);
 				log.debug("buildCtRichiestaPagamento - IUV[{}] CCP[{}]", iuv, codiceContestoPagamento);
 				preparedCart.setCodRpSilinviarpIdDominio(ente.getCodiceFiscaleEnte());
@@ -292,49 +449,23 @@ public class PaymentManagerService {
 		return rpList;
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
-	public Map<String, Object> buildInviaRp(RP ctRichiestaPagamento, Psp psp, String codIpaEnteCaller, Long idCarrello) {
-		log.debug("buildInviaRp - processing start");
-		String idDominio = ctRichiestaPagamento.getDominio().getIdentificativoDominio();
-		String iuv = ctRichiestaPagamento.getDatiVersamento().getIdentificativoUnivocoVersamento();
-		String ccp = ctRichiestaPagamento.getDatiVersamento().getCodiceContestoPagamento();
-		HashMap<String, Object> returnHashMap = new HashMap<>();
-		log.debug("INVIO RPT: ente [{}] IUV [{}]", codIpaEnteCaller, iuv );
-		log.debug("INVIO RPT: psp scelto [{}] modello pagamento [{}] tipo versamento [{}]",
-			psp.getIdentificativoPSP(), psp.getModelloPagamento(), psp.getTipoVersamento());
-
-		NodoSILInviaRP nodoSILInviaRP = new NodoSILInviaRP();
-		IntestazionePPT intestazionePPT = new IntestazionePPT();
-		try {
-			//Carrello preparedCart = carrelloService.getByIdDominioIdUnivocoPagamentoAndCodiceContestoPagamento(idDominio, iuv, ccp, true);
-			Carrello preparedCart = carrelloService.getById(idCarrello);
-			nodoSILInviaRP.setIdentificativoPSP(psp.getIdentificativoPSP());
-			nodoSILInviaRP.setModelloPagamento(psp.getModelloPagamento());
-			Optional.ofNullable(psp.getIdentificativoIntermediarioPSP()).ifPresent(nodoSILInviaRP::setIdentificativoIntermediarioPSP);
-			Optional.ofNullable(psp.getIdentificativoCanale()).ifPresent(nodoSILInviaRP::setIdentificativoCanale);
-			byte[] encodedRP = jaxbTransformService.marshallingAsBytes(ctRichiestaPagamento, RP.class);
-			nodoSILInviaRP.setRp(encodedRP);
-			intestazionePPT.setIdentificativoDominio(idDominio);
-			intestazionePPT.setIdentificativoUnivocoVersamento(iuv);
-			intestazionePPT.setCodiceContestoPagamento(ccp);
-
-			carrelloService.updateCarrelloForRP(preparedCart, ctRichiestaPagamento, Constants.STATO_CARRELLO_PAGAMENTO_IN_CORSO);
-			List<Dovuto> dovutiInCarrello = dovutoService.getDovutiInCarrello(preparedCart.getMygovCarrelloId());
-			dovutoService.updateStatus(dovutiInCarrello, Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO);
-			dovutoCarrelloService.insertRP(preparedCart, dovutiInCarrello, ctRichiestaPagamento);
-		} catch (Exception e) {
-			log.error("Error due processing nodoSILInviaRP", e);
-			throw new PaymentOrderException(messageSource.getMessage("pa.errore.invioRPT", null, Locale.ITALY));
-		}
-		returnHashMap.put("nodoSILInviaRP", nodoSILInviaRP);
-		returnHashMap.put("intestazionePPT", intestazionePPT);
-		log.debug("buildInviaRp - processing end");
-		return returnHashMap;
-	}
-
-	private void debitValidation(final CartItem item) {
+	private Dovuto debitValidation(final CartItem item) {
 		String ente = item.getCodIpaEnte();
-		Dovuto dovuto = dovutoService.getById(item.getId());
+		Dovuto dovuto = null;
+		try{
+			//TODO: after tests, replace with getByIdForUpdate
+			//log.debug("locking dovuto id[{}]", item.getId());
+			dovuto = dovutoService.getByIdForUpdate(item.getId());
+			//log.debug("locked dovuto id[{}]", item.getId());
+		}catch(UnableToExecuteStatementException uese){
+			if(uese.getCause() instanceof SQLException &&
+					StringUtils.equals(((SQLException)uese.getCause()).getSQLState(), PSQLState.QUERY_CANCELED.getState())) {
+				log.error("getByIdForUpdate timeout for dovuto id[{}]", item.getId());
+				throw new ValidatorException(messageSource.getMessage("pa.sceltaDovuto.dovutoNonPagabile", null, Locale.ITALY));
+			} else {
+				throw uese;
+			}
+		}
 
 		if (Objects.isNull(dovuto)) {
 			log.error("Invalid Carrello: dovuto non trovato per id: " + item.getId());
@@ -352,5 +483,7 @@ public class PaymentManagerService {
 			throw new ValidatorException(messageSource.getMessage("pa.messages.dovutoScaduto", null, Locale.ITALY));
 		}
 		dovutoService.validateAndNormalizeAnagraficaPagatore(AnagraficaPagatore.TIPO.Pagatore, item.getIntestatario(), enteTipoDovuto.isFlgCfAnonimo());
+
+		return dovuto;
 	}
 }

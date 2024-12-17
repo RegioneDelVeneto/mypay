@@ -33,32 +33,32 @@ import java.sql.Timestamp;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovAnagraficaStatoId")
 public class AnagraficaStato extends BaseEntity {
 
-  public final static String ALIAS = "AnagraficaStato";
-  public final static String FIELDS = ""+ALIAS+".mygov_anagrafica_stato_id as AnagraficaStato_mygovAnagraficaStatoId"+
+  public static final String ALIAS = "AnagraficaStato";
+  public static final String FIELDS = ""+ALIAS+".mygov_anagrafica_stato_id as AnagraficaStato_mygovAnagraficaStatoId"+
       ","+ALIAS+".cod_stato as AnagraficaStato_codStato,"+ALIAS+".de_stato as AnagraficaStato_deStato"+
       ","+ALIAS+".de_tipo_stato as AnagraficaStato_deTipoStato,"+ALIAS+".dt_creazione as AnagraficaStato_dtCreazione"+
       ","+ALIAS+".dt_ultima_modifica as AnagraficaStato_dtUltimaModifica";
 
 
-  public final static String STATO_ENTE_ESERCIZIO = "ESERCIZIO";
-  public final static String STATO_ENTE_PRE_ESERCIZIO = "PRE-ESERCIZIO";
+  public static final String STATO_ENTE_ESERCIZIO = "ESERCIZIO";
+  public static final String STATO_ENTE_PRE_ESERCIZIO = "PRE-ESERCIZIO";
 
-  public final static String STATO_TIPO_CARRELLO = "carrel";
-  public final static String STATO_CARRELLO_PAGATO = "PAGATO";
-  public final static String STATO_CARRELLO_NON_PAGATO = "NON_PAGATO";
+  public static final String STATO_TIPO_CARRELLO = "carrel";
+  public static final String STATO_CARRELLO_PAGATO = "PAGATO";
+  public static final String STATO_CARRELLO_NON_PAGATO = "NON_PAGATO";
 
-  public final static String STATO_TIPO_DOVUTO = "dovuto";
-  public final static String STATO_DOVUTO_DA_PAGARE = "INSERIMENTO_DOVUTO";
-  public final static String STATO_DOVUTO_PAGAMENTO_INIZIATO = "PAGAMENTO_INIZIATO";
-  public final static String STATO_DOVUTO_PREDISPOSTO = "PREDISPOSTO";
-  public final static String STATO_DOVUTO_COMPLETATO = "COMPLETATO";
-  public final static String STATO_DOVUTO_ANNULLATO = "ANNULLATO";
-  public final static String STATO_DOVUTO_ERRORE = "ERROR_DOVUTO";
-  public final static String STATO_DOVUTO_ABORT = "ABORT";
-  public final static String STATO_DOVUTO_SCADUTO = "SCADUTO";
-  public final static String STATO_DOVUTO_SCADUTO_ELABORATO = "SCADUTO_ELABORATO";
-  public final static String STATO_TIPO_FLUSSO = "flusso";
-  public final static String STATO_ENTE = "ente";
+  public static final String STATO_TIPO_DOVUTO = "dovuto";
+  public static final String STATO_DOVUTO_DA_PAGARE = "INSERIMENTO_DOVUTO";
+  public static final String STATO_DOVUTO_PAGAMENTO_INIZIATO = "PAGAMENTO_INIZIATO";
+  public static final String STATO_DOVUTO_PREDISPOSTO = "PREDISPOSTO";
+  public static final String STATO_DOVUTO_COMPLETATO = "COMPLETATO";
+  public static final String STATO_DOVUTO_ANNULLATO = "ANNULLATO";
+  public static final String STATO_DOVUTO_ERRORE = "ERROR_DOVUTO";
+  public static final String STATO_DOVUTO_ABORT = "ABORT";
+  public static final String STATO_DOVUTO_SCADUTO = "SCADUTO";
+  public static final String STATO_DOVUTO_SCADUTO_ELABORATO = "SCADUTO_ELABORATO";
+  public static final String STATO_TIPO_FLUSSO = "flusso";
+  public static final String STATO_ENTE = "ente";
 
   private Long mygovAnagraficaStatoId;
   private String codStato;

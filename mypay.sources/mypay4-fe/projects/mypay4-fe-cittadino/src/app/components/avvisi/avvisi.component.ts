@@ -19,26 +19,31 @@ import * as _ from 'lodash';
 import { FileSaverService } from 'ngx-filesaver';
 import { ToastrService } from 'ngx-toastr';
 import {
-    ApiInvokerService, controlToUppercase, CookieService, Ente, manageError, OverlaySpinnerService,
-    PATTERNS, TableAction, TableColumn, TipoDovuto, UserService, validateFormFun, WithTitle
+  ConfirmDialogComponent
+} from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
+import {
+  ApiInvokerService, controlToUppercase, CookieService, Ente, manageError, OverlaySpinnerService,
+  PATTERNS, TableAction, TableColumn, TipoDovuto, UserService, validateFormFun, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
 import { combineLatest, Observable, ReplaySubject, Subscription } from 'rxjs';
-import { flatMap } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
 
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import {
-    faCartPlus, faDownload, faFileInvoice, faPrint, faReceipt, faTrash
+  faCartPlus, faDownload, faFileInvoice, faPrint, faReceipt, faTrash
 } from '@fortawesome/free-solid-svg-icons';
 
 import { Debito } from '../../model/debito';
 import { Pagato } from '../../model/pagato';
 import { AvvisoService } from '../../services/avviso.service';
 import { CarrelloService } from '../../services/carrello.service';
+import { DebitoService } from '../../services/debito.service';
 import { PagatoService } from '../../services/pagato.service';
 import { RecaptchaService } from '../../services/recaptcha.service';
 
@@ -66,6 +71,7 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
   iconRemoveCart = faTrash;
   iconReceipt = faReceipt;
   iconDownload = faDownload;
+  iconTrash = faTrash;
 
   enteOptions: Ente[];
   enteFilteredOptions: Observable<Ente[]>;
@@ -100,7 +106,8 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
       new TableAction(this.iconReceipt, this.downloadAvviso, this.downloadAvvisoEnabled, 'Scarica avviso'),
       new TableAction(this.iconReceipt, this.downloadRt, this.downloadRtEnabled, 'Scarica RT'),
       new TableAction(this.iconAddCart, this.addToCarrello, this.addToCarrelloEnabled, 'Aggiungi al carrello'),
-      new TableAction(this.iconRemoveCart, this.removeFromCarrello, this.removeFromCarrelloEnabled, 'Rimuovi dal carrello')
+      new TableAction(this.iconRemoveCart, this.removeFromCarrello, this.removeFromCarrelloEnabled, 'Rimuovi dal carrello'),
+      new TableAction(this.iconTrash, this.gotoRemove, this.gotoRemoveEnabled, 'Annulla dovuto'),
       ] } ) ];
   tableData: Debito[];
   rowStyleFun = (elem:Debito) => elem?.deStato === 'PAGAMENTO INIZIATO' ? 'background-color: lightyellow' : null;
@@ -109,6 +116,7 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
     protected userService: UserService,
     protected formBuilder: FormBuilder,
     protected avvisoService: AvvisoService,
+    private debitoService: DebitoService,
     protected pagatoService: PagatoService,
     protected carrelloService: CarrelloService,
     protected toastrService: ToastrService,
@@ -118,7 +126,9 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
     private renderer: Renderer2,
     private recaptchaService: RecaptchaService,
     private cookieService: CookieService,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,
+    private dialog: MatDialog,
+  ) {
   }
 
   private codFiscaleUppercaseSub: Subscription;
@@ -159,7 +169,7 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
         this.logged = false;
         this.form.get('tipoPersona').setValue('other');
         console.log("cookie consent state on avviso:"+JSON.stringify(cookieConsent));
-        if(cookieConsent.cookieAll || cookieConsent.cookieThirdParty){
+        if(!this.recaptchaService.isEnabled() || cookieConsent.cookieAll || cookieConsent.cookieThirdParty){
           this.hasConsent = true;
           this.cookieService.unsetMissingNeededConsent();
           this.recaptchaService.init(this.renderer);
@@ -245,16 +255,11 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
   onSubmit(){
     const i = this.form.value;
     const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
-    let searchAvvisiFun:Observable<any>;
-    if(this.logged)
-      searchAvvisiFun = this.avvisoService.searchAvvisi(i.numeroAvviso, i.tipoPersona === 'logged', i.codIdUnivoco, i.anagrafica);
-    else
-      searchAvvisiFun = this.recaptchaService.submitToken('searchAvviso').pipe(
-        flatMap(token => this.avvisoService.searchAvvisiAnonymous(i.numeroAvviso, i.codIdUnivoco, i.anagrafica, token))
-      );
 
-    searchAvvisiFun
-      .subscribe(response => {
+    this.recaptchaService.submitWithRecaptchaHandling<any>('searchAvviso',
+      recaptchaToken => this.avvisoService.searchAvvisiAnonymous(i.numeroAvviso, i.codIdUnivoco, i.anagrafica, recaptchaToken),
+      () => this.avvisoService.searchAvvisi(i.numeroAvviso, i.tipoPersona === 'logged', i.codIdUnivoco, i.anagrafica)
+    ).subscribe(response => {
         this.hasSearched = true;
         const dovuti = <Debito[]> response.debiti;
         const pagati = <Pagato[]> response.pagati;
@@ -276,6 +281,7 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
           dovuto.dataScadenza = element.dataScadenza;
           dovuto.codStato = element.codStato;
           dovuto.deStato = element.statoComplessivo;
+          dovuto.annullabile = false;
           dovuto.details = [
             {key:'Causale del versamento', value:element.causale},
             {key:'Numero avviso', value:element.codIuv},
@@ -289,22 +295,14 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
       }, manageError('Errore effettuando la ricerca', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );
   }
 
-  removeSpaces(formControlName: any) {
-    const field = this.form.get(formControlName.toString());
-    field.setValue(field.value.replace(/\s/g, ""));
-  }
-
   downloadAvviso(elementRef: Debito, thisRef: AvvisiComponent, eventRef: any) {
     if(eventRef)
       eventRef.stopPropagation();
-    let downloadAvvisoFun:Observable<any>;
-    if(thisRef.logged)
-      downloadAvvisoFun = thisRef.avvisoService.downloadAvviso(elementRef);
-    else
-      downloadAvvisoFun = thisRef.recaptchaService.submitToken('downloadAvviso').pipe(
-        flatMap(token => thisRef.avvisoService.downloadAvvisoAnonymous(elementRef, token))
-      );
-    downloadAvvisoFun.subscribe(response => {
+
+    thisRef.recaptchaService.submitWithRecaptchaHandling<any>('downloadAvviso',
+      recaptchaToken => thisRef.avvisoService.downloadAvvisoAnonymous(elementRef, recaptchaToken),
+      () => thisRef.avvisoService.downloadAvviso(elementRef)
+    ).subscribe(response => {
       const contentDisposition = response.headers.get('content-disposition');
       const fileName = ApiInvokerService.extractFilenameFromContentDisposition(contentDisposition)  ?? 'mypay4_avviso_'+elementRef.id+'.pdf';
       const contentType = response.headers.get('content-type') ?? 'application/pdf; charset=utf-8';
@@ -320,14 +318,11 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
   downloadRt(elementRef: Debito, thisRef: AvvisiComponent, eventRef: any) {
     if(eventRef)
       eventRef.stopPropagation();
-    let downloadRtFun:Observable<any>;
-    if(thisRef.logged)
-      downloadRtFun = thisRef.pagatoService.downloadRt(elementRef.dovutoElaborato);
-    else
-      downloadRtFun = thisRef.recaptchaService.submitToken('downloadRt').pipe(
-        flatMap(token => thisRef.pagatoService.downloadRtAnonymous(elementRef.dovutoElaborato,token))
-      );
-    downloadRtFun.subscribe(response => {
+
+    thisRef.recaptchaService.submitWithRecaptchaHandling<any>('downloadRt',
+      recaptchaToken => thisRef.pagatoService.downloadRtAnonymous(elementRef.dovutoElaborato, recaptchaToken), 
+      () => thisRef.pagatoService.downloadRt(elementRef.dovutoElaborato)
+    ).subscribe(response => {
       const contentDisposition = response.headers.get('content-disposition');
       const fileName = ApiInvokerService.extractFilenameFromContentDisposition(contentDisposition)  ?? 'mypay4_ricevuta_'+elementRef.dovutoElaborato.id+'.pdf';
       const contentType = response.headers.get('content-type') ?? 'application/pdf; charset=utf-8';
@@ -348,12 +343,16 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
 
     if(addError)
       thisRef.toastrService.error(addError,'Errore aggiungendo al carrello',{disableTimeOut: true});
-    else
+    else {
       thisRef.toastrService.info('Elemento aggiunto al carrello');
+      if (elementRef.multibeneficiario)
+        thisRef.toastrService.info('Si fa presente che non è possibile aggiungere altri elementi al carrello.', null, {disableTimeOut: true});
+    }
   }
 
   addToCarrelloEnabled(elementRef: Debito, thisRef: AvvisiComponent){
-    return thisRef.carrelloService.canAdd(elementRef);
+    return elementRef.dovutoElaborato==null;
+    // && thisRef.carrelloService.canAdd(elementRef);
   }
 
   removeFromCarrello(elementRef: Debito, thisRef: AvvisiComponent, eventRef: any) {
@@ -368,6 +367,27 @@ export class AvvisiComponent implements OnInit,AfterViewInit,OnDestroy, WithTitl
 
   removeFromCarrelloEnabled(elementRef: Debito, thisRef: AvvisiComponent){
     return thisRef.carrelloService.canRemove(elementRef);
+  }
+
+  gotoRemove(elementRef: Debito, thisRef: AvvisiComponent, eventRef: any) {
+    if(eventRef)
+      eventRef.stopPropagation();
+
+    const msg = 'Confermi di voler annullare il dovuto?';
+    thisRef.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
+      .afterClosed().pipe(first()).subscribe(result => {
+        if(result==="false") return;
+        const spinner = thisRef.overlaySpinnerService.showProgress(thisRef.elementRef);
+        thisRef.debitoService.removeDovuto(elementRef.id).subscribe(response => {
+          thisRef.overlaySpinnerService.detach(spinner);
+          thisRef.toastrService.info('Dovuto annullato correttamente.' );
+          thisRef.tableData = thisRef.tableData.filter(elem => elem.id !== elementRef.id);
+        }, manageError('Errore annullando il dovuto', thisRef.toastrService, () => {thisRef.overlaySpinnerService.detach(spinner)}) );
+    });
+  }
+
+  gotoRemoveEnabled(elementRef: Debito, thisRef: AvvisiComponent) {
+    return elementRef.annullabile;
   }
 
 }

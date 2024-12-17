@@ -21,6 +21,9 @@ import { ItemCarrello } from './item-carrello';
 
 export class Spontaneo extends ItemCarrello {
 
+  //used to verify email for anonymous
+  mailValidationToken: string;
+
   constructor(){
     super();
     //super.id = getRandomInt(1000000000, 10000000000);

@@ -24,6 +24,7 @@ import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.ReportUtilities;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
@@ -48,10 +49,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static it.regioneveneto.mygov.payment.mypay4.util.Constants.MAX_AMOUNT;
+
 @Service
 @Slf4j
 public class JasperService implements Serializable {
-
+  private static final String COMMISSIONE_TO_ADD_TOTALE = "COMMISSIONE_TO_ADD_TOTALE";
   @Autowired
   private EnteService enteService;
 
@@ -60,6 +63,9 @@ public class JasperService implements Serializable {
 
   @Autowired
   private DovutoElaboratoService dovutoElaboratoService;
+
+  @Autowired
+  private ReceiptService receiptService;
 
   @Autowired
   private ResourceLoader resourceLoader;
@@ -72,37 +78,29 @@ public class JasperService implements Serializable {
   @Value("${pa.logoDefault:}")
   private String defaultLogo;
 
+  private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+  private SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("dd/MM/yyyy");
+
   public ByteArrayOutputStream generateAvviso(Dovuto dovuto) throws Exception {
 
     String iuv;
     String codTipoDovuto = dovuto.getCodTipoDovuto();
-    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
     Ente ente = dovuto.getNestedEnte();
     BigDecimal importo = dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento();
 
-    AnagraficaPagatore anagraficaPagatore = new AnagraficaPagatore();
-    if (dovuto.getNestedAvviso()!=null) {
-      anagraficaPagatore.setIndirizzo(dovuto.getNestedAvviso().getDeRpSoggPagIndirizzoPagatore());
-      anagraficaPagatore.setCivico(dovuto.getNestedAvviso().getDeRpSoggPagCivicoPagatore());
-      anagraficaPagatore.setCap(dovuto.getNestedAvviso().getCodRpSoggPagCapPagatore());
-      anagraficaPagatore.setLocalita(dovuto.getNestedAvviso().getDeRpSoggPagLocalitaPagatore());
-      anagraficaPagatore.setProvincia(dovuto.getNestedAvviso().getDeRpSoggPagProvinciaPagatore());
-      anagraficaPagatore.setNazione(null);
-      anagraficaPagatore.setAnagrafica(dovuto.getNestedAvviso().getDeRpSoggPagAnagraficaPagatore());
-      anagraficaPagatore.setCodiceIdentificativoUnivoco(dovuto.getNestedAvviso().getCodRpSoggPagIdUnivPagCodiceIdUnivoco());
-    } else {
-      anagraficaPagatore.setIndirizzo(dovuto.getDeRpSoggPagIndirizzoPagatore());
-      anagraficaPagatore.setCivico(dovuto.getDeRpSoggPagCivicoPagatore());
-      anagraficaPagatore.setCap(dovuto.getCodRpSoggPagCapPagatore());
-      anagraficaPagatore.setLocalita(dovuto.getDeRpSoggPagLocalitaPagatore());
-      anagraficaPagatore.setProvincia(dovuto.getDeRpSoggPagProvinciaPagatore());
-      anagraficaPagatore.setNazione(null);
-      anagraficaPagatore.setAnagrafica(dovuto.getDeRpSoggPagAnagraficaPagatore());
-      anagraficaPagatore.setCodiceIdentificativoUnivoco(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco());
-    }
+    AnagraficaPagatore anagraficaPagatore = AnagraficaPagatore.builder()
+      .indirizzo(dovuto.getDeRpSoggPagIndirizzoPagatore())
+      .civico(dovuto.getDeRpSoggPagCivicoPagatore())
+      .cap(dovuto.getCodRpSoggPagCapPagatore())
+      .localita(dovuto.getDeRpSoggPagLocalitaPagatore())
+      .provincia(dovuto.getDeRpSoggPagProvinciaPagatore())
+      .nazione(null)
+      .anagrafica(dovuto.getDeRpSoggPagAnagraficaPagatore())
+      .codiceIdentificativoUnivoco(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco())
+      .build();
 
-    String reportFilePathForEnte =  getResourcePath("/jasper/templates/" + ente.getCodIpaEnte() + "/avviso_pagamento.jasper");
+    String reportFilePathForEnte =  getResourcePath("/jasper/templates/" + ente.getCodIpaEnte() + "/avviso_pagamento.jasper", false);
     String reportFilePath;
 
     if (StringUtils.isNotBlank(reportFilePathForEnte)) {
@@ -120,8 +118,8 @@ public class JasperService implements Serializable {
             + (anagraficaPagatore.getCivico() != null ? anagraficaPagatore.getCivico() + " " : "")
             + (anagraficaPagatore.getCap() != null ? anagraficaPagatore.getCap()  + "\n" : "")
             + (anagraficaPagatore.getLocalita() != null ? anagraficaPagatore.getLocalita() : "")
-            + (anagraficaPagatore.getProvincia() != null ? (" (" + anagraficaPagatore.getProvincia() + ") - ") : "")
-            + (anagraficaPagatore.getNazione() != null ? anagraficaPagatore.getNazione() : "");
+            + (anagraficaPagatore.getProvincia() != null ? (" (" + anagraficaPagatore.getProvincia() + ")") : "")
+            + (anagraficaPagatore.getNazione() != null ?  " - "+anagraficaPagatore.getNazione() : "");
     String infoEnte = ente.getDeRpEnteBenefIndirizzoBeneficiario() + " "
         + ente.getDeRpEnteBenefCivicoBeneficiario() + " "
         + ente.getCodRpEnteBenefCapBeneficiario() + " "
@@ -135,29 +133,29 @@ public class JasperService implements Serializable {
     String codAvviso = "";
     iuv = dovuto.getCodIuv();
     if (iuv.length() == Constants.IUV_GENERATOR_15_LENGTH) {
-      qrCodeString = Utilities.generateQRCodeString(ente.getCodiceFiscaleEnte(), Constants.AVVISO_PAGAMENTO_AUX_DIGIT, ente.getApplicationCode(), iuv, importo);
-      codAvviso = Utilities.formatNumeroAvviso15digit(ente.getApplicationCode(), iuv);
+      qrCodeString = Utilities.generateQRCodeString(ente.getCodiceFiscaleEnte(), Constants.OLD_IUV_AUX_DIGIT, ente.getApplicationCode(), iuv, importo);
+      codAvviso = Utilities.formatCodAvviso(Constants.OLD_IUV_AUX_DIGIT, ente.getApplicationCode(), iuv);
     } else if (iuv.length() == Constants.IUV_GENERATOR_17_LENGTH) {
       qrCodeString = Utilities.generateQRCodeString(ente.getCodiceFiscaleEnte(), Constants.SMALL_IUV_AUX_DIGIT, "", iuv, importo);
-      codAvviso = Utilities.formatNumeroAvviso17digit(Constants.SMALL_IUV_AUX_DIGIT, iuv);
+      codAvviso = Utilities.formatCodAvviso(Constants.SMALL_IUV_AUX_DIGIT, "", iuv);
     }
-    EnteTipoDovuto enteTipoDovuto = enteTipoDovutoService.getOptionalByCodTipo(codTipoDovuto, ente.getCodIpaEnte(),false).get();
+    EnteTipoDovuto enteTipoDovuto = enteTipoDovutoService.getOptionalByCodTipo(codTipoDovuto, ente.getCodIpaEnte(),false).orElseThrow(NotFoundException::new);
 
     String dataScadenzaString = ( dovuto.getDtRpDatiVersDataEsecuzionePagamento() != null && enteTipoDovuto.isFlgStampaDataScadenza() )
-        ? formatter.format(dovuto.getDtRpDatiVersDataEsecuzionePagamento()) : "";
+        ? dateOnlyFormat.format(dovuto.getDtRpDatiVersDataEsecuzionePagamento()) : "";
 
-    Map<String, Object> parameters = new HashMap<String, Object>();
-    parameters.put("oggetto_del_pagamento", Utilities.shortenString(oggettoDelPagamento, 60));
-    parameters.put("nome_cognome_destinatario", Utilities.shortenString(anagraficaPagatore.getAnagrafica(), 35));
-    parameters.put("indirizzo_destinatario", Utilities.shortenString(indirizzoDestinatario, 40));
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("oggetto_del_pagamento", Utilities.shortenString(oggettoDelPagamento, 90));    // prima: 60
+    parameters.put("nome_cognome_destinatario", Utilities.shortenString(anagraficaPagatore.getAnagrafica(), 70));  // prima: 35
+    parameters.put("indirizzo_destinatario", Utilities.shortenString(indirizzoDestinatario, 140));  // prima: 40
     parameters.put("cf_destinatario",  Utilities.shortenString(anagraficaPagatore.getCodiceIdentificativoUnivoco(), 16).toUpperCase());
 
 
     parameters.put("ente_creditore",  Utilities.shortenString(ente.getDeRpEnteBenefDenominazioneBeneficiario(), 50));
     parameters.put("cf_ente",  Utilities.shortenString(ente.getCodiceFiscaleEnte(), 16).toUpperCase());
-    parameters.put("settore_ente",  Utilities.shortenString(enteTipoDovuto.getDeSettoreEnte(), 50));
+    parameters.put("settore_ente", enteTipoDovuto.getDeSettoreEnte());
     parameters.put("info_ente",  Utilities.shortenString(infoEnte, 100));
-    if (dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento().compareTo(new BigDecimal(99999999.99)) == 1) {
+    if (dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento().compareTo(MAX_AMOUNT) > 0) {
       throw new Exception("Numero che eccede l'importo pagabile massimo possibile ");
     }
     String importoString = Utilities.getStringFromBigDecimalGroup(dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
@@ -240,7 +238,7 @@ public class JasperService implements Serializable {
     Ente ente = Optional.ofNullable(enteService.getEnteByCodFiscale(StringUtils.trim(carrello.getCodRpDomIdDominio()))).orElseThrow(NotFoundException::new);
 
     //Path per il folder sul server dei Report templates
-    String reportFilePathForEnte =  getResourcePath("/jasper/templates/" + ente.getCodIpaEnte() + "/exportRT.jasper");
+    String reportFilePathForEnte =  getResourcePath("/jasper/templates/" + ente.getCodIpaEnte() + "/exportRT.jasper", false);
     String reportFilePath;
 
     if (StringUtils.isNotBlank(reportFilePathForEnte)) {
@@ -257,17 +255,43 @@ public class JasperService implements Serializable {
 
     //Dati del carrello
     Map<String, Object> reportParameters = new HashMap<>();
-    String logoEnte = StringUtils.firstNonBlank(ente.getDeLogoEnte(), defaultLogo);
 
     String logoPagoPaPath = getResourcePath("/jasper/images/pagolapa-blu.png");
     reportParameters.put("pagolapa_img", logoPagoPaPath);
-    reportParameters.put("ente_img", logoEnte);
 
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    String logoEnte = StringUtils.firstNonBlank(ente.getDeLogoEnte(), defaultLogo);
 
-    String dataRichiestaStampa = sdf.format(new Date());
+    if(StringUtils.isNotBlank(logoEnte)) {
+      BufferedImage logoImage = Utilities.getImageFromBase64String(logoEnte);
+      BufferedImage logoImageGrayscale = Utilities.covertToGrayscale(logoImage);
+      var logoBase64Grayscale = Utilities.getBase64StringFromImage(logoImageGrayscale);
+      reportParameters.put("ente_img", logoBase64Grayscale);
+    }
+
+    String dataRichiestaStampa = dateTimeFormat.format(new Date());
 
     BigDecimal importoTotalePagato = carrello.getNumEDatiPagImportoTotalePagato();
+
+    //data pagamento PSP is only present on receipt
+    String strDataOraPagamentoPSP = null;
+
+    // Retrieve list of DovutoElaborato
+    List<DovutoElaborato> dovutoElaboratoList = dovutoElaboratoService.getByCarrello(carrello);
+
+    DovutoMultibeneficiarioElaborato dovutoMultibeneficiarioElaborato = null;
+    if (dovutoElaboratoList.size() == 1 && importoTotalePagato.compareTo(BigDecimal.ZERO) > 0) {
+      DovutoElaborato dovutoElaborato = dovutoElaboratoList.get(0);
+
+      Optional<Receipt> receipt = receiptService.getByDovutoElaboratoId(dovutoElaborato.getMygovDovutoElaboratoId());
+      if(receipt.isPresent())
+        strDataOraPagamentoPSP = receipt.map(Receipt::getApplicationDate).map(dateOnlyFormat::format).orElse(null);
+
+      dovutoMultibeneficiarioElaborato = dovutoElaboratoService.getDovutoMultibeneficiarioElaboratoByIdDovutoElaborato(dovutoElaborato.getMygovDovutoElaboratoId()).orElse(null);
+
+      if(dovutoMultibeneficiarioElaborato!=null)
+        importoTotalePagato = dovutoElaborato.getNumEDatiPagDatiSingPagSingoloImportoPagato().add(dovutoMultibeneficiarioElaborato.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+    }
+
     String idUnivocoVersamento = carrello.getCodEDatiPagIdUnivocoVersamento();
     String codiceContestoPagamento = carrello.getCodEDatiPagCodiceContestoPagamento();
     String dominio = carrello.getCodEDomIdDominio();
@@ -277,12 +301,12 @@ public class JasperService implements Serializable {
     String esitoDescrizione = this.getDescrizioneEsitoCarrello(esito);
 
     String strDataOraMessaggioRicevuta = Optional.ofNullable(carrello.getCodEDataOraMessaggioRicevuta())
-      .map(sdf::format).orElse(null);
+      .map(dateTimeFormat::format).orElse(null);
 
     String riferimentoMessaggioRichiesta = carrello.getCodERiferimentoMessaggioRichiesta();
 
     String strDataOraMessaggioRichiesta = Optional.ofNullable(carrello.getDtRpDataOraMessaggioRichiesta())
-      .map(sdf::format).orElse(null);
+      .map(dateTimeFormat::format).orElse(null);
 
     //ISTITUTO ATTESTANTE
     String istitAttDemoninazioneAttestante = carrello.getDeEIstitAttDenominazioneAttestante();
@@ -345,6 +369,7 @@ public class JasperService implements Serializable {
     reportParameters.put("dataOraMessaggioRicevuta", strDataOraMessaggioRicevuta);
     reportParameters.put("riferimentoMessaggioRichiesta", riferimentoMessaggioRichiesta);
     reportParameters.put("dataOraMessaggioRichiesta", strDataOraMessaggioRichiesta);
+    reportParameters.put("dataOraPagamentoPSP", strDataOraPagamentoPSP);
 
     //ISTITUTO ATTESTANTE
     reportParameters.put("istitAttDemoninazioneAttestante", istitAttDemoninazioneAttestante);
@@ -403,8 +428,12 @@ public class JasperService implements Serializable {
     reportParameters.put("collaudo_img", getResourcePath("/jasper/images/background-rt-collaudo.png"));
 
     //Lista di Mappe ciascuna rappresentante un singolo dovuto pagato
-    List<DovutoElaborato> dovutoElaboratoList = dovutoElaboratoService.getByCarrello(carrello);
-    Collection<Map<String, ?>> listDovutiPagatiMap = manageDovutiPagatiList(dovutoElaboratoList, ente.getCodIpaEnte());
+    List<Map<String, String>> listDovutiPagatiMap = manageDovutiPagatiList(dovutoElaboratoList, ente.getCodIpaEnte(), dovutoMultibeneficiarioElaborato);
+    if(dovutoMultibeneficiarioElaborato!=null && listDovutiPagatiMap.size()==1 && listDovutiPagatiMap.get(0).containsKey(COMMISSIONE_TO_ADD_TOTALE)){
+      BigDecimal fee = new BigDecimal(listDovutiPagatiMap.get(0).get(COMMISSIONE_TO_ADD_TOTALE));
+      reportParameters.put("importoTotalePagato", Utilities.parseImportoString(importoTotalePagato.add(fee)));
+    }
+
     JRBeanCollectionDataSource dovutiPagatiMapCollectionDataSource = new JRBeanCollectionDataSource(listDovutiPagatiMap);
 
     //ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
@@ -436,45 +465,54 @@ public class JasperService implements Serializable {
   }
 
   private String getResourcePath(String resourcePath) {
+    return getResourcePath(resourcePath, true);
+  }
+
+  private String getResourcePath(String resourcePath, boolean showError) {
     try {
       if(resourcePath.startsWith("/"))
         resourcePath = "classpath:"+resourcePath.substring(1);
       return resourceLoader.getResource(resourcePath).getURL().toExternalForm();
     } catch (Exception ex) {
-      log.warn("Cannot open file: " + resourcePath+" due to error: "+ex.toString());
+      if(showError)
+        log.warn("Cannot open file: " + resourcePath, ex);
       return "";
     }
   }
 
-
-  /**
-   * @param esito
-   * @return
-   */
   private String getDescrizioneEsitoCarrello(Character esito) {
     String descrizioneEsito = null;
     if (esito != null) {
 
       String esitoStr = esito.toString();
 
-      if ("0".equals(esitoStr)) {
-        descrizioneEsito = "Pagamento eseguito";
-      } else if ("1".equals(esitoStr)) {
-        descrizioneEsito = "Pagamento non eseguito";
-      } else if ("2".equals(esitoStr)) {
-        descrizioneEsito = "Pagamento parzialmente eseguito";
-      } else if ("3".equals(esitoStr)) {
-        descrizioneEsito = "Decorrenza termini";
-      } else if ("4".equals(esitoStr)) {
-        descrizioneEsito = "Decorrenza termini parziale";
+      switch (esitoStr) {
+        case "0":
+          descrizioneEsito = "Pagamento eseguito";
+          break;
+        case "1":
+          descrizioneEsito = "Pagamento non eseguito";
+          break;
+        case "2":
+          descrizioneEsito = "Pagamento parzialmente eseguito";
+          break;
+        case "3":
+          descrizioneEsito = "Decorrenza termini";
+          break;
+        case "4":
+          descrizioneEsito = "Decorrenza termini parziale";
+          break;
       }
     }
     return descrizioneEsito;
   }
 
-  private Collection<Map<String, ?>> manageDovutiPagatiList(List<DovutoElaborato> dovutoPagatoList, String codIpaEnte) {
+  private List<Map<String, String>> manageDovutiPagatiList(List<DovutoElaborato> dovutoPagatoList, String codIpaEnte, DovutoMultibeneficiarioElaborato dme) {
 
-    Collection<Map<String, ?>> collectionOfMapDovutiPagati = new ArrayList<>();
+    //TODO remove after tests (value should be always true)
+    final boolean addSecondarioEntry = false; // && dme!=null && new BigDecimal("135.79").equals(dme.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+
+    List<Map<String, String>> collectionOfMapDovutiPagati = new ArrayList<>();
     SimpleDateFormat DATEFORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
     dovutoPagatoList.forEach(dovutoPagato -> {
@@ -485,11 +523,14 @@ public class JasperService implements Serializable {
         .filter(Pattern.compile("^.*/TXT/.*$").asPredicate())
         .map(s -> Pattern.compile("(.*?\\/TXT/)").matcher(s).replaceAll(""))
         .orElse(dovutoPagato.getDeRpDatiVersDatiSingVersCausaleVersamento());
-      if (causaleVersamento.length() > 50)
-        causaleVersamento = Utilities.getTruncatedAt(50).apply(causaleVersamento).concat("...");
-
+    //  currentMap.put("CAUSALE_VERSAMENTO", StringUtils.abbreviate(causaleVersamento, 50));
       currentMap.put("CAUSALE_VERSAMENTO", causaleVersamento);
-      currentMap.put("IMPORTO_PAGATO", Utilities.parseImportoString(dovutoPagato.getNumEDatiPagDatiSingPagSingoloImportoPagato()));
+
+      // Adding multi-beneficiary amount to importoPagato, if exists
+      BigDecimal importoPagato = dovutoPagato.getNumEDatiPagDatiSingPagSingoloImportoPagato();
+      if (dme!=null && !addSecondarioEntry)
+        importoPagato = importoPagato.add(dme.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+
       if (dovutoPagato.getDtEDatiPagDatiSingPagDataEsitoSingoloPagamento() != null) {
         currentMap.put("DATA_PAGAMENTO", DATEFORMAT.format(dovutoPagato.getDtEDatiPagDatiSingPagDataEsitoSingoloPagamento()));
       }
@@ -501,21 +542,58 @@ public class JasperService implements Serializable {
       currentMap.put("BIC_APPOGGIO", dovutoPagato.getCodRpDatiVersDatiSingVersBicAppoggio());
 
       var deTipoDovuto = enteTipoDovutoService.getOptionalByCodTipo(dovutoPagato.getCodTipoDovuto(), codIpaEnte, false)
-          .map(EnteTipoDovuto::getDeTipo).orElse("");
-      if (causaleVersamento.length() > 30)
-        deTipoDovuto = Utilities.getTruncatedAt(30).apply(deTipoDovuto).concat("...");
+          .map(EnteTipoDovuto::getDeTipo).orElse(dovutoPagato.getCodTipoDovuto());
+      //currentMap.put("TIPO_DOVUTO", StringUtils.abbreviate(deTipoDovuto, 35));
       currentMap.put("TIPO_DOVUTO", deTipoDovuto);
+      currentMap.put("LABEL_TIPO_DOVUTO", "Tipo dovuto");
 
-      if (dovutoPagato.getNumEDatiPagDatiSingPagSingoloImportoPagato().doubleValue() > 0) {
-        var commissioni = Optional.ofNullable(dovutoPagato.getNumEDatiPagDatiSingPagCommissioniApplicatePsp())
-            .map(Utilities::parseImportoString).orElse("---");
-        currentMap.put("COMMISSIONI_APPLICATE_PSP", commissioni);
+      currentMap.put("LABEL_COMMISSIONI", "Commissioni");
+      BigDecimal fee = null;
+      if (addSecondarioEntry && importoPagato.doubleValue() > 0) {
+        fee = dovutoPagato.getNumEDatiPagDatiSingPagCommissioniApplicatePsp();
+        if(fee!=null)
+          currentMap.put(COMMISSIONE_TO_ADD_TOTALE, fee.toPlainString());
+      }
+      currentMap.put("COMMISSIONI_APPLICATE_PSP", formatCurrency(Optional.ofNullable(fee).map(Utilities::parseImportoString).orElse(null)));
+      currentMap.put("IMPORTO_PAGATO", formatCurrency(Utilities.parseImportoString(importoPagato)));
+      collectionOfMapDovutiPagati.add(currentMap);
+
+      if(addSecondarioEntry){
+        currentMap = new HashMap<>(currentMap);
+        currentMap.put("IUD", dme.getCodIud());
+        currentMap.put("TIPO_DOVUTO", StringUtils.abbreviate(dme.getCodiceFiscaleEnte()+" - "+dme.getDeRpEnteBenefDenominazioneBeneficiario(), 50));
+        currentMap.put("CAUSALE_VERSAMENTO", StringUtils.abbreviate(dme.getDeRpDatiVersDatiSingVersCausaleVersamento(), 50));
+        currentMap.put("DATI_SPECIFICI_RISCOSSIONE", StringUtils.abbreviate(dme.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(),9));
+        currentMap.put("IMPORTO_PAGATO", formatCurrency(Utilities.parseImportoString(dme.getNumRpDatiVersDatiSingVersImportoSingoloVersamento())));
+        currentMap.put("IBAN_ACCREDITO", dme.getCodRpDatiVersDatiSingVersIbanAccredito());
+        currentMap.put("BIC_ACCREDITO", "---");
+        currentMap.put("IBAN_APPOGGIO", "---");
+        currentMap.put("BIC_APPOGGIO", "---");
+        currentMap.put("COMMISSIONI_APPLICATE_PSP", formatCurrency(Utilities.parseImportoString(dme.getNumRpDatiVersDatiSingVersImportoSingoloVersamento())));
+        currentMap.put("LABEL_TIPO_DOVUTO", "Ente ben. secondario");
+        currentMap.put("LABEL_COMMISSIONI", "Importo pagato");
+        currentMap.put("IS_ENTE_SECONDARIO", "true");
+        collectionOfMapDovutiPagati.add(currentMap);
       }
 
-      collectionOfMapDovutiPagati.add(currentMap);
     });
 
     return collectionOfMapDovutiPagati;
+  }
+
+  private String formatCurrency(String amount){
+    return Optional.ofNullable(amount).map(a -> "€ "+a).orElse("---");
+  }
+
+  public static void main(String[] args) {
+    try{
+      String folder = "/ENG/Projects/mypay4.pa/mypay4-be/src/main/resources/jasper/templates/";
+      String srcFilename = "avviso_pagamento.jrxml";
+      String destFilename = "avviso_pagamento.jasper";
+      JasperCompileManager.compileReportToFile(folder+srcFilename, folder+destFilename);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
   }
 
 }

@@ -17,16 +17,18 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dao;
 
-import it.regioneveneto.mygov.payment.mypay4.model.AnagraficaStato;
-import it.regioneveneto.mygov.payment.mypay4.model.Ente;
-import it.regioneveneto.mygov.payment.mypay4.model.ImportDovuti;
-import it.regioneveneto.mygov.payment.mypay4.model.Utente;
+import it.regioneveneto.mygov.payment.mypay4.model.*;
+import org.jdbi.v3.core.statement.OutParameters;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
+import org.jdbi.v3.sqlobject.customizer.OutParameter;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
+import org.jdbi.v3.sqlobject.statement.SqlCall;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
+import java.sql.Types;
+import java.util.Date;
 import java.util.List;
 
 public interface ImportDovutiDao extends BaseDao {
@@ -69,4 +71,26 @@ public interface ImportDovutiDao extends BaseDao {
   )
   @RegisterFieldMapper(ImportDovuti.class)
   List<ImportDovuti> getImportByRequestToken(String codRequestToken);
+
+  @SqlUpdate(
+          " update mygov_import_dovuti " +
+                  " set mygov_anagrafica_stato_id = :i.mygovAnagraficaStatoId.mygovAnagraficaStatoId ," +
+                  " version = :i.version ," +
+                  " de_nome_file_scarti = :i.deNomeFileScarti ," +
+                  " cod_errore = :i.codErrore ," +
+                  " dt_ultima_modifica = :i.dtUltimaModifica "+
+                  " where cod_request_token = :i.codRequestToken and mygov_ente_id = :i.mygovEnteId.mygovEnteId")
+  int updateImportFlusso(@BindBean("i") ImportDovuti i);
+
+  @SqlCall("{call update_insert_flusso( "+
+          ":n_mygov_ente_id, "+
+          ":n_iuf, "+
+          ":n_dt_creazione, "+
+          ":n_dt_ultima_modifica, "+
+          ":sequence_value, "+
+          ":eccezione "+
+          ")}" )
+  @OutParameter(name = "sequence_value", sqlType = Types.BIGINT)
+  @OutParameter(name = "eccezione", sqlType = Types.VARCHAR)
+  OutParameters callUpdateInsertFlussoFunction(Long n_mygov_ente_id, String n_iuf, Date n_dt_creazione, Date n_dt_ultima_modifica);
 }

@@ -17,7 +17,9 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.config.dbreplica;
 
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -52,7 +54,8 @@ public class ReplicaAwareTransactionManager implements PlatformTransactionManage
       String currTransRO = TransactionSynchronizationManager.isCurrentTransactionReadOnly() ? "RO" : "RW";
       String definitionRO = definition != null && definition.isReadOnly() ? "RO" : "RW";
       final String definitionProp;
-      switch (definition.getPropagationBehavior()) {
+      Integer definitionPropagationBehaviour = ObjectUtils.firstNonNull(Utilities.ifNotNull(definition, TransactionDefinition::getPropagationBehavior), Integer.MIN_VALUE);
+      switch (definitionPropagationBehaviour) {
         case TransactionDefinition.PROPAGATION_REQUIRED:
           definitionProp = "REQUIRED";
           break;
@@ -75,7 +78,7 @@ public class ReplicaAwareTransactionManager implements PlatformTransactionManage
           definitionProp = "NESTED";
           break;
         default:
-          definitionProp = "unknown-" + definition.getPropagationBehavior();
+          definitionProp = "unknown-" + definitionPropagationBehaviour;
       }
       if (transactionStatus.isNewTransaction())
         log.debug("New ReplicaAwareTransaction for ds[{}] RO(curr/def)[{}/{}] propag[{}]", dsId, currTransRO, definitionRO, definitionProp, new Exception("Created at"));

@@ -27,5 +27,10 @@ export class Carrello {
   //detail of intestatario
   versante: Person;
   tipoCarrello: string;
+  dovutiEntiSecondari: any;
+
+  //used to verify email for anonymous
+  mailValidationToken: string;
+
   backUrlInviaEsito: string;
 }

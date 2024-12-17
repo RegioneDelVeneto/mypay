@@ -29,9 +29,9 @@ import {
     MypSearchChipsComponent
 } from 'projects/mypay4-fe-common/src/lib/components/myp-search-chips/myp-search-chips.component';
 import {
-    ApiInvokerService, CodeLabel, DateValidators, Ente, manageError, OverlaySpinnerService,
-    PageStateService, PaginatorData, PATTERNS, SearchFilterDef, TableAction, TableColumn,
-    TipoDovuto, validateFormFun, WithTitle
+    ApiInvokerService, CodeLabel, DateValidators, Ente, manageError, numberToFormattedAmount,
+    OverlaySpinnerService, PageStateService, PaginatorData, PATTERNS, SearchFilterDef, TableAction,
+    TableColumn, TipoDovuto, validateFormFun, WithTitle, YesNoPipe
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Observable, of, Subscription } from 'rxjs';
 import { first, map, startWith } from 'rxjs/operators';
@@ -125,6 +125,7 @@ export class DovutiComponent implements OnInit, OnDestroy, WithTitle {
 
     this.allStatesMap.set('searchTypeDebiti',[
       new CodeLabel('tutti', 'Tutti'),
+      new CodeLabel('predisposto', 'Predisposto'),
       new CodeLabel('daPagare', 'Da pagare'),
       new CodeLabel('pagamentoIniziato', 'Pagamento iniziato'),
       new CodeLabel('scaduto', 'Scaduto')
@@ -285,7 +286,6 @@ export class DovutiComponent implements OnInit, OnDestroy, WithTitle {
   form: FormGroup;
   formErrors = {};
   private formChangesSub:Subscription;
-
   tableColumns: TableColumn[] = [
     new TableColumn('codFiscale', 'Codice Fiscale/Partita IVA'),
     //new TableColumn('iud', 'IUD'),
@@ -294,6 +294,7 @@ export class DovutiComponent implements OnInit, OnDestroy, WithTitle {
     new TableColumn('importo','Importo', { sortable: (item: Dovuto) => Number(item.importo?.replace(',','.')), pipe: CurrencyPipe, pipeArgs:['EUR', 'symbol'] } ),
     new TableColumn('dataScadenza', 'Data scadenza', { sortable: (item: Dovuto) => item.dataScadenza?.valueOf(), pipe: DatePipe, pipeArgs: ['dd/MM/yyyy'] } ),
     new TableColumn('stato', 'Stato', { pipe: TitleCasePipe} ),
+    new TableColumn('flgMultibeneficiario', 'Multi beneficiario', {sortable: false, pipe: YesNoPipe}),
     new TableColumn('dataStato', 'Data cambio stato', { sortable: (item: Dovuto) => item.dataStato?.valueOf(), pipe: DatePipe, pipeArgs: ['dd/MM/yyyy HH:mm:ss'] } ),
     new TableColumn('rowActions', 'Azioni', { sortable: false, tooltip: 'Azioni', actions: [
       new TableAction(this.inconSearch, this.gotoDetails, this.gotoDetailsEnabled, 'Visualizza dettaglio'),
@@ -362,6 +363,11 @@ export class DovutiComponent implements OnInit, OnDestroy, WithTitle {
     if(thisRef.lastSearchType==='searchTypeDebiti'){
       return thisRef.dovutoService.getDetailDebitoOperatore(thisRef.enteService.getCurrentEnte(), element.id)
         .pipe(map(dovuto => {
+          //console.log("getDetailDebitoOperatore: ", dovuto);
+          if(!dovuto){
+            thisRef.toastrService.warning('Il dovuto non è presente nel sistema (verificare che non sia passato nell\'archivio).' );
+            return;
+          }
           element.details = [
             {key:'Tipo dovuto', value:dovuto.tipoDovuto?.deTipo},
             {key:'Causale', value:dovuto.causaleToShow},
@@ -375,10 +381,42 @@ export class DovutiComponent implements OnInit, OnDestroy, WithTitle {
             {key:'CAP', value:dovuto.cap},
             {key:'Nazione', value:dovuto.nazione?.nomeNazione},
             {key:'Provincia', value:dovuto.prov?.provincia},
-            {key:'Località', value:dovuto.comune?.comune},
+            {key:'Località', value:dovuto.comune?.comune}
           ];
+
+
+        if(dovuto.entePrimarioDetail != null) {
+          element.detailEntePrimario = [
+            {key:'Denomincazione Ente', value:dovuto.entePrimarioDetail?.denominazioneBeneficiario},
+            {key:'Codice Fiscale', value:dovuto.entePrimarioDetail?.codiceIdentificativoUnivoco},
+            {key:'IBAN addebito', value:dovuto.entePrimarioDetail?.ibanAddebito},
+            {key:'Indirizzo', value:dovuto.entePrimarioDetail?.indirizzoBeneficiario},
+            {key:'Civico', value:dovuto.entePrimarioDetail?.civicoBeneficiario},
+            {key:'CAP', value:dovuto.entePrimarioDetail?.capBeneficiario},
+            {key:'Nazione', value:dovuto.entePrimarioDetail?.nazioneBeneficiario},
+            {key:'Provincia', value:dovuto.entePrimarioDetail?.provinciaBeneficiario},
+            {key:'Località', value:dovuto.entePrimarioDetail?.localitaBeneficiario},
+            {key:'Importo', value:numberToFormattedAmount(dovuto.entePrimarioDetail?.importo)+' €'}
+          ]
+        }
+
+         if(dovuto.dovutoMultibeneficiario != null) {
+           element.detailMultiBeneficiario = [
+            {key:'Denomincazione Ente', value:dovuto.dovutoMultibeneficiario?.denominazioneBeneficiario},
+            {key:'Codice Fiscale', value:dovuto.dovutoMultibeneficiario?.codiceIdentificativoUnivoco},
+            {key:'IBAN addebito', value:dovuto.dovutoMultibeneficiario?.ibanAddebito},
+            {key:'Indirizzo', value:dovuto.dovutoMultibeneficiario?.indirizzoBeneficiario},
+            {key:'Civico', value:dovuto.dovutoMultibeneficiario?.civicoBeneficiario},
+            {key:'CAP', value:dovuto.dovutoMultibeneficiario?.capBeneficiario},
+            {key:'Nazione', value:dovuto.dovutoMultibeneficiario?.nazioneBeneficiario},
+            {key:'Provincia', value:dovuto.dovutoMultibeneficiario?.provinciaBeneficiario},
+            {key:'Località', value:dovuto.dovutoMultibeneficiario?.localitaBeneficiario},
+            {key:'Importo', value:numberToFormattedAmount(dovuto.dovutoMultibeneficiario?.importoSecondario)+' €'},
+           ]
+         }
         }));
     } else {
+
       element.details = [
         {key:'Tipo dovuto', value:element.tipoDovuto?.deTipo},
         {key:'Causale', value:element.causale},
@@ -391,6 +429,37 @@ export class DovutiComponent implements OnInit, OnDestroy, WithTitle {
         {key:'Intestatario', value:element.intestatario},
         {key:'PSP scelto', value:element.pspScelto},
       ];
+
+      if(element.entePrimarioElaboratoDetail != null) {
+        element.detailEntePrimario = [
+          {key:'Denomincazione Ente', value:element.entePrimarioElaboratoDetail?.denominazioneBeneficiario},
+          {key:'Codice Fiscale', value:element.entePrimarioElaboratoDetail?.codiceIdentificativoUnivoco},
+          {key:'IBAN addebito', value:element.entePrimarioElaboratoDetail?.ibanAddebito},
+          {key:'Indirizzo', value:element.entePrimarioElaboratoDetail?.indirizzoBeneficiario},
+          {key:'Civico', value:element.entePrimarioElaboratoDetail?.civicoBeneficiario},
+          {key:'CAP', value:element.entePrimarioElaboratoDetail?.capBeneficiario},
+          {key:'Nazione', value:element.entePrimarioElaboratoDetail?.nazioneBeneficiario},
+          {key:'Provincia', value:element.entePrimarioElaboratoDetail?.provinciaBeneficiario},
+          {key:'Località', value:element.entePrimarioElaboratoDetail?.localitaBeneficiario},
+          {key:'Importo', value:numberToFormattedAmount(element.entePrimarioElaboratoDetail?.importo)+' €'}
+        ]
+      }
+
+      if(element.dovutoMultibeneficiarioElaborato != null) {
+        element.detailMultiBeneficiario = [
+         {key:'Denomincazione Ente', value:element.dovutoMultibeneficiarioElaborato?.denominazioneBeneficiario},
+         {key:'Codice Fiscale', value:element.dovutoMultibeneficiarioElaborato?.codiceIdentificativoUnivoco},
+         {key:'IBAN addebito', value:element.dovutoMultibeneficiarioElaborato?.ibanAddebito},
+         {key:'Indirizzo', value:element.dovutoMultibeneficiarioElaborato?.indirizzoBeneficiario},
+         {key:'Civico', value:element.dovutoMultibeneficiarioElaborato?.civicoBeneficiario},
+         {key:'CAP', value:element.dovutoMultibeneficiarioElaborato?.capBeneficiario},
+         {key:'Nazione', value:element.dovutoMultibeneficiarioElaborato?.nazioneBeneficiario},
+         {key:'Provincia', value:element.dovutoMultibeneficiarioElaborato?.provinciaBeneficiario},
+         {key:'Località', value:element.dovutoMultibeneficiarioElaborato?.localitaBeneficiario},
+         {key:'Importo', value:numberToFormattedAmount(element.dovutoMultibeneficiarioElaborato?.importoSecondario)+' €'},
+        ]
+      }
+
       return of(null);
     }
 

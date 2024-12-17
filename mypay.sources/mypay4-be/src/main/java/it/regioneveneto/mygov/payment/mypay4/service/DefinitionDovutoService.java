@@ -139,7 +139,7 @@ public class DefinitionDovutoService {
             Invocable invocable = (Invocable) engine;
             String result = String.valueOf(invocable.invokeFunction(Constants.BILANCIO_DEFAULT_ESTRAI_IMPORTO, causale));
             Double resultDouble = Double.valueOf(result);
-            BigDecimal resultBigDecimal = new BigDecimal(resultDouble);
+            BigDecimal resultBigDecimal = BigDecimal.valueOf(resultDouble);
             String importoTotaleString = Utilities.parseImportoString(resultBigDecimal);
             String importoSenzaSeparatoreMigliaia = importoTotaleString.replaceAll("\\.", "");
             String importoConSeparatorePuntoDecimali = importoSenzaSeparatoreMigliaia.replaceAll(",", ".");
@@ -150,7 +150,7 @@ public class DefinitionDovutoService {
             String result = String.valueOf(
                 invocable.invokeFunction(Constants.BILANCIO_DEFAULT_CALCOLA_IMPORTO, importoTotale));
             Double resultDouble = Double.valueOf(result);
-            BigDecimal resultBigDecimal = new BigDecimal(resultDouble);
+            BigDecimal resultBigDecimal = BigDecimal.valueOf(resultDouble);
             String importoTotaleString = Utilities.parseImportoString(resultBigDecimal);
             String importoSenzaSeparatoreMigliaia = importoTotaleString.replaceAll("\\.", "");
             String importoConSeparatorePuntoDecimali = importoSenzaSeparatoreMigliaia.replaceAll(",", ".");
@@ -166,7 +166,7 @@ public class DefinitionDovutoService {
       marshaller.marshal(document, sw);
 
       bilancio = sw.toString();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       Scanner scanner = new Scanner(bilancio);
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();

@@ -19,7 +19,7 @@ package it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.mock;
 
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRT;
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRTRisposta;
-import gov.telematici.pagamenti.ws.ppthead.IntestazionePPT;
+import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciRT;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

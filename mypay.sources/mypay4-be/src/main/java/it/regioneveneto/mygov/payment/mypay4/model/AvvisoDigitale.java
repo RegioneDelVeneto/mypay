@@ -35,8 +35,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovAvvisoDigitaleId")
 public class AvvisoDigitale {
 
-  public final static String ALIAS = "AvvisoDigitale";
-  public final static String FIELDS = ""+ALIAS+".mygov_avviso_digitale_id as AvvisoDigitale_mygovAvvisoDigitaleId,"+ALIAS+".version as AvvisoDigitale_version"+
+  public static final String ALIAS = "AvvisoDigitale";
+  public static final String FIELDS = ""+ALIAS+".mygov_avviso_digitale_id as AvvisoDigitale_mygovAvvisoDigitaleId,"+ALIAS+".version as AvvisoDigitale_version"+
       ","+ALIAS+".cod_ad_id_dominio as AvvisoDigitale_codAdIdDominio"+
       ","+ALIAS+".de_ad_anag_beneficiario as AvvisoDigitale_deAdAnagBeneficiario"+
       ","+ALIAS+".cod_ad_id_messaggio_richiesta as AvvisoDigitale_codAdIdMessaggioRichiesta"+

@@ -40,10 +40,10 @@ public class RptRt extends BaseEntity {
   //   This special handling is due to località selected by select list nazione/provincia/comune and on list of comuni
   //   there are some values whose length > 35. The choice of 35 chars is due to max length of corresponding field
   //   on PagoPA api.
-  public final static int MAX_LENGTH_LOCALITA = 35;
+  public static final int MAX_LENGTH_LOCALITA = 35;
 
-  public final static String ALIAS = "FESP_RptRt";
-  public final static String FIELDS = ""+ALIAS+".mygov_rpt_rt_id as FESP_RptRt_mygovRptRtId,"+ALIAS+".version as FESP_RptRt_version"+
+  public static final String ALIAS = "FESP_RptRt";
+  public static final String FIELDS = ""+ALIAS+".mygov_rpt_rt_id as FESP_RptRt_mygovRptRtId,"+ALIAS+".version as FESP_RptRt_version"+
       ","+ALIAS+".mygov_carrello_rpt_id as FESP_RptRt_mygovCarrelloRptId,"+ALIAS+".cod_ack_rt as FESP_RptRt_codAckRt"+
       ","+ALIAS+".dt_creazione_rpt as FESP_RptRt_dtCreazioneRpt"+
       ","+ALIAS+".dt_ultima_modifica_rpt as FESP_RptRt_dtUltimaModificaRpt"+

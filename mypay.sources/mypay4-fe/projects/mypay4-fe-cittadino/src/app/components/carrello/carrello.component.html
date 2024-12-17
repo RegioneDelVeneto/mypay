@@ -105,7 +105,7 @@
     <ng-template #step1 let-stepper="stepper">
       <p class="mat-h3">
         <ng-container>In questa pagina si possono gestire i dovuti da pagare inseriti
-          all'interno del carrello e tramite il menu <b>Azioni</b>, cliccando sui tre puntini, si avranno a disposizione le
+          all'interno del carrello e tramite il menu <strong>Azioni</strong>, cliccando sui tre puntini, si avranno a disposizione le
           funzionalità per stampare l'avviso di pagamento o eliminare il dovuto dal carrello.</ng-container>
       </p>
       <form [formGroup]="formGroup">
@@ -127,8 +127,8 @@
           <mat-card-content>
             <div *ngIf="!logged" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
               <mat-form-field fxFlex="100%" fxFlex.gt-sm="25%" appearance="{{'appearance'|global}}">
-                <mat-label>Anagrafica</mat-label>
-                <input matInput required formControlName="versante_anagrafica" placeholder="Inserire nome e cognome">
+                <mat-label>{{anagraficaLabel}}</mat-label>
+                <input matInput required formControlName="versante_anagrafica" placeholder={{anagraficaPlaceholder}}>
                 <mat-error *ngIf="formErrors['versante_anagrafica']">{{ formErrors.versante_anagrafica }}</mat-error>
               </mat-form-field>
               <div fxFlex="100%" fxFlex.gt-sm="10em" fxLayout="column" class="tipo-persona-group">
@@ -310,7 +310,7 @@
                 app-confirm="Confermi di voler svuotare il carrello?" (clickConfirmed)="emptyCarrello()">Abbandona e svuota carrello</button>
               <div fxFlex></div>
               <button fxFlex.lt-md="100%" (click)="externalDownloadAvviso()" mat-flat-button color="accent">Stampa avviso pagamento</button>
-              <button fxFlex.lt-md="100%" [disabled]="formGroup.invalid" (click)="onDataInsert(stepper)" mat-flat-button color="accent">Avanti</button>
+              <button fxFlex.lt-md="100%" [disabled]="formGroup.invalid" (click)="onImportUpdate(stepper)" mat-flat-button color="accent">Avanti</button>
             </div>
           </mat-card-actions>
           <mat-card-footer>
@@ -428,7 +428,7 @@
               app-confirm="Confermi di voler svuotare il carrello?" (clickConfirmed)="emptyCarrello()">Abbandona e svuota carrello</button>
             <div fxFlex></div>
             <button fxFlex.lt-md="100%" mat-flat-button (click)="onBackToDataInsert(stepper)" color="accent">Indietro</button>
-            <button fxFlex.lt-md="100%" (click)="checkout()" mat-flat-button color="accent">Procedi con il pagamento online</button>
+            <button [disabled]="disablePayButton" fxFlex.lt-md="100%" (click)="checkout()" mat-flat-button color="accent">Procedi con il pagamento online</button>
           </div>
         </mat-card-actions>
         <mat-card-footer>
@@ -440,17 +440,14 @@
     <ng-template #step4 let-stepper="stepper">
       <h2 class="mat-h2 text-center">Stai per essere rediretto alla pagina del pagamento..</h2>
       <p class="text-center">Clicca <a [href]="paymentUrl">qui</a> se non vieni rediretto automaticamente entro pochi secondi.</p>
-      <!--div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
-        <div fxFlex></div>
-        <button fxFlex.lt-md="100%" matStepperPrevious mat-flat-button color="accent">Indietro</button>
-      </div-->
     </ng-template>
 
     <div *ngIf="!empty" class="w100 mypay-search-form">
 
-      <ng-template [ngIf]="smallScreen" [ngIfElse]="bigScreen">
-        <mat-vertical-stepper (selectionChange)="onStepChange($event)" linear="true" #stepper>
-          <mat-step  label="Inserimento dati" [stepControl]="formGroup" [editable]="this.stepsInfo.dataInsert.editable" [completed]="this.stepsInfo.dataInsert.completed">
+      <ng-container [ngSwitch]="verticalStepper | async">
+
+        <mat-vertical-stepper *ngSwitchCase="true" (selectionChange)="onStepChange($event)" linear="true" #stepper>
+          <mat-step label="Inserimento dati" [stepControl]="formGroup" [editable]="this.stepsInfo.dataInsert.editable" [completed]="this.stepsInfo.dataInsert.completed">
             <ng-container *ngTemplateOutlet="step1; context: {stepper:stepper}"></ng-container>
           </mat-step>
           <mat-step *ngIf="!logged" label="Validazione mail" [editable]="this.stepsInfo.mailVerify.editable" [completed]="this.stepsInfo.mailVerify.completed">
@@ -459,7 +456,7 @@
           <mat-step label="Riepilogo" [editable]="this.stepsInfo.dataRecap.editable" [completed]="this.stepsInfo.dataRecap.completed">
             <ng-container *ngTemplateOutlet="step3; context: {stepper:stepper}"></ng-container>
           </mat-step>
-          <mat-step label="Pagamento" [editable]="this.stepsInfo.pay.editable" [comstep2pleted]="this.stepsInfo.pay.completed">
+          <mat-step label="Pagamento" [editable]="this.stepsInfo.pay.editable" [completed]="this.stepsInfo.pay.completed">
             <ng-container *ngTemplateOutlet="step4; context: {stepper:stepper}"></ng-container>
           </mat-step>
           <!-- Icon overrides. -->
@@ -467,10 +464,8 @@
             <fa-icon [icon]="stepsInfo.icons[index]"></fa-icon>
           </ng-template>
         </mat-vertical-stepper>
-      </ng-template>
 
-      <ng-template #bigScreen>
-        <mat-horizontal-stepper (selectionChange)="onStepChange($event)" linear="true" #stepper>
+        <mat-horizontal-stepper *ngSwitchCase="false" (selectionChange)="onStepChange($event)" linear="true" #stepper>
           <mat-step label="Inserimento dati" [stepControl]="formGroup" [editable]="this.stepsInfo.dataInsert.editable" [completed]="this.stepsInfo.dataInsert.completed">
             <ng-container *ngTemplateOutlet="step1; context: {stepper:stepper}"></ng-container>
           </mat-step>
@@ -488,8 +483,8 @@
             <fa-icon [icon]="stepsInfo.icons[index]"></fa-icon>
           </ng-template>
         </mat-horizontal-stepper>
-      </ng-template>
 
+      </ng-container>
     </div>
 
     <div *ngIf="empty">

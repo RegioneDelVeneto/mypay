@@ -18,9 +18,9 @@
 import { ToastrService } from 'ngx-toastr';
 import { CookieService, manageError, UserService } from 'projects/mypay4-fe-common/src/public-api';
 
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {
-    faFacebookSquare, faInstagramSquare, faTwitterSquare, faYoutubeSquare
+  faFacebookSquare, faInstagramSquare, faTwitterSquare, faYoutubeSquare
 } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope, faPhone } from '@fortawesome/free-solid-svg-icons';
 
@@ -29,7 +29,7 @@ import { faEnvelope, faPhone } from '@fortawesome/free-solid-svg-icons';
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss']
 })
-export class FooterComponent implements OnInit {
+export class FooterComponent {
 
   iconPhone = faPhone;
   iconEnvelope = faEnvelope;
@@ -42,10 +42,9 @@ export class FooterComponent implements OnInit {
   constructor(
     private userService: UserService,
     private toastr: ToastrService,
-    private cookieService: CookieService) { }
-
-  ngOnInit(): void {
-  }
+    private cookieService: CookieService,
+    //@Inject(DOCUMENT) private dom: Document,
+  ) { }
 
   showAppInfo(){
     this.userService.getAppInfoString().subscribe(appInfoString => {

@@ -31,7 +31,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -43,7 +42,6 @@ import javax.mail.util.ByteArrayDataSource;
 import javax.xml.ws.Holder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants.*;
@@ -52,10 +50,6 @@ import static it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants.*
 @Slf4j
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ChiediPagatiConRicevutaService {
-
-
-  @Value("${pa.identificativoStazioneIntermediarioPA}")
-  private String propIdStazioneIntermediarioPa;
 
   @Autowired
   private EnteService enteService;
@@ -73,9 +67,6 @@ public class ChiediPagatiConRicevutaService {
   private CarrelloService carrelloService;
 
   @Autowired
-  private GiornaleService giornaleService;
-
-  @Autowired
   private MessageSource messageSource;
 
   @Autowired
@@ -84,6 +75,9 @@ public class ChiediPagatiConRicevutaService {
   @Autowired
   private StorageService storageService;
 
+  @Autowired
+  private CarrelloMultiBeneficiarioService carrelloMultiBeneficiarioService;
+
   public void paaSILChiediPagatiConRicevuta(String codIpaEnte, String password, String idSession, String identificativoUnivocoVersamento, String identificativoUnivocoDovuto, Holder<FaultBean> fault, Holder<DataHandler> pagati, Holder<String> tipoFirma, Holder<DataHandler> rt) {
     log.info("Executing operation paaSILChiediPagatiConRicevuta");
 
@@ -91,11 +85,9 @@ public class ChiediPagatiConRicevutaService {
     if (ente == null) {
       log.error("paaSILChiediPagatiConRicevuta: Ente non valido: " + codIpaEnte);
 
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte,
           CODE_PAA_ENTE_NON_VALIDO, "codice IPA Ente [" + codIpaEnte + "] non valido o password errata",
           null);
-
-      fault.value = faultBean;
       return;
     }
 
@@ -103,10 +95,8 @@ public class ChiediPagatiConRicevutaService {
     if (!passwordValidaPerEnte) {
       log.error("paaSILChiediPagatiConRicevuta: Password non valida per ente: " + ente.getCodIpaEnte());
 
-      FaultBean faultBean = VerificationUtils.getFaultBean(ente.getCodIpaEnte(),
+      fault.value = VerificationUtils.getFaultBean(ente.getCodIpaEnte(),
           CODE_PAA_ENTE_NON_VALIDO, "Password non valida per ente [" + ente.getCodIpaEnte() + "]", null);
-
-      fault.value = faultBean;
       return;
     }
 
@@ -123,9 +113,8 @@ public class ChiediPagatiConRicevutaService {
     }
 
     if (listaParametri.size() > 1) {
-      FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR,
+      fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR,
           "Errore, è stato specificato più di un paramero tra idSession, identificativoUnivocoVersamento e identificativoUnivocoDovuto.");
-      fault.value = faultBean;
       return;
     }
 
@@ -133,7 +122,13 @@ public class ChiediPagatiConRicevutaService {
 
       PagatiConRicevuta pagatiConRicevutaDocument = null;
 
-      Carrello carrello = carrelloService.getByIdSession(idSession);
+      Carrello carrello;
+      var multiCart = carrelloMultiBeneficiarioService.getByIdSession(idSession);
+      if (multiCart.isPresent()) {
+        carrello = carrelloService.getByMultiBeneficarioId(multiCart.get().getMygovCarrelloMultiBeneficiarioId()).orElse(null);
+      } else {
+        carrello = carrelloService.getByIdSession(idSession);
+      }
 
       if (carrello == null) {
         FaultBean faultBean;
@@ -159,9 +154,8 @@ public class ChiediPagatiConRicevutaService {
 
       if (statoCarrello.equals(Constants.STATO_CARRELLO_NUOVO)
           || statoCarrello.equals(Constants.STATO_CARRELLO_PREDISPOSTO)) {
-        FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_NON_INIZIATO,
+        fault.value = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_NON_INIZIATO,
             "Pagamento non iniziato per idSession specificato [" + idSession + "]", null);
-        fault.value = faultBean;
         return;
       }
 
@@ -176,35 +170,6 @@ public class ChiediPagatiConRicevutaService {
         FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_ANNULLATO,
             "Pagamento annullato per idSession specificato [" + idSession + "]", null);
         fault.value = faultBean;
-
-        // LOG NEL GIORNALE DEGLI EVENTI - chiedi pagati
-        Date dataOraEvento = new Date();
-        String identificativoDominio = ente.getCodiceFiscaleEnte();
-        String identificativoUnivocoVersamentoGiornale = carrello.getCodRpDatiVersIdUnivocoVersamento() != null
-            ? carrello.getCodRpDatiVersIdUnivocoVersamento() : "";
-        String codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-            ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-        String identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp() != null
-            ? carrello.getCodRpSilinviarpIdPsp() : "";
-        String tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-        String componente = Constants.COMPONENTE_FESP;
-        String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-        String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-        String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-        String identificativoFruitore = Constants.SIL;
-        String identificativoErogatore = ente.getCodiceFiscaleEnte();
-        String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-        String canalePagamento = "";
-        String parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-            + " Pagamento annullato per idSession specificato [" + idSession + "]";
-        String esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-        giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-            identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-            identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-            tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-            identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
         return;
       }
 
@@ -213,35 +178,6 @@ public class ChiediPagatiConRicevutaService {
         FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_PAGAMENTO_SCADUTO,
             "Pagamento scaduto per idSession specificato [" + idSession + "]", null);
         fault.value = faultBean;
-
-        // LOG NEL GIORNALE DEGLI EVENTI - chiedi pagati
-        Date dataOraEvento = new Date();
-        String identificativoDominio = ente.getCodiceFiscaleEnte();
-        String identificativoUnivocoVersamentoGiornale = carrello.getCodRpDatiVersIdUnivocoVersamento() != null
-            ? carrello.getCodRpDatiVersIdUnivocoVersamento() : "";
-        String codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-            ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-        String identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp() != null
-            ? carrello.getCodRpSilinviarpIdPsp() : "";
-        String tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-        String componente = Constants.COMPONENTE_FESP;
-        String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-        String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-        String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-        String identificativoFruitore = Constants.SIL;
-        String identificativoErogatore = ente.getCodiceFiscaleEnte();
-        String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-        String canalePagamento = "";
-        String parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-            + " Pagamento scaduto per idSession specificato [" + idSession + "]";
-        String esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-        giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-            identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-            identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-            tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-            identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
         return;
       }
 
@@ -286,33 +222,6 @@ public class ChiediPagatiConRicevutaService {
           throw new RuntimeException(
               "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
         }
-
-        // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi pagati
-        Date dataOraEvento = new Date();
-        String identificativoDominio = ente.getCodiceFiscaleEnte();
-        String identificativoUnivocoVersamentoGiornale = carrello.getCodRpDatiVersIdUnivocoVersamento();
-        String codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-            ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-        String identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-        String tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-        String componente = Constants.COMPONENTE_FESP;
-        String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-        String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-        String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-        String identificativoFruitore = Constants.SIL;
-        String identificativoErogatore = ente.getCodiceFiscaleEnte();
-        String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-        String canalePagamento = "";
-        String parametriSpecificiInterfaccia = pagatiConRicevutaString;
-        String esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-        giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-            identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-            identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-            tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-            identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-            esito);
-
         return;
       } else {
         FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR,
@@ -321,30 +230,6 @@ public class ChiediPagatiConRicevutaService {
         return;
       }
     } else if (StringUtils.isNotBlank(identificativoUnivocoVersamento)) {
-      // LOG giornale degli eventi
-      Date dataOraEvento = new Date();
-      String identificativoDominio = ente.getCodiceFiscaleEnte();
-      String identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-      String codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-      String identificativoPrestatoreServiziPagamento = "";
-      String tipoVersamento = "";
-      String componente = Constants.COMPONENTE_FESP;
-      String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-      String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-      String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString();
-      String identificativoFruitore = Constants.SIL;
-      String identificativoErogatore = ente.getCodiceFiscaleEnte();
-      String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-      String canalePagamento = "";
-      String parametriSpecificiInterfaccia = "Parametri di input ente [ " + ente.getCodIpaEnte() + " ], IUV [ "
-          + identificativoUnivocoVersamento + " ]";
-      String esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-      giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-          identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-          identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento, tipoEvento,
-          sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-          identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
 
       List<Dovuto> listaDovutiPagabili = dovutoService.getByIuvEnte(identificativoUnivocoVersamento, ente.getCodIpaEnte());
       if (CollectionUtils.isEmpty(listaDovutiPagabili)) {
@@ -362,33 +247,6 @@ public class ChiediPagatiConRicevutaService {
                       + identificativoUnivocoVersamento + "]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-              codiceContestoPagamento = dovutoElaborato.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = dovutoElaborato.getCodRpSilinviarpIdPsp();
-              tipoVersamento = dovutoElaborato.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-                  + " Pagamento scaduto per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-                  + identificativoUnivocoVersamento + "]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // ABORTITO
@@ -398,33 +256,6 @@ public class ChiediPagatiConRicevutaService {
                   "Pagamento abortito per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
                       + identificativoUnivocoVersamento + "]", null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-              codiceContestoPagamento = dovutoElaborato.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = dovutoElaborato.getCodRpSilinviarpIdPsp();
-              tipoVersamento = dovutoElaborato.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-                  + " Pagamento abortito per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-                  + identificativoUnivocoVersamento + "]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // RT PRESENTE
@@ -475,35 +306,6 @@ public class ChiediPagatiConRicevutaService {
                 throw new RuntimeException(
                     "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
               }
-
-              // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi
-              // pagati
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = carrello
-                  .getCodRpDatiVersIdUnivocoVersamento();
-              codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-                  ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-              identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-              tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = pagatiConRicevutaString;
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
           } else if (listaDovutiElaborati.size() > 1 && listaDovutiElaborati.size() <= 5
@@ -521,33 +323,6 @@ public class ChiediPagatiConRicevutaService {
                       + identificativoUnivocoVersamento + "]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-              codiceContestoPagamento = carrello.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-              tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-                  + " Carrello scaduto per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-                  + identificativoUnivocoVersamento + "]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // ABORTITO
@@ -558,33 +333,6 @@ public class ChiediPagatiConRicevutaService {
                       + identificativoUnivocoVersamento + "]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-              codiceContestoPagamento = carrello.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-              tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-                  + " Carrello abortito per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-                  + identificativoUnivocoVersamento + "]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // RT PRESENTE
@@ -633,35 +381,6 @@ public class ChiediPagatiConRicevutaService {
                 throw new RuntimeException(
                     "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
               }
-
-              // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi
-              // pagati
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = carrello
-                  .getCodRpDatiVersIdUnivocoVersamento();
-              codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-                  ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-              identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-              tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = pagatiConRicevutaString;
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
           } else if (listaDovutiElaborati.size() > 1 && !DovutoUtils.isAllDovutiElaboratiNelloStessoCarrello(listaDovutiElaborati)) {
@@ -682,33 +401,6 @@ public class ChiediPagatiConRicevutaService {
                         + identificativoUnivocoVersamento + "]",
                     null);
                 fault.value = faultBean;
-
-                dataOraEvento = new Date();
-                identificativoDominio = ente.getCodiceFiscaleEnte();
-                identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-                codiceContestoPagamento = carrello.getCodRpSilinviarpCodiceContestoPagamento();
-                identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-                tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-                componente = Constants.COMPONENTE_FESP;
-                categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-                tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-                sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-                identificativoFruitore = Constants.SIL;
-                identificativoErogatore = ente.getCodiceFiscaleEnte();
-                identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-                canalePagamento = "";
-                parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-                    + " Carrello scaduto per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-                    + identificativoUnivocoVersamento + "]";
-                esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-                giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                    identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                    identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                    categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                    identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                    parametriSpecificiInterfaccia, esito);
-
                 return;
               }
               // ABORTITO
@@ -719,33 +411,6 @@ public class ChiediPagatiConRicevutaService {
                         + identificativoUnivocoVersamento + "]",
                     null);
                 fault.value = faultBean;
-
-                dataOraEvento = new Date();
-                identificativoDominio = ente.getCodiceFiscaleEnte();
-                identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-                codiceContestoPagamento = carrello.getCodRpSilinviarpCodiceContestoPagamento();
-                identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-                tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-                componente = Constants.COMPONENTE_FESP;
-                categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-                tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-                sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-                identificativoFruitore = Constants.SIL;
-                identificativoErogatore = ente.getCodiceFiscaleEnte();
-                identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-                canalePagamento = "";
-                parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-                    + " Carrello abortito per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-                    + identificativoUnivocoVersamento + "]";
-                esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-                giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                    identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                    identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                    categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                    identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                    parametriSpecificiInterfaccia, esito);
-
                 return;
               }
               // RT PRESENTE
@@ -795,35 +460,6 @@ public class ChiediPagatiConRicevutaService {
                   throw new RuntimeException(
                       "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
                 }
-
-                // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi
-                // pagati
-                dataOraEvento = new Date();
-                identificativoDominio = ente.getCodiceFiscaleEnte();
-                identificativoUnivocoVersamentoGiornale = carrello
-                    .getCodRpDatiVersIdUnivocoVersamento();
-                codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-                    ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-                identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-                tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-                componente = Constants.COMPONENTE_FESP;
-                categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-                tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-                sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-                identificativoFruitore = Constants.SIL;
-                identificativoErogatore = ente.getCodiceFiscaleEnte();
-                identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-                canalePagamento = "";
-                parametriSpecificiInterfaccia = pagatiConRicevutaString;
-                esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-                giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                    identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                    identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                    categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                    identificativoErogatore, identificativoStazioneIntermediarioPa,
-                    canalePagamento, parametriSpecificiInterfaccia, esito);
-
                 return;
               }
             } else {
@@ -840,32 +476,6 @@ public class ChiediPagatiConRicevutaService {
           FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_IUV_NON_VALIDO,
               "IUV non valido per ente [ " + ente.getCodIpaEnte() + " ]", null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_IUV_NON_VALIDO + " IUV non valido per ente [ "
-              + ente.getCodIpaEnte() + " ]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         }
       } else {
@@ -878,7 +488,7 @@ public class ChiediPagatiConRicevutaService {
             || anagraficaStato.getCodStato().equals(Constants.STATO_DOVUTO_PREDISPOSTO))) {
 
           // verifica flag (se true) e data scaduta torna scaduto
-          EnteTipoDovuto etd = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), codIpaEnte, false).get();
+          EnteTipoDovuto etd = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), codIpaEnte, false).orElseThrow();
 
           if (etd.isFlgScadenzaObbligatoria()) {
             LocalDate dataScadenza = new LocalDate(dovuto.getDtRpDatiVersDataEsecuzionePagamento());
@@ -897,33 +507,6 @@ public class ChiediPagatiConRicevutaService {
                   + identificativoUnivocoVersamento + "]",
               null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_NON_INIZIATO
-              + " Pagamento non iniziato per per ente [ " + ente.getCodIpaEnte() + " ], IUV ["
-              + identificativoUnivocoVersamento + "]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         } else if (anagraficaStato.getDeTipoStato().equals(Constants.STATO_TIPO_DOVUTO)
             && anagraficaStato.getCodStato().equals(Constants.STATO_DOVUTO_SCADUTO)) {
@@ -933,32 +516,6 @@ public class ChiediPagatiConRicevutaService {
                   + identificativoUnivocoVersamento + "]",
               null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO + " Pagamento scaduto per per ente [ "
-              + ente.getCodIpaEnte() + " ], IUV [" + identificativoUnivocoVersamento + "]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         } else if (anagraficaStato.getDeTipoStato().equals(Constants.STATO_TIPO_DOVUTO)
             && anagraficaStato.getCodStato().equals(Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO)) {
@@ -968,93 +525,16 @@ public class ChiediPagatiConRicevutaService {
                   + identificativoUnivocoVersamento + "]",
               null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_IN_CORSO + " Pagamento in corso per per ente [ "
-              + ente.getCodIpaEnte() + " ], IUV [" + identificativoUnivocoVersamento + "]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         } else {
           // altri stati con dovuto nella tabella mygov_dovuto
           FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR, "Errore interno per ente [ " + ente.getCodIpaEnte()
                   + " ], IUV [ " + identificativoUnivocoVersamento + " ]");
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = identificativoUnivocoVersamento;
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_SYSTEM_ERROR
-              + " Errore interno per per ente [ " + ente.getCodIpaEnte() + " ], IUV [" + identificativoUnivocoVersamento + "]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         }
       }
     } else if (StringUtils.isNotBlank(identificativoUnivocoDovuto)) {
-      // LOG giornale degli eventi
-      Date dataOraEvento = new Date();
-      String identificativoDominio = ente.getCodiceFiscaleEnte();
-      String identificativoUnivocoVersamentoGiornale = "";
-      String codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-      String identificativoPrestatoreServiziPagamento = "";
-      String tipoVersamento = "";
-      String componente = Constants.COMPONENTE_FESP;
-      String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-      String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-      String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString();
-      String identificativoFruitore = Constants.SIL;
-      String identificativoErogatore = ente.getCodiceFiscaleEnte();
-      String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-      String canalePagamento = "";
-      String parametriSpecificiInterfaccia = "Parametri di input ente [ " + ente.getCodIpaEnte() + " ], IUD [ "
-          + identificativoUnivocoDovuto + " ]";
-      String esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-      giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-          identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-          identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento, tipoEvento,
-          sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-          identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
       Dovuto dovuto = dovutoService.getByIudEnte(identificativoUnivocoDovuto, ente.getCodIpaEnte());
       if (dovuto != null) {
         AnagraficaStato anagraficaStato = dovuto.getMygovAnagraficaStatoId();
@@ -1065,7 +545,7 @@ public class ChiediPagatiConRicevutaService {
 
           //verifica flag (se true) e data torna scaduto
 
-          EnteTipoDovuto etd = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), codIpaEnte, false).get();
+          EnteTipoDovuto etd = enteTipoDovutoService.getOptionalByCodTipo(dovuto.getCodTipoDovuto(), codIpaEnte, false).orElseThrow();
 
           if (etd.isFlgScadenzaObbligatoria()) {
             LocalDate dataScadenza = new LocalDate(dovuto.getDtRpDatiVersDataEsecuzionePagamento());
@@ -1083,33 +563,6 @@ public class ChiediPagatiConRicevutaService {
                   CODE_PAA_PAGAMENTO_NON_INIZIATO, "Pagamento non iniziato per ente [ "
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]", null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = "";
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_NON_INIZIATO
-              + " Pagamento non iniziato per per ente [ " + ente.getCodIpaEnte() + " ], IUD [ "
-              + identificativoUnivocoDovuto + " ]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         } else if (anagraficaStato.getDeTipoStato().equals(Constants.STATO_TIPO_DOVUTO)
             && anagraficaStato.getCodStato().equals(Constants.STATO_DOVUTO_SCADUTO)) {
@@ -1118,32 +571,6 @@ public class ChiediPagatiConRicevutaService {
                   codIpaEnte, CODE_PAA_PAGAMENTO_SCADUTO, "Pagamento scaduto per ente [ "
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]", null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = "";
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO + " Pagamento scaduto per per ente [ "
-              + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         } else if (anagraficaStato.getDeTipoStato().equals(Constants.STATO_TIPO_DOVUTO)
             && anagraficaStato.getCodStato().equals(Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO)) {
@@ -1152,64 +579,12 @@ public class ChiediPagatiConRicevutaService {
                   codIpaEnte, CODE_PAA_PAGAMENTO_IN_CORSO, "Pagamento in corso per ente [ "
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]", null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = "";
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_IN_CORSO + " Pagamento in corso per per ente [ "
-              + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         } else {
           // altri stati con dovuto nella tabella mygov_dovuto
           FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_SYSTEM_ERROR, DESC_PAA_SYSTEM_ERROR, "Errore interno per ente [ " + ente.getCodIpaEnte()
                   + " ], IUD [ " + identificativoUnivocoDovuto + " ]");
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = "";
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_SYSTEM_ERROR
-              + " Errore interno per per ente [ " + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]";
-          esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         }
       } else {
@@ -1226,33 +601,6 @@ public class ChiediPagatiConRicevutaService {
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = "";
-              codiceContestoPagamento = dovutoElaborato.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = dovutoElaborato.getCodRpSilinviarpIdPsp();
-              tipoVersamento = dovutoElaborato.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-                  + " Pagamento scaduto per per ente [ " + ente.getCodIpaEnte() + " ], IUD [ "
-                  + identificativoUnivocoDovuto + " ]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // ABORTITO
@@ -1263,33 +611,6 @@ public class ChiediPagatiConRicevutaService {
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = "";
-              codiceContestoPagamento = dovutoElaborato.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = dovutoElaborato.getCodRpSilinviarpIdPsp();
-              tipoVersamento = dovutoElaborato.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-                  + " Pagamento abortito per per ente [ " + ente.getCodIpaEnte() + " ], IUD [ "
-                  + identificativoUnivocoDovuto + " ]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // RT PRESENTE
@@ -1340,35 +661,6 @@ public class ChiediPagatiConRicevutaService {
                 throw new RuntimeException(
                     "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
               }
-
-              // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi
-              // pagati
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = carrello
-                  .getCodRpDatiVersIdUnivocoVersamento();
-              codiceContestoPagamento = carrello.getCodRpDatiVersCodiceContestoPagamento() != null
-                  ? carrello.getCodRpDatiVersCodiceContestoPagamento() : "";
-              identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-              tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = pagatiConRicevutaString;
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
           } else {
@@ -1384,33 +676,6 @@ public class ChiediPagatiConRicevutaService {
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = "";
-              codiceContestoPagamento = dovutoElaborato.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = dovutoElaborato.getCodRpSilinviarpIdPsp();
-              tipoVersamento = dovutoElaborato.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_SCADUTO
-                  + " Pagamento scaduto per per ente [ " + ente.getCodIpaEnte() + " ], IUD [ "
-                  + identificativoUnivocoDovuto + " ]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // ABORTITO
@@ -1421,33 +686,6 @@ public class ChiediPagatiConRicevutaService {
                       + ente.getCodIpaEnte() + " ], IUD [ " + identificativoUnivocoDovuto + " ]",
                   null);
               fault.value = faultBean;
-
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = "";
-              codiceContestoPagamento = dovutoElaborato.getCodRpSilinviarpCodiceContestoPagamento();
-              identificativoPrestatoreServiziPagamento = dovutoElaborato.getCodRpSilinviarpIdPsp();
-              tipoVersamento = dovutoElaborato.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = CODE_PAA_PAGAMENTO_ANNULLATO
-                  + " Pagamento abortito per per ente [ " + ente.getCodIpaEnte() + " ], IUD [ "
-                  + identificativoUnivocoDovuto + " ]";
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
             // RT PRESENTE
@@ -1491,41 +729,12 @@ public class ChiediPagatiConRicevutaService {
                 DataHandler rtValue = new DataHandler(new ByteArrayDataSource(
                     pagato.getBlbRtPayload(), "application/octet-stream"));
                 rt.value = rtValue;
-
               } else {
                 log.error(
                     "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
                 throw new RuntimeException(
                     "paaSILChiediPagatiConRicevuta error listaDovuti non contiene alcun dovuto elaborato.");
               }
-
-              // 1) LOG NEL GIORNALE DEGLI EVENTI - chiedi
-              // pagati
-              dataOraEvento = new Date();
-              identificativoDominio = ente.getCodiceFiscaleEnte();
-              identificativoUnivocoVersamentoGiornale = carrello
-                  .getCodRpDatiVersIdUnivocoVersamento();
-              codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-              identificativoPrestatoreServiziPagamento = carrello.getCodRpSilinviarpIdPsp();
-              tipoVersamento = carrello.getCodRpDatiVersTipoVersamento();
-              componente = Constants.COMPONENTE_FESP;
-              categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-              tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-              sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-              identificativoFruitore = Constants.SIL;
-              identificativoErogatore = ente.getCodiceFiscaleEnte();
-              identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-              canalePagamento = "";
-              parametriSpecificiInterfaccia = pagatiConRicevutaString;
-              esito = Constants.GIORNALE_ESITO_EVENTO.OK.toString();
-
-              giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-                  identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-                  identificativoPrestatoreServiziPagamento, tipoVersamento, componente,
-                  categoriaEvento, tipoEvento, sottoTipoEvento, identificativoFruitore,
-                  identificativoErogatore, identificativoStazioneIntermediarioPa, canalePagamento,
-                  parametriSpecificiInterfaccia, esito);
-
               return;
             }
           }
@@ -1533,32 +742,6 @@ public class ChiediPagatiConRicevutaService {
           FaultBean faultBean = VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_IUD_NON_VALIDO,
               "IUD non valido per ente [ " + ente.getCodIpaEnte() + " ].", null);
           fault.value = faultBean;
-
-          dataOraEvento = new Date();
-          identificativoDominio = ente.getCodiceFiscaleEnte();
-          identificativoUnivocoVersamentoGiornale = "";
-          codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-          identificativoPrestatoreServiziPagamento = "";
-          tipoVersamento = "";
-          componente = Constants.COMPONENTE_FESP;
-          categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-          tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-          sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-          identificativoFruitore = Constants.SIL;
-          identificativoErogatore = ente.getCodiceFiscaleEnte();
-          identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-          canalePagamento = "";
-          parametriSpecificiInterfaccia = CODE_PAA_IUD_NON_VALIDO + " IUD non valido per ente [ "
-              + ente.getCodIpaEnte() + " ].";
-          esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-          giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-              identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-              identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento,
-              tipoEvento, sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-              identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia,
-              esito);
-
           return;
         }
       }
@@ -1567,32 +750,6 @@ public class ChiediPagatiConRicevutaService {
           "Nessun campo di input (idSession, identificativoUnivocoVersamento, identificativoUnivocoDovuto) valorizzato per ente [ "
               + ente.getCodIpaEnte() + " ].");
       fault.value = faultBean;
-
-      Date dataOraEvento = new Date();
-      String identificativoDominio = ente.getCodiceFiscaleEnte();
-      String identificativoUnivocoVersamentoGiornale = "";
-      String codiceContestoPagamento = Constants.CODICE_CONTESTO_PAGAMENTO_NA;
-      String identificativoPrestatoreServiziPagamento = "";
-      String tipoVersamento = "";
-      String componente = Constants.COMPONENTE_FESP;
-      String categoriaEvento = Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString();
-      String tipoEvento = Constants.GIORNALE_TIPO_EVENTO_PA.paaSILChiediPagatiConRicevuta.toString();
-      String sottoTipoEvento = Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString();
-      String identificativoFruitore = Constants.SIL;
-      String identificativoErogatore = ente.getCodiceFiscaleEnte();
-      String identificativoStazioneIntermediarioPa = propIdStazioneIntermediarioPa;
-      String canalePagamento = "";
-      String parametriSpecificiInterfaccia = CODE_PAA_SYSTEM_ERROR
-          + " Nessun campo di input (idSession, identificativoUnivocoVersamento, identificativoUnivocoDovuto) valorizzato per ente [ "
-          + ente.getCodIpaEnte() + " ].";
-      String esito = Constants.GIORNALE_ESITO_EVENTO.KO.toString();
-
-      giornaleService.registraEvento(dataOraEvento, identificativoDominio,
-          identificativoUnivocoVersamentoGiornale, codiceContestoPagamento,
-          identificativoPrestatoreServiziPagamento, tipoVersamento, componente, categoriaEvento, tipoEvento,
-          sottoTipoEvento, identificativoFruitore, identificativoErogatore,
-          identificativoStazioneIntermediarioPa, canalePagamento, parametriSpecificiInterfaccia, esito);
-
       return;
     }
   }

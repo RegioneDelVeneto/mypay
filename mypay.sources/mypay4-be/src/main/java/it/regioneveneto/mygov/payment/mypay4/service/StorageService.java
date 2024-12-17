@@ -30,6 +30,7 @@ public class StorageService {
 
   public static final String ANONYMOUS = "__ANONYMOUS__";
   public static final String WS_USER = "__WS_USER__";
+  public static final String ADMIN_USER = "__ADMIN_USER__";
 
   @Value("${upload.max-size-MiB:1}")
   private int maxUploadSizeMib;
@@ -40,11 +41,11 @@ public class StorageService {
   @Autowired
   private ContentStorage contentStorage;
 
-  private long _maxSizeBytes;
+  private long maxSizeBytes;
   public long getMaxSizeBytes(){
-    if(_maxSizeBytes==0)
-      _maxSizeBytes = maxUploadSizeMib*1024*1024;
-    return _maxSizeBytes;
+    if(maxSizeBytes ==0)
+      maxSizeBytes = maxUploadSizeMib*1024*1024l;
+    return maxSizeBytes;
   }
 
   public ContentStorage.StorageToken putFile(String username, byte[] content){
@@ -69,7 +70,7 @@ public class StorageService {
 
   public ContentStorage.StorageToken putObject(String username, Object content){
     if(content==null)
-      throw new IllegalArgumentException("content is "+(content==null?"null":"empty"));
+      throw new IllegalArgumentException("content is null");
     ContentStorage.StorageToken storageToken = contentStorage.newUploadToken(username);
     contentStorage.putObject(storageToken, content);
     return storageToken;
@@ -77,7 +78,7 @@ public class StorageService {
 
   public ContentStorage.StorageToken putObject(String username, String tokenId, Object content){
     if(content==null)
-      throw new IllegalArgumentException("content is "+(content==null?"null":"empty"));
+      throw new IllegalArgumentException("content is null");
     ContentStorage.StorageToken storageToken = contentStorage.getUploadToken(username, tokenId);
     contentStorage.putObject(storageToken, content);
     return storageToken;
@@ -93,8 +94,13 @@ public class StorageService {
     return Optional.ofNullable(objectAsString);
   }
 
+  public boolean isTokenWithTimestampExpired(String tokenId, long graceTimeSeconds){
+    return Utilities.parseDateFromUUIDWithTimestamp(tokenId).map(uuidDate -> System.currentTimeMillis() - uuidDate.getTime() > (cacheExpirationSeconds + graceTimeSeconds)*1000).orElse(false);
+  }
+
   public boolean isTokenWithTimestampExpired(String tokenId){
-    return Utilities.parseDateFromUUIDWithTimestamp(tokenId).map(uuidDate -> System.currentTimeMillis() - uuidDate.getTime() > cacheExpirationSeconds*1000).orElse(false);
+    //use default grace time of 5 minutes (i.e. time after cache expired but not considering item expired)
+    return isTokenWithTimestampExpired(tokenId, 300);
   }
 
 }

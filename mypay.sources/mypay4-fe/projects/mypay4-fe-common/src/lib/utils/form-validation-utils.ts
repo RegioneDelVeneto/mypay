@@ -28,6 +28,7 @@ const __formValidationMessages = {
   'email': 'Email non valida',
   'matDatepickerParse': 'Data non valida',
   'dateRange': '"Data a" precede "Data da"',
+  'dateRangeMonth': 'Intervallo massimo di estrazione pari ad 1 mese',
   'matDatepickerParseRangeFrom': '"Data da" non valida',
   'matDatepickerParseRangeTo': '"Data a" non valida',
   'requiredRangeFrom': '"Data da" obbligatoria',

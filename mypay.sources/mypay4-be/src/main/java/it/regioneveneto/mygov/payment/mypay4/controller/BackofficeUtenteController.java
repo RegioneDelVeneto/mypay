@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class BackofficeUtenteController {
 
-  private final static String AUTHENTICATED_PATH ="admin/utenti";
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="admin/utenti";
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
   @Value("${pa.adminEnte.editUser.enabled:false}")
   private boolean adminEnteEditUserEnabled;
@@ -113,7 +113,7 @@ public class BackofficeUtenteController {
     Optional<OperatoreTo> operatoreTo = operatoreService.getOperatoreDetails(id);
     if(!user.isSysAdmin()) {
       Predicate<EnteRolesTo> filterNoMatch = e -> !enteService.getCodIpaEntiForAdminEnte(user).contains(e.getCodIpaEnte());
-      operatoreTo.map(OperatoreTo::getFullEntiRoles).stream().peek(list -> list.removeIf(filterNoMatch));
+      operatoreTo.map(OperatoreTo::getFullEntiRoles).stream().forEach(list -> list.removeIf(filterNoMatch));
     }
     return operatoreTo.orElseThrow(NotFoundException::new);
   }

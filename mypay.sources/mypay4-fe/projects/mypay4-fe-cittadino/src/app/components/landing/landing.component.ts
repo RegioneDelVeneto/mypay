@@ -17,11 +17,11 @@
  */
 import { ToastrService } from 'ngx-toastr';
 import {
-    ConfirmDialogComponent
+  ConfirmDialogComponent
 } from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
 import {
-    BaseUrlService, Ente, manageError, OverlaySpinnerService, StorageService, TipoDovuto,
-    UserService
+  BaseUrlService, Ente, manageError, OverlaySpinnerService, StorageService, TipoDovuto,
+  UserService
 } from 'projects/mypay4-fe-common/src/public-api';
 import { combineLatest, forkJoin, of } from 'rxjs';
 import { first, map } from 'rxjs/operators';
@@ -76,6 +76,12 @@ export class LandingComponent implements OnInit {
         //add items to carrello
         const mapTipoDovuto = new Map<string, TipoDovuto[]>();
 
+        // check if exsist dovutiEntiSecondari
+        if(carrello.dovutiEntiSecondari != null) {
+          // sum importoSingoloVersamento in the total amount of dovuto
+          carrello.items[0].importo = carrello.items[0].importo + Number(carrello.dovutiEntiSecondari.datiVersamentoEntiSecondari.importoSingoloVersamento);
+        }
+
         forkJoin(carrello.items.map(item => {
           const ente: Ente = enti.find(ente => ente.codIpaEnte === item.codIpaEnte);
           item.deEnte = ente.deNomeEnte;
@@ -87,18 +93,20 @@ export class LandingComponent implements OnInit {
               item.deTipoDovuto = tipoDovuto.deTipo;
               this.carrelloService.add(item);
             }));
+        //navigate to carrello
         })).subscribe( () => this.router.navigate(['carrello'],{state: {
           versante: carrello.versante,
           idSession: carrello.idSession,
           backUrl: carrello.backUrlInviaEsito,
-          tipoCarrello: carrello.tipoCarrello }}) );
-
+          tipoCarrello: carrello.tipoCarrello,
+          dovutiEntiSecondari: carrello.dovutiEntiSecondari }}) );
       }, manageError("Errore processando il carrello", this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}))
 
     } else if(landingType === 'paymentReplica') {
 
       const basketId = this.route.snapshot.queryParamMap.get('id');
       const replicaType = this.route.snapshot.queryParamMap.get('type');
+      const skipPaymentReplicaToken = this.route.snapshot.queryParamMap.get('skipPaymentReplicaToken');
       let msg:string;
       if(replicaType === 'dovuto')
         msg = 'ATTENZIONE: hai un altro pagamento con la stessa causale in attesa dell\'esito. ' +
@@ -108,9 +116,9 @@ export class LandingComponent implements OnInit {
       msg += '\nConfermi di voler procedere con il pagamento?';
       this.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
       .afterClosed().pipe(first()).subscribe(result => {
-        console.log('redirecting to pagopa');
+        console.log('redirecting to payment');
         let redirectUrl = this.baseUrl.getBaseUrlApi()+'public/landing/inviaDovuti?id='+basketId
-          +'&overrideCheckReplicaPayments='+(result==='true' ? 'ok' : 'ko');
+          +'&overrideCheckReplicaPayments='+(result==='true' ? encodeURIComponent(skipPaymentReplicaToken) : 'ko');
         setTimeout(() => {
           console.log('redirecting to url: '+redirectUrl);
           window.location.href = redirectUrl;
@@ -155,6 +163,25 @@ export class LandingComponent implements OnInit {
       const callbackUrl = this.route.snapshot.queryParamMap.get('callbackUrl');
 
       this.router.navigate(['spontaneo']);
+
+    } else if(landingType === 'extAppSpontaneo') {
+
+      // remove header/footer/sidenav
+      const coreAppElements = new CoreAppElementsActivation();
+      coreAppElements.sidenav = false;
+      coreAppElements.header = false;
+      coreAppElements.footer = false;
+      this.coreAppService.setState(coreAppElements);
+
+      const extAppToken = this.route.snapshot.queryParamMap.get('extAppToken');
+      if(!extAppToken){
+        this.toastrService.error('Errore interno [extAppToken null]');
+        return;
+      }
+
+      setTimeout(() => {
+        this.router.navigate(['spontaneo'], {state: {extAppToken: extAppToken}});
+      }, 100);
 
     } else if(landingType === 'esitoPagamento') {
 

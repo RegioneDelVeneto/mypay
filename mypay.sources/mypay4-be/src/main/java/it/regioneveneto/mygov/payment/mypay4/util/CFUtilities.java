@@ -62,7 +62,7 @@ public class CFUtilities {
         strRetcode = "5";
       } // c.f. p.n.f. non contribuenti iva
 
-      if ((controlCfNum(p.substring(0, 11)) == false) && (strRetcode == "2")) {
+      if ((controlCfNum(p.substring(0, 11)) == false) && (strRetcode.equals("2"))) {
         strRetcode = "Q";
       } // check-digit errato
       else if (controlCfNum(p.substring(0, 11)) == false) {
@@ -313,7 +313,7 @@ public class CFUtilities {
       } catch (java.lang.RuntimeException exc) {
         return "L";
       }
-      if (strCfNum.substring(0, 7) == "0000000") // errore
+      if (strCfNum.substring(0, 7).equals("0000000")) // errore
       {
         return "M";
       }

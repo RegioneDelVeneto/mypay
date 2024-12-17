@@ -17,6 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.config;
 
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
 import it.regioneveneto.mygov.payment.mypay4.util.HttpClientBuilderHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.PagamentiTelematiciCCPPaClient;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.PagamentiTelematiciEsitoClient;
@@ -30,6 +31,8 @@ import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciAv
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciRP;
 import it.regioneveneto.mygov.payment.mypay4.ws.server.fesp.PagamentiTelematiciAvvisiDigitaliEndpoint;
 import it.regioneveneto.mygov.payment.mypay4.ws.server.fesp.PagamentiTelematiciRPEndpoint;
+import it.regioneveneto.mygov.payment.mypay4.ws.util.MyEndpointInterceptor;
+import it.regioneveneto.mygov.payment.mypay4.ws.util.PagoPAAuthClientInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +42,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.http.HttpComponentsMessageSender;
 
 @Configuration
@@ -57,8 +61,23 @@ public class SoapWebServiceClientConfig {
   @Value("${ws.pagamentiTelematiciRPT.remoteurl}")
   String pagamentiTelematiciRPTRemoteUrl;
 
+  @Value("${pa.identificativoIntermediarioPA}")
+  private String identificativoIntermediarioPA;
+
+  @Value("${pa.identificativoStazioneIntermediarioPA}")
+  private String identificativoStazioneIntermediarioPA;
+
   @Autowired
   Environment env;
+
+  @Autowired
+  MyEndpointInterceptor myEndpointInterceptor;
+
+  @Autowired
+  GiornaleService giornaleCommonService;
+
+  @Autowired
+  private PagoPAAuthClientInterceptor pagoPAAuthClientInterceptor;
 
   @Bean
   @Primary
@@ -68,7 +87,9 @@ public class SoapWebServiceClientConfig {
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
     marshaller.setContextPath("it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa");
-    PagamentiTelematiciRPClient client = new PagamentiTelematiciRPClient();
+    PagamentiTelematiciRPClient client = new PagamentiTelematiciRPClient(giornaleCommonService,
+      identificativoIntermediarioPA, identificativoStazioneIntermediarioPA);
+    client.setInterceptors(new ClientInterceptor[]{myEndpointInterceptor});
     client.setDefaultUri(fespRemoteUrl+ PagamentiTelematiciRPEndpoint.NAME);
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
@@ -83,7 +104,7 @@ public class SoapWebServiceClientConfig {
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
     marshaller.setContextPath("it.veneto.regione.pagamenti.nodoregionalefesp");
-    PagamentiTelematiciAvvisiDigitaliClient client = new PagamentiTelematiciAvvisiDigitaliClient();
+    PagamentiTelematiciAvvisiDigitaliClient client = new PagamentiTelematiciAvvisiDigitaliClient(giornaleCommonService);
     client.setDefaultUri(fespRemoteUrl+ PagamentiTelematiciAvvisiDigitaliEndpoint.NAME);
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
@@ -96,8 +117,10 @@ public class SoapWebServiceClientConfig {
     Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
-    marshaller.setContextPath("it.veneto.regione.pagamenti.nodoregionalefesp");
-    PagamentiTelematiciCCPPaClient client = new PagamentiTelematiciCCPPaClient();
+    marshaller.setPackagesToScan("it.veneto.regione.pagamenti.pa");
+    PagamentiTelematiciCCPPaClient client = new PagamentiTelematiciCCPPaClient(giornaleCommonService,
+      identificativoIntermediarioPA, identificativoStazioneIntermediarioPA);
+    client.setInterceptors(new ClientInterceptor[]{myEndpointInterceptor});
     //for this WS the default Uri is not set, as it depends on ente
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
@@ -111,7 +134,7 @@ public class SoapWebServiceClientConfig {
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
     marshaller.setContextPath("it.veneto.regione.pagamenti.nodoregionalefesp");
-    PagamentiTelematiciEsitoClient client = new PagamentiTelematiciEsitoClient();
+    PagamentiTelematiciEsitoClient client = new PagamentiTelematiciEsitoClient(giornaleCommonService);
     //for this WS the default Uri is not set, as it depends on ente
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
@@ -124,7 +147,8 @@ public class SoapWebServiceClientConfig {
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
     marshaller.setContextPath("it.veneto.regione.pagamenti.nodoregionalefesp");
-    PagamentiTelematiciEsterniCCPClient client = new PagamentiTelematiciEsterniCCPClient();
+    PagamentiTelematiciEsterniCCPClient client = new PagamentiTelematiciEsterniCCPClient(giornaleCommonService,
+      identificativoIntermediarioPA, identificativoStazioneIntermediarioPA);
     //for this WS the default Uri is not set, as it depends on ente
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
@@ -138,7 +162,7 @@ public class SoapWebServiceClientConfig {
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
     marshaller.setContextPath("it.veneto.regione.pagamenti.nodoregionalefesp");
-    PagamentiTelematiciAvvisiDigitaliServiceClient client = new PagamentiTelematiciAvvisiDigitaliServiceClient();
+    PagamentiTelematiciAvvisiDigitaliServiceClient client = new PagamentiTelematiciAvvisiDigitaliServiceClient(giornaleCommonService);
     client.setDefaultUri(pagamentiTelematiciAvvisiDigitaliRemoteUrl);
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
@@ -155,14 +179,15 @@ public class SoapWebServiceClientConfig {
     // this package must match the package in the <jaxbJavaGenXXXX> task specified in build.gradle.kts
     // (i.e. in the XXX.xjb file corresponding to the WSDL)
     marshaller.setContextPath("gov.telematici.pagamenti.ws.nodospcpernodoregionale");
-    PagamentiTelematiciRPTClient client = new PagamentiTelematiciRPTClient();
+    PagamentiTelematiciRPTClient client = new PagamentiTelematiciRPTClient(giornaleCommonService);
+    client.setInterceptors(new ClientInterceptor[]{myEndpointInterceptor, pagoPAAuthClientInterceptor});
     client.setDefaultUri(pagamentiTelematiciRPTRemoteUrl);
     client.setMarshaller(marshaller);
     client.setUnmarshaller(marshaller);
     //add proxy and SSL Client Cert support
-    client.setMessageSender(new HttpComponentsMessageSender(HttpClientBuilderHelper.create()
-        .addProxySupport(env,true)
-        .addHttpsClientCertSupport(env, "ws.pagamentiTelematiciRPT.clientAuth")
+    client.setMessageSender(new HttpComponentsMessageSender(HttpClientBuilderHelper.create(env)
+        .addProxySupport(true)
+        .addCustomSSLSupport("ws.pagamentiTelematiciRPT.clientAuth")
         .build()));
     return client;
   }

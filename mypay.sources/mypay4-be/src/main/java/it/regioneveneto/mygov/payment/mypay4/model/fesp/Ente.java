@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.sql.Timestamp;
 
 @Data
@@ -32,10 +33,11 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovEnteId")
+@XmlRootElement(name = "EnteFesp")
 public class Ente extends BaseEntity {
 
-  public final static String ALIAS = "FESP_Ente";
-  public final static String FIELDS = ""+ALIAS+".mygov_ente_id as FESP_Ente_mygovEnteId,"+ALIAS+".cod_ipa_ente as FESP_Ente_codIpaEnte"+
+  public static final String ALIAS = "FESP_Ente";
+  public static final String FIELDS = ""+ALIAS+".mygov_ente_id as FESP_Ente_mygovEnteId,"+ALIAS+".cod_ipa_ente as FESP_Ente_codIpaEnte"+
       ","+ALIAS+".codice_fiscale_ente as FESP_Ente_codiceFiscaleEnte,"+ALIAS+".de_nome_ente as FESP_Ente_deNomeEnte"+
       ","+ALIAS+".email_amministratore as FESP_Ente_emailAmministratore,"+ALIAS+".dt_creazione as FESP_Ente_dtCreazione"+
       ","+ALIAS+".dt_ultima_modifica as FESP_Ente_dtUltimaModifica"+

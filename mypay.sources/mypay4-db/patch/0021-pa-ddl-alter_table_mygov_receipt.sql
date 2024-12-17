@@ -1,0 +1,1 @@
+ALTER TABLE mygov_receipt ADD COLUMN flg_exported BOOLEAN default false NOT NULL;

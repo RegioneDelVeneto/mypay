@@ -23,6 +23,7 @@ import it.regioneveneto.mygov.payment.mypay4.dao.FlussoAvvisoDigitaleDao;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -90,11 +91,11 @@ public class AvvisoDigitaleService {
     int updatedRec = 0;
     if (StringUtils.isNotBlank(dovuto.getCodIuv())) {
       AvvisoDigitale avvisoDigitale = this.getByIdDominioECodiceAvviso(ente.getCodiceFiscaleEnte(),
-          "0" + ente.getApplicationCode() + dovuto.getCodIuv());
+          Utilities.iuvToNumeroAvviso(dovuto.getCodIuv(), ente.getApplicationCode(), false));
       if (avvisoDigitale != null) {
         AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_AVVISO_DIGITALE_NUOVO,
             Constants.STATO_AVVISO_DIGITALE_TIPO_STATO);
-        if (anagraficaStato.getMygovAnagraficaStatoId().equals(avvisoDigitale.getMygovAnagraficaStatoId())) {
+        if (anagraficaStato.getMygovAnagraficaStatoId().equals(avvisoDigitale.getMygovAnagraficaStatoId().getMygovAnagraficaStatoId())) {
           AnagraficaStato statoAnnullato = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_AVVISO_DIGITALE_ANNULLATO,
               Constants.STATO_AVVISO_DIGITALE_TIPO_STATO);
           avvisoDigitale.setMygovAnagraficaStatoId(statoAnnullato);
@@ -104,7 +105,7 @@ public class AvvisoDigitaleService {
             throw new MyPayException("Errore interno aggiornamento avvisoDigitale");
 
         } else {
-          log.warn("Stato avviso digitale per codice avviso [ " + "0" + ente.getApplicationCode() + dovuto.getCodIuv()
+          log.warn("Stato avviso digitale per codice avviso [ " + Utilities.iuvToNumeroAvviso(dovuto.getCodIuv(), ente.getApplicationCode(), false)
               + " ] diverso da [ " + Constants.STATO_AVVISO_DIGITALE_NUOVO + " ]");
         }
       }

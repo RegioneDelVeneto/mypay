@@ -26,11 +26,9 @@ import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.FaultBean;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaCarrelloRPRisposta;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
@@ -40,7 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -51,73 +52,108 @@ public class CarrelloMultiBeneficiarioService {
   private int scadenzaCarrelloBatchRowLimit;
 
   @Autowired
-  AnagraficaStatoService anagraficaStatoService;
+  private AnagraficaStatoService anagraficaStatoService;
   @Autowired
-  CarrelloMultiBeneficiarioDao carrelloMultiBeneficiarioDao;
-  @Autowired
-  MessageSource messageSource;
+  private CarrelloMultiBeneficiarioDao carrelloMultiBeneficiarioDao;
 
   public CarrelloMultiBeneficiario getById(Long id) {
     return carrelloMultiBeneficiarioDao.getById(id);
   }
 
-  public CarrelloMultiBeneficiario getByIdSession(String idSession) {
-    List<CarrelloMultiBeneficiario> items = carrelloMultiBeneficiarioDao.getByIdSession(idSession);
-    if (CollectionUtils.isEmpty(items)) {
-      return null;
-    } else if (items.size() > 1) {
-      throw new MyPayException(messageSource.getMessage("pa.carrello.carrelloDuplicato", null, Locale.ITALY));
-    }
-    return items.get(0);
+	public Optional<CarrelloMultiBeneficiario> getByIdSession(String idSession) {
+    List<CarrelloMultiBeneficiario> listCarrello = carrelloMultiBeneficiarioDao.getByIdSession(idSession);
+    if(listCarrello.isEmpty())
+      return Optional.empty();
+    else if(listCarrello.size()==1)
+      return Optional.of(listCarrello.get(0));
+    else
+      throw new MyPayException("multiple CarrelloMultibeneficiario ["+listCarrello.size()+"] with idSession ["+idSession+"]");
+	}
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public CarrelloMultiBeneficiario insertCarrelloMultiBeneficiario(String codIpaEnte, String status, String backUrl, String idSession) {
+    return insertCarrelloMultiBeneficiario(codIpaEnte, status, backUrl, idSession, false);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public CarrelloMultiBeneficiario insertCarrelloMultiBeneficiario(String codIpaEnte, String status, String backUrl, Optional<String> idSession){
-    CarrelloMultiBeneficiario basket = new CarrelloMultiBeneficiario();
-    basket.setCodIpaEnte(codIpaEnte);
-    AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(status, Constants.STATO_TIPO_MULTI_CARRELLO);
-    basket.setMygovAnagraficaStatoId(anagraficaStato);
-    Date now = new Date();
-    basket.setDtCreazione(now);
-    basket.setDtUltimaModifica(now);
-    basket.setIdSessionCarrello(idSession.orElseGet(Utilities::getRandomicIdSession));
-    basket.setRispostaPagamentoUrl(backUrl);
-    Long newId = carrelloMultiBeneficiarioDao.insert(basket);
-    log.info("insert CarrelloMultiBeneficiario, new newId: "+newId);
-    basket = basket.toBuilder().mygovCarrelloMultiBeneficiarioId(newId).build();
-    return basket;
+  public CarrelloMultiBeneficiario insertCarrelloMultiBeneficiario(String codIpaEnte, String status, String backUrl, String idSession, boolean replaceIdSessionIfExisting) {
+
+    //check if carrello already existing with same idSession
+    List<CarrelloMultiBeneficiario> listCarrello = carrelloMultiBeneficiarioDao.getByIdSession(idSession);
+      if(listCarrello.isEmpty()) {
+        CarrelloMultiBeneficiario basket = new CarrelloMultiBeneficiario();
+        basket.setCodIpaEnte(codIpaEnte);
+        AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(status, Constants.STATO_TIPO_MULTI_CARRELLO);
+        basket.setMygovAnagraficaStatoId(anagraficaStato);
+        Date now = new Date();
+        basket.setDtCreazione(now);
+        basket.setDtUltimaModifica(now);
+        basket.setIdSessionCarrello(idSession);
+        basket.setRispostaPagamentoUrl(backUrl);
+        Long newId = carrelloMultiBeneficiarioDao.insert(basket);
+        log.info("insert CarrelloMultiBeneficiario, new newId: " + newId);
+        basket = basket.toBuilder().mygovCarrelloMultiBeneficiarioId(newId).build();
+        return basket;
+      } else if(listCarrello.size()>1){
+        throw new MyPayException("multiple CarrelloMultibeneficiario ["+listCarrello.size()+"] with idSession ["+idSession+"]");
+      } else if(!replaceIdSessionIfExisting){
+        throw new MyPayException("already existing CarrelloMultibeneficiario with idSession ["+idSession+"]");
+      } else {
+        //idSession already existing with a "fixed" idSession (for instance carrello "precaricato") -> replace existing carrello
+        //  instead of creating a new one
+        CarrelloMultiBeneficiario basket = listCarrello.get(0);
+        if(!StringUtils.equals(codIpaEnte, basket.getCodIpaEnte()))
+          throw new MyPayException("mismatch on ente["+codIpaEnte+"/"+basket.getCodIpaEnte()+"] when updating CarrelloMultibeneficiario with idSession ["+idSession+"]");
+        Date now = new Date();
+        AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(status, Constants.STATO_TIPO_MULTI_CARRELLO);
+        basket.setMygovAnagraficaStatoId(anagraficaStato);
+        basket.setDtUltimaModifica(now);
+        basket.setRispostaPagamentoUrl(backUrl);
+        int updatedRec = carrelloMultiBeneficiarioDao.update(basket);
+        if (updatedRec != 1) {
+          throw new MyPayException("CarrelloMultiBeneficiario update internal error");
+        }
+        return basket;
+      }
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public void updateCarrelloMultiBeneficiarioStatus(Long idCarrello, String status){
+    updateCarrelloMultiBeneficiarioStatus(idCarrello, status, false);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void updateCarrelloMultiBeneficiarioStatus(Long idCarrello, String status, boolean skipStatusCheck){
 
     CarrelloMultiBeneficiario basket = carrelloMultiBeneficiarioDao.getById(idCarrello);
-    String error = "Attempt to change status Carrello ["+basket.getMygovCarrelloMultiBeneficiarioId()
-        +"] from ["+basket.getMygovAnagraficaStatoId().getCodStato()+"] to ["+status+"]";
-    switch (status) {
-      case Constants.STATO_CARRELLO_ABORT:
-      case Constants.STATO_CARRELLO_SCADUTO:
-        if (!basket.getMygovAnagraficaStatoId().getCodStato().equals(Constants.STATO_CARRELLO_PREDISPOSTO)) {
-          throw new DataRetrievalFailureException(error);
-        }
-        break;
-      case Constants.STATO_CARRELLO_SCADUTO_ELABORATO:
-        if (!basket.getMygovAnagraficaStatoId().getCodStato().equals(Constants.STATO_CARRELLO_SCADUTO)) {
-          throw new DataRetrievalFailureException(error);
-        }
-        break;
-      case Constants.STATO_CARRELLO_IMPOSSIBILE_INVIARE_RP:
-      case Constants.STATO_CARRELLO_DECORRENZA_TERMINI_PARZIALE:
-      case Constants.STATO_CARRELLO_DECORRENZA_TERMINI:
-      case Constants.STATO_CARRELLO_NON_PAGATO:
-      case Constants.STATO_CARRELLO_PARZIALMENTE_PAGATO:
-      case Constants.STATO_CARRELLO_PAGATO:
-        if (!basket.getMygovAnagraficaStatoId().getCodStato().equals(Constants.STATO_CARRELLO_PAGAMENTO_IN_CORSO)) {
-          throw new DataRetrievalFailureException(error);
-        }
-        break;
-      default:
-        break;
+    if(!skipStatusCheck) {
+      String error = "Attempt to change status Carrello [" + basket.getMygovCarrelloMultiBeneficiarioId()
+          + "] from [" + basket.getMygovAnagraficaStatoId().getCodStato() + "] to [" + status + "]";
+      switch (status) {
+        case Constants.STATO_CARRELLO_ABORT:
+        case Constants.STATO_CARRELLO_SCADUTO:
+          if (!basket.getMygovAnagraficaStatoId().getCodStato().equals(Constants.STATO_CARRELLO_PREDISPOSTO)) {
+            throw new DataRetrievalFailureException(error);
+          }
+          break;
+        case Constants.STATO_CARRELLO_SCADUTO_ELABORATO:
+          if (!basket.getMygovAnagraficaStatoId().getCodStato().equals(Constants.STATO_CARRELLO_SCADUTO)) {
+            throw new DataRetrievalFailureException(error);
+          }
+          break;
+        case Constants.STATO_CARRELLO_IMPOSSIBILE_INVIARE_RP:
+        case Constants.STATO_CARRELLO_DECORRENZA_TERMINI_PARZIALE:
+        case Constants.STATO_CARRELLO_DECORRENZA_TERMINI:
+        case Constants.STATO_CARRELLO_NON_PAGATO:
+        case Constants.STATO_CARRELLO_PARZIALMENTE_PAGATO:
+        case Constants.STATO_CARRELLO_PAGATO:
+          if (!basket.getMygovAnagraficaStatoId().getCodStato().equals(Constants.STATO_CARRELLO_PAGAMENTO_IN_CORSO)) {
+            throw new DataRetrievalFailureException(error);
+          }
+          break;
+        default:
+          break;
+      }
     }
     basket.setMygovAnagraficaStatoId(anagraficaStatoService.getByCodStatoAndTipoStato(status, Constants.STATO_TIPO_MULTI_CARRELLO));
 
@@ -185,12 +221,17 @@ public class CarrelloMultiBeneficiarioService {
   }
 
   @Transactional(propagation = Propagation.MANDATORY)
-  public List<CarrelloMultiBeneficiario> getOlderByState(int minutes, Long mygovAnagraficaStatoId){
-    return carrelloMultiBeneficiarioDao.getOlderByState(minutes, mygovAnagraficaStatoId, scadenzaCarrelloBatchRowLimit);
+  public List<CarrelloMultiBeneficiario> getOlderByState(int minutes, Long mygovAnagraficaStatoId, boolean notInCarrello){
+    return carrelloMultiBeneficiarioDao.getOlderByState(minutes, mygovAnagraficaStatoId, scadenzaCarrelloBatchRowLimit, notInCarrello);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public int updateStato(Long mygovCarrelloMultiBeneficiarioId, Long mygovAnagraficaStatoId){
     return carrelloMultiBeneficiarioDao.updateStato(mygovCarrelloMultiBeneficiarioId, mygovAnagraficaStatoId);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public int delete(Long mygovCarrelloMultiBeneficiarioId, Long mygovAnagraficaStatoId){
+    return carrelloMultiBeneficiarioDao.delete(mygovCarrelloMultiBeneficiarioId, mygovAnagraficaStatoId);
   }
 }

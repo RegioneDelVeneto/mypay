@@ -50,7 +50,7 @@ export class EsitoCarrelloComponent implements OnInit, WithTitle {
     else if(this.esitoLanding.esito === 'OK')
       this.esito = 'Processo di pagamento eseguito correttamente, l\'esito della transazione sarà disponibile a breve. Controlla la tua casella di posta.';
     else
-      this.esito = 'Processo di pagamento non completato correttamente, l\'esito della transazione sarà disponbile a breve. Controlla la tua casella di posta.'
+      this.esito = 'Processo di pagamento non completato correttamente, l\'esito della transazione sarà disponibile a breve. Controlla la tua casella di posta.'
   }
 
   backHome(): void {

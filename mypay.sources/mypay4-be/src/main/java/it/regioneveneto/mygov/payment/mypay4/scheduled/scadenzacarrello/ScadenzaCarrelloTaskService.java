@@ -18,9 +18,7 @@
 package it.regioneveneto.mygov.payment.mypay4.scheduled.scadenzacarrello;
 
 import it.regioneveneto.mygov.payment.mypay4.AbstractApplication;
-import it.regioneveneto.mygov.payment.mypay4.model.Carrello;
-import it.regioneveneto.mygov.payment.mypay4.model.CarrelloMultiBeneficiario;
-import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.service.*;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import lombok.extern.slf4j.Slf4j;
@@ -42,11 +40,23 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(name=AbstractApplication.NAME_KEY, havingValue=ScadenzaCarrelloTaskApplication.NAME)
 public class ScadenzaCarrelloTaskService {
 
+  @Value("${pa.modelloUnico}")
+  private boolean modelloUnico;
+
+  @Value("${task.scadenzaCarrello.batchRowLimit:${task.common.batchRowLimit}}")
+  private int scadenzaCarrelloBatchRowLimit;
+
   @Value("${task.scadenzaCarrello.minutiScadenzaCarrello}")
   private int scadenzaCarrelloMinutiScadenza;
 
   @Value("${task.scadenzaCarrello.minutiElaborazioneCarrello}")
   private int scadenzaCarrelloMinutiElaborazione;
+
+  @Value("${task.scadenzaCarrello.oreScadenzaCarrelloModelloUnico}")
+  private int oreScadenzaCarrelloModelloUnico;
+
+  @Value("${task.scadenzaCarrello.oreCancellazioneCarrelloModelloUnico}")
+  private int oreCancellazioneCarrelloModelloUnico;
 
   @Resource
   private ScadenzaCarrelloTaskService self;
@@ -77,8 +87,10 @@ public class ScadenzaCarrelloTaskService {
   private Long statoCarrelloScadutoElaboratoId;
   private Long statoDovutoScadutoId;
   private Long statoCarrelloMultiBeneficiarioPredispostoId;
+  private Long statoCarrelloMultiBeneficiarioPagamentoInCorsoId;
   private Long statoCarrelloMultiBeneficiarioScadutoId;
   private Long statoCarrelloMultiBeneficiarioScadutoElaboratoId;
+  private Long statoDovutoPagabileId;
 
   @PostConstruct
   void init(){
@@ -92,10 +104,14 @@ public class ScadenzaCarrelloTaskService {
         .getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_SCADUTO, Constants.STATO_TIPO_DOVUTO).getMygovAnagraficaStatoId();
     statoCarrelloMultiBeneficiarioPredispostoId = anagraficaStatoService
         .getByCodStatoAndTipoStato(Constants.STATO_CARRELLO_PREDISPOSTO, Constants.STATO_TIPO_MULTI_CARRELLO).getMygovAnagraficaStatoId();
+    statoCarrelloMultiBeneficiarioPagamentoInCorsoId = anagraficaStatoService
+        .getByCodStatoAndTipoStato(Constants.STATO_CARRELLO_PAGAMENTO_IN_CORSO, Constants.STATO_TIPO_MULTI_CARRELLO).getMygovAnagraficaStatoId();
     statoCarrelloMultiBeneficiarioScadutoId = anagraficaStatoService
         .getByCodStatoAndTipoStato(Constants.STATO_CARRELLO_SCADUTO, Constants.STATO_TIPO_MULTI_CARRELLO).getMygovAnagraficaStatoId();
     statoCarrelloMultiBeneficiarioScadutoElaboratoId = anagraficaStatoService
         .getByCodStatoAndTipoStato(Constants.STATO_CARRELLO_SCADUTO_ELABORATO, Constants.STATO_TIPO_MULTI_CARRELLO).getMygovAnagraficaStatoId();
+    statoDovutoPagabileId = anagraficaStatoService
+      .getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_DA_PAGARE, Constants.STATO_TIPO_DOVUTO).getMygovAnagraficaStatoId();
   }
 
   private long counter = 0;
@@ -103,16 +119,26 @@ public class ScadenzaCarrelloTaskService {
   public void scadenzaCarrello(){
     log.info("scadenzaCarrello start [{}]", ++counter);
 
+    if (modelloUnico) {
+      self.eraseCheckoutCartsExpired(scadenzaCarrelloMinutiScadenza * 60, statoDovutoPagabileId);
+    }
     self.markCarrelliExpired(Constants.TIPO_CARRELLO_ESTERNO_ANONIMO);
     self.processCarrelliExpired(Constants.TIPO_CARRELLO_ESTERNO_ANONIMO);
 
     self.markCarrelliMultiBeneficiarioExpired(scadenzaCarrelloMinutiScadenza,
-        statoCarrelloMultiBeneficiarioPredispostoId, statoCarrelloMultiBeneficiarioScadutoId);
+      statoCarrelloMultiBeneficiarioPredispostoId, statoCarrelloMultiBeneficiarioScadutoId);
     self.markCarrelliExpired(Constants.TIPO_CARRELLO_ESTERNO_ANONIMO_MULTIENTE);
 
     self.markCarrelliMultiBeneficiarioExpired(scadenzaCarrelloMinutiElaborazione,
-        statoCarrelloMultiBeneficiarioScadutoId, statoCarrelloMultiBeneficiarioScadutoElaboratoId);
+      statoCarrelloMultiBeneficiarioScadutoId, statoCarrelloMultiBeneficiarioScadutoElaboratoId);
     self.processCarrelliExpired(Constants.TIPO_CARRELLO_ESTERNO_ANONIMO_MULTIENTE);
+
+    if(modelloUnico){
+      self.markCarrelliMultiBeneficiarioExpired(oreScadenzaCarrelloModelloUnico * 60,
+          statoCarrelloMultiBeneficiarioPagamentoInCorsoId, statoCarrelloMultiBeneficiarioScadutoId);
+      self.deleteExpiredCarrelliMultiBeneficiario(oreCancellazioneCarrelloModelloUnico * 60,
+          statoCarrelloMultiBeneficiarioScadutoId);
+    }
 
     log.info("scadenzaCarrello end [{}]", counter);
   }
@@ -146,15 +172,33 @@ public class ScadenzaCarrelloTaskService {
   @Transactional(propagation = Propagation.REQUIRED)
   public void markCarrelliMultiBeneficiarioExpired(int minutes, Long currentMygovAnagraficaStatoId, Long newMygovAnagraficaStatoId){
     List<CarrelloMultiBeneficiario> carrelloList = carrelloMultiBeneficiarioService.getOlderByState(
-        minutes, currentMygovAnagraficaStatoId);
+        minutes, currentMygovAnagraficaStatoId, false);
 
     if(!carrelloList.isEmpty()){
-      log.info("carrelloMultiBeneficiario to mark expired: {}", carrelloList.size());
+      log.info("carrelloMultiBeneficiario to mark expired status[{}->{}]: {}", currentMygovAnagraficaStatoId, newMygovAnagraficaStatoId, carrelloList.size());
       carrelloList.forEach(carrello -> {
         try{
           self.markCarrelloMultiBeneficiarioExpired(carrello, newMygovAnagraficaStatoId);
         }catch(Exception e){
           log.debug("error marking expired carrello with id: {}", carrello.getMygovCarrelloMultiBeneficiarioId(), e);
+        }
+      });
+    }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void deleteExpiredCarrelliMultiBeneficiario(int minutes, Long currentMygovAnagraficaStatoId){
+    List<CarrelloMultiBeneficiario> carrelloList = carrelloMultiBeneficiarioService.getOlderByState(
+        minutes, currentMygovAnagraficaStatoId, true);
+
+    if(!carrelloList.isEmpty()){
+      log.info("carrelloMultiBeneficiario to delete: {}", carrelloList.size());
+      carrelloList.forEach(carrello -> {
+        try{
+          log.info("deleting expired carrello with id: {}", carrello.getMygovCarrelloMultiBeneficiarioId());
+          carrelloMultiBeneficiarioService.delete(carrello.getMygovCarrelloMultiBeneficiarioId(), currentMygovAnagraficaStatoId);
+        }catch(Exception e){
+          log.info("error deleting expired carrello with id: {}", carrello.getMygovCarrelloMultiBeneficiarioId(), e);
         }
       });
     }
@@ -188,15 +232,51 @@ public class ScadenzaCarrelloTaskService {
     log.debug("process expired carrello with idSession: {}", carrello.getIdSession());
     carrelloService.updateStato(carrello.getMygovCarrelloId(), statoCarrelloScadutoElaboratoId);
 
+
     AtomicInteger indiceDatiSingoloPagamento = new AtomicInteger();
     dovutoService.getDovutiInCarrello(carrello.getMygovCarrelloId()).forEach(dovuto -> {
-      dovutoElaboratoService.insertByEsito(dovuto, null, carrello, null, null, null,
+      DovutoElaborato dovutoElaborato = dovutoElaboratoService.insertByEsito(dovuto, null, carrello, null, null, null,
           Constants.STATO_DOVUTO_SCADUTO_ELABORATO, Constants.STATO_TIPO_DOVUTO, indiceDatiSingoloPagamento.incrementAndGet());
       dovutoCarrelloService.deleteDovutoCarrelloByIdDovuto(dovuto.getMygovDovutoId());
+
+      /*IUV_MULTI_14 Multi-beneficiary IUV management if defined
+       * Insertion of the dovuto multi-beneficiary elaborate and delete of the dovuto multi-beneficiary
+       */
+      DovutoMultibeneficiario dovutoMultibeneficiario = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+      if(dovutoMultibeneficiario!=null) {
+        dovutoElaboratoService.insertDovutoMultibenefElaborato(dovuto, dovutoMultibeneficiario, dovutoElaborato.getMygovDovutoElaboratoId());
+        dovutoService.deleteDovMultibenef(dovutoMultibeneficiario);
+      }
       dovutoService.removeDovuto(dovuto);
-      if(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE.equals(dovuto.getCodTipoDovuto()))
+      if(dovuto.getMygovDatiMarcaBolloDigitaleId()!=null)
         datiMarcaBolloDigitaleService.remove(dovuto.getMygovDatiMarcaBolloDigitaleId());
     });
   }
 
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void eraseCheckoutCartsExpired(int minutes, Long currentMygovAnagraficaStatoId){
+    List<Dovuto> list = dovutoService.getOlderByIuvVolatileAndState(minutes, currentMygovAnagraficaStatoId, scadenzaCarrelloBatchRowLimit);
+    if(!list.isEmpty()){
+      log.info("list of Checkout Carts with flgIuvVolatile to erase: {}", list.size());
+      list.forEach(item -> {
+        try{
+          dovutoService.eraseCheckoutCartsExpired(item);
+        }catch(Exception e){
+          log.debug("error wiping out dovuto with IUD: {}", item.getCodIud(), e);
+        }
+      });
+    }
+  }
+
+  @Transactional(propagation = Propagation.NESTED)
+  public void eraseCheckoutCartsExpired(Dovuto dovuto){
+    log.debug("process expired Iuv Volatile with IUD: {}", dovuto.getCodIud());
+    DovutoMultibeneficiario dovutoMultibeneficiario = dovutoService.getDovMultibenefByIdDovuto(dovuto.getMygovDovutoId());
+    if(dovutoMultibeneficiario!=null) {
+      dovutoService.deleteDovMultibenef(dovutoMultibeneficiario);
+    }
+    dovutoService.removeDovuto(dovuto);
+    if(Constants.TIPO_DOVUTO_MARCA_BOLLO_DIGITALE.equals(dovuto.getCodTipoDovuto()))
+      datiMarcaBolloDigitaleService.remove(dovuto.getMygovDatiMarcaBolloDigitaleId());
+  }
 }

@@ -19,22 +19,7 @@ package it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.mock;
 
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciRP;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPC;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPCPage;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPCPageRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPCRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediListaFlussiSPC;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediListaFlussiSPCRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediCopiaEsito;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediCopiaEsitoRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediIUV;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediIUVRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaCarrelloRP;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaCarrelloRPRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaRP;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaRPRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILRichiediRT;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILRichiediRTRisposta;
+import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.*;
 import it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -69,6 +54,11 @@ public class PagamentiTelematiciRPMock implements PagamentiTelematiciRP {
 
   @Override
   public NodoSILChiediIUVRisposta nodoSILChiediIUV(NodoSILChiediIUV request) {
+    throw new MyPayException("FESP is disabled");
+  }
+
+  @Override
+  public NodoSILChiediCCPRisposta nodoSILChiediCCP(NodoSILChiediCCP request) {
     throw new MyPayException("FESP is disabled");
   }
 

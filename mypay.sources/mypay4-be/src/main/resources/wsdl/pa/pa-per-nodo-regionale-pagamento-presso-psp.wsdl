@@ -58,6 +58,12 @@
 			<xsd:element name="paaSILVerificaRPRisposta" type="ppt:paaSILVerificaRPRisposta" />
 			<xsd:element name="paaSILAttivaRP" type="ppt:paaSILAttivaRP" />
 			<xsd:element name="paaSILAttivaRPRisposta" type="ppt:paaSILAttivaRPRisposta" />
+			<xsd:element name="paVerifyPaymentNotice" type="ppt:paVerifyPaymentNoticeReq" />
+			<xsd:element name="paVerifyPaymentNoticeRisposta" type="ppt:paVerifyPaymentNoticeRes" />
+			<xsd:element name="paGetPayment" type="ppt:paGetPaymentReq" />
+			<xsd:element name="paGetPaymentRisposta" type="ppt:paGetPaymentRes" />
+			<xsd:element name="paSendRT" type="ppt:paSendRTReq" />
+			<xsd:element name="paSendRTRisposta" type="ppt:paSendRTRes" />
 			<!-- Element Definition -->
 			<xsd:complexType name="paaTipoDatiPagamentoPA">
 				<xsd:sequence>
@@ -158,49 +164,141 @@
 					<xsd:element name="originalDescription" type="xsd:string" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:complexType>
+			<xsd:complexType name="paVerifyPaymentNoticeReq">
+				<xsd:sequence>
+					<xsd:element name="idPA" type="ppt:stText35"/>
+					<xsd:element name="idBrokerPA" type="ppt:stText35"/>
+					<xsd:element name="idStation" type="ppt:stText35"/>
+					<xsd:element name="qrCodeFiscalCode" type="ppt:stText35"/>
+					<xsd:element name="noticeNumber" type="ppt:stText35"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paVerifyPaymentNoticeRes">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="paymentDescription" type="ppt:stText35"/>
+							<xsd:element name="fiscalCodePA" type="ppt:stText35"/>
+							<xsd:element name="companyName" type="ppt:stText35"/>
+							<xsd:element name="officeName" type="ppt:stText35"/>
+							<xsd:element name="amount" type="pay_i:stImporto"/>
+							<xsd:element name="dueDate" type="pay_i:stISODate" minOccurs="0"/>
+							<xsd:element name="detailDescription" type="pay_i:stText140"/>
+							<xsd:element name="allCCP" type="xsd:boolean"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="paGetPaymentReq">
+				<xsd:sequence>
+					<xsd:element name="idPA" type="ppt:stText35"/>
+					<xsd:element name="idBrokerPA" type="ppt:stText35"/>
+					<xsd:element name="idStation" type="ppt:stText35"/>
+					<xsd:element name="qrCodeFiscalCode" type="ppt:stText35"/>
+					<xsd:element name="noticeNumber" type="ppt:stText35"/>
+					<xsd:element name="amount" type="pay_i:stImporto"/>
+					<xsd:element name="paymentNote" type="pay_i:stText210"/>
+					<xsd:element name="transferType" type="pay_i:stTransferType"/>
+					<xsd:element name="dueDate" type="pay_i:stISODate"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paGetPaymentRes">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="creditorReferenceId" type="ppt:stText35"/>
+							<xsd:element name="paymentAmount" type="pay_i:stImporto"/>
+							<xsd:element name="dueDate" type="pay_i:stISODate"/>
+							<xsd:element name="retentionDate" type="pay_i:stISODateTime"/>
+							<xsd:element name="lastPayment" type="xsd:boolean"/>
+							<xsd:element name="description" type="pay_i:stText140"/>
+							<xsd:element name="companyName" type="pay_i:stText140"/>
+							<xsd:element name="officeName" type="pay_i:stText140" minOccurs="0"/>
+							<xsd:element name="debtor" type="pay_i:ctSoggettoPagatore"/>
+							<xsd:element name="transferList" type="pay_i:ctTransferPA" maxOccurs="5"/>
+							<xsd:element name="metadata" type="pay_i:ctMetadata" minOccurs="0" />
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="paSendRTReq">
+				<xsd:sequence>
+					<xsd:element name="receiptBytes" type="xsd:base64Binary"/>
+					<xsd:element name="receipt" type="pay_i:ctReceipt" />
+					<xsd:element name="force" type="xsd:boolean" />
+					<xsd:element name="standin" type="xsd:boolean" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paSendRTRes">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="outcome" type="pay_i:stOutcome" />
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
 		</xsd:schema>
 	</wsdl:types>
-	<wsdl:message name="paaSILVerificaRP">
-		<wsdl:part name="bodyrichiesta" element="ppt:paaSILVerificaRP" />
-		<wsdl:part name="header" element="ppthead:intestazionePPT" />
+	<wsdl:message name="paVerifyPaymentNotice">
+		<wsdl:part name="bodyrichiesta" element="ppt:paVerifyPaymentNoticeReq" />
 	</wsdl:message>
-	<wsdl:message name="paaSILVerificaRPRisposta">
-		<wsdl:part name="bodyrisposta" element="ppt:paaSILVerificaRPRisposta" />
+	<wsdl:message name="paVerifyPaymentNoticeRisposta">
+		<wsdl:part name="bodyrisposta" element="ppt:paVerifyPaymentNoticeRes" />
 	</wsdl:message>
-	<wsdl:message name="paaSILAttivaRP">
-		<wsdl:part name="bodyrichiesta" element="ppt:paaSILAttivaRP" />
-		<wsdl:part name="header" element="ppthead:intestazionePPT" />
+	<wsdl:message name="paSendRT">
+		<wsdl:part name="bodyrichiesta" element="ppt:paSendRTReq" />
 	</wsdl:message>
-	<wsdl:message name="paaSILAttivaRPRisposta">
-		<wsdl:part name="bodyrisposta" element="ppt:paaSILAttivaRPRisposta" />
+	<wsdl:message name="paSendRTRisposta">
+		<wsdl:part name="bodyrisposta" element="ppt:paSendRTRes" />
+	</wsdl:message>
+	<wsdl:message name="paGetPayment">
+		<wsdl:part name="bodyrichiesta" element="ppt:paGetPaymentReq" />
+	</wsdl:message>
+	<wsdl:message name="paGetPaymentRisposta">
+		<wsdl:part name="bodyrisposta" element="ppt:paGetPaymentRes" />
 	</wsdl:message>
 	<wsdl:portType name="PagamentiTelematiciCCP">
-		<wsdl:operation name="paaSILVerificaRP">
-			<wsdl:input message="tns:paaSILVerificaRP" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILVerificaRPRichiesta" />
-			<wsdl:output message="tns:paaSILVerificaRPRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILVerificaRPRisposta" />
+		<wsdl:operation name="paVerifyPaymentNotice">
+			<wsdl:input message="tns:paVerifyPaymentNotice" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paVerifyPaymentNoticeReq" />
+			<wsdl:output message="tns:paVerifyPaymentNoticeRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paVerifyPaymentNoticeRes" />
 		</wsdl:operation>
-		<wsdl:operation name="paaSILAttivaRP">
-			<wsdl:input message="tns:paaSILAttivaRP" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILAttivaRPRichiesta" />
-			<wsdl:output message="tns:paaSILAttivaRPRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paaSILAttivaRPRisposta" />
+		<wsdl:operation name="paSendRT">
+			<wsdl:input message="tns:paSendRT" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paSendRTReq" />
+			<wsdl:output message="tns:paSendRTRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paSendRTRes" />
+		</wsdl:operation>
+		<wsdl:operation name="paGetPayment">
+			<wsdl:input message="tns:paGetPayment" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paGetPaymentReq" />
+			<wsdl:output message="tns:paGetPaymentRisposta" wsam:Action="http://www.regione.veneto.it/pagamenti/pa/PPT/paGetPaymentRes" />
 		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:binding name="PagamentiTelematiciCCPbinding" type="tns:PagamentiTelematiciCCP">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
-		<wsdl:operation name="paaSILAttivaRP">
-			<soap:operation soapAction="paaSILAttivaRP" />
+		<wsdl:operation name="paVerifyPaymentNotice">
+			<soap:operation soapAction="paVerifyPaymentNotice" />
 			<wsdl:input>
-				<soap:body parts="bodyrichiesta" use="literal" />
-				<soap:header message="tns:paaSILAttivaRP" part="header" use="literal" />
+				<soap:body parts="paVerifyPaymentNotice" use="literal" />
 			</wsdl:input>
 			<wsdl:output>
 				<soap:body use="literal" />
 			</wsdl:output>
 		</wsdl:operation>
-		<wsdl:operation name="paaSILVerificaRP">
-			<soap:operation soapAction="paaSILVerificaRP" />
+		<wsdl:operation name="paGetPayment">
+			<soap:operation soapAction="paGetPayment" />
 			<wsdl:input>
-				<soap:body parts="bodyrichiesta" use="literal" />
-				<soap:header message="tns:paaSILVerificaRP" part="header" use="literal" />
+				<soap:body parts="paGetPayment" use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="paSendRT">
+			<soap:operation soapAction="paSendRT" />
+			<wsdl:input>
+				<soap:body parts="paSendRT" use="literal" />
 			</wsdl:input>
 			<wsdl:output>
 				<soap:body use="literal" />

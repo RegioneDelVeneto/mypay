@@ -45,7 +45,7 @@ public class LockService {
   }
 
   /*
-   * Try and acquire lock on entity of type "type" (ex.: "PROCESS_FLUSSO_RENDINCONTAZIONE") and key "key" (ex.: "R_VENETO"),
+   * Try and acquire lock on entity of type "type" (ex.: "PROCESS_FLUSSO_RENDICONTAZIONE") and key "key" (ex.: "R_VENETO"),
    * where entity is a generic concept that has meaning in the business logic of a particular process.
    *
    * Lock is managed by the table mygov_lock, and the select..for update skip locked; the method returns:

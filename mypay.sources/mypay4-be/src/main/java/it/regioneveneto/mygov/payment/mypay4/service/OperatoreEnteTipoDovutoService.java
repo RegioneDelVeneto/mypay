@@ -143,4 +143,8 @@ public class OperatoreEnteTipoDovutoService {
   public List<OperatoreEnteTipoDovuto> getByEnteTipoDovuto(Long mygovEnteTipoDovuto) {
     return operatoreEnteTipoDovutoDao.getByEnteTipoDovuto(mygovEnteTipoDovuto);
   }
+  public List<OperatoreEnteTipoDovuto> getAll() {
+    return operatoreEnteTipoDovutoDao.getAll();
+  }
+
 }

@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovSpontaneoAnonimoId")
 public class SpontaneoAnonimo {
 
-  public final static String ALIAS = "SpontaneoAnonimo";
-  public final static String FIELDS = ""+ALIAS+".mygov_spontaneo_anonimo_id as SpontaneoAnonimo_mygovSpontaneoAnonimoId"+
+  public static final String ALIAS = "SpontaneoAnonimo";
+  public static final String FIELDS = ""+ALIAS+".mygov_spontaneo_anonimo_id as SpontaneoAnonimo_mygovSpontaneoAnonimoId"+
       ","+ALIAS+".cod_ipa_ente as SpontaneoAnonimo_codIpaEnte,"+ALIAS+".cod_tipo_dovuto as SpontaneoAnonimo_codTipoDovuto"+
       ","+ALIAS+".de_rp_dati_vers_dati_sing_vers_causale_versamento as SpontaneoAnonimo_deRpDatiVersDatiSingVersCausaleVersamento"+
       ","+ALIAS+".num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento as SpontaneoAnonimo_numRpDatiVersDatiSingVersImportoSingoloVersamento"+

@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "comuneId")
 public class Comune extends BaseEntity {
 
-  public final static String ALIAS = "Comune";
-  public final static String FIELDS = ""+ALIAS+".comune_id as Comune_comuneId,"+ALIAS+".comune as Comune_comune,"+ALIAS+".provincia_id as Comune_provinciaId"+
+  public static final String ALIAS = "Comune";
+  public static final String FIELDS = ""+ALIAS+".comune_id as Comune_comuneId,"+ALIAS+".comune as Comune_comune,"+ALIAS+".provincia_id as Comune_provinciaId"+
       ","+ALIAS+".sigla_provincia as Comune_siglaProvincia,"+ALIAS+".cod_belfiore as Comune_codBelfiore"+
       ","+ALIAS+".codice_istat as Comune_codiceIstat,"+ALIAS+".var_cod_belfiore as Comune_varCodBelfiore"+
       ","+ALIAS+".var_provincia as Comune_varProvincia,"+ALIAS+".var_comune as Comune_varComune";

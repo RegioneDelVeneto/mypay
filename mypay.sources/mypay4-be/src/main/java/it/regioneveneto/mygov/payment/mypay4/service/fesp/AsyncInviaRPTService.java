@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,8 @@ public class AsyncInviaRPTService {
   public CompletableFuture<Void> scheduleInviaRPT(String codAttivarptIdentificativoDominio,
                                String codAttivarptIdentificativoUnivocoVersamento,
                                String codAttivarptCodiceContestoPagamento){
-    log.info("async inviaRPT for ente: {} - iuv: {} - ccp: {}", codAttivarptIdentificativoDominio,
+    int retry = RetrySynchronizationManager.getContext().getRetryCount();
+    log.info("async inviaRPT retry[{}] for ente: {} - iuv: {} - ccp: {}", retry, codAttivarptIdentificativoDominio,
         codAttivarptIdentificativoUnivocoVersamento, codAttivarptCodiceContestoPagamento);
     try {
       nodoInviaRPTService.inviaRPTForModello3(codAttivarptIdentificativoDominio,

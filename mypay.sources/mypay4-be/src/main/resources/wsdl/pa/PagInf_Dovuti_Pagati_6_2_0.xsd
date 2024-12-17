@@ -138,18 +138,16 @@
 	<xsd:simpleType name="stImporto">
 		<xsd:restriction base="xsd:decimal">
 			<xsd:minInclusive value="0.00" />
-			<xsd:maxInclusive value="99999999.99" />
-			<xsd:fractionDigits value="2" />
-			<xsd:totalDigits value="12" />
+			<xsd:maxInclusive value="999999999.99" />
+			<xsd:pattern value="\d+\.\d{2}" />
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType name="stImportoPositivo">
 		<xsd:restriction base="xsd:decimal">
-			<xsd:minExclusive value="0.00" />
-			<xsd:maxInclusive value="99999999.99" />
-			<xsd:fractionDigits value="2" />
-			<xsd:totalDigits value="12" />
+			<xsd:minInclusive value="0.01" /> <!-- force to set value different from 0.-->
+			<xsd:maxInclusive value="999999999.99" />
+			<xsd:pattern value="\d+\.\d{2}" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -168,6 +166,12 @@
 	<xsd:simpleType name="stDatiSpecificiRiscossione">
 		<xsd:restriction base="xsd:string">
 			<xsd:pattern value="[0129]{1}\/\S{3,138}" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="stDatiSpecificiRiscossioneEnteSecondario">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="9\/\d{2}\d{2}\d{3}\w{2}\/\S{0,129}" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -210,7 +214,7 @@
 	<xsd:simpleType name="stEMail">
 		<xsd:restriction base="xsd:string">
 			<xsd:pattern
-				value="[A-Za-z0-9_]+([\-\+\.'][A-Za-z0-9_]+)*@[A-Za-z0-9_]+([\-\.][A-Za-z0-9_]+)*\.[A-Za-z0-9_]+([\-\.][A-Za-z0-9_]+)*" />
+				value="[a-zA-Z0-9_!#$%&amp;'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+" />
 			<xsd:maxLength value="256" />
 		</xsd:restriction>
 	</xsd:simpleType>
@@ -809,6 +813,104 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<!-- Dati versamento dei Dovuti Multibeneficiario -->
+	<xsd:complexType name="ctDatiVersamentoDovutiEntiSecondari">
+		<xsd:sequence>
+			<xsd:element name="codiceFiscaleBeneficiario" type="pay_i:stText35" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica il codice fiscale dell'Ente
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="denominazioneBeneficiario" type="pay_i:stText35" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica la denominazione dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ibanAccreditoBeneficiario" type="pay_i:stText35" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica IBAN dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="indirizzoBeneficiario" type="pay_i:stText70" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica l'indirizzo dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="civicoBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica il civico dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="capBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica il cap dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localitaBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica la località dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="provinciaBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica la provincia dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="nazioneBeneficiario" type="pay_i:stText35" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Indica la nazione dell'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="causaleVersamento" type="pay_i:stText1024"
+						 minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Il dato deve essere riportato invariato, a cura
+						del PSP, così come presente nei Dovuti cui si riferisce il
+						messaggio dei Pagati.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="datiSpecificiRiscossione" type="pay_i:stDatiSpecificiRiscossioneEnteSecondario" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Rappresenta l’indicazione dell’imputazione della
+						specifica entrata ed è così articolato:
+					</xsd:documentation>
+					<xsd:documentation>"tipo contabilità"/"codice tassonomico"/"codice contabilità", dove
+						"tipo contabilità" può assumere i seguenti valori :
+					</xsd:documentation>
+					<xsd:documentation>0 Capitolo e articolo di Entrata del Bilancio
+						dello stato
+					</xsd:documentation>
+					<xsd:documentation>1 Numero della contabilità speciale
+					</xsd:documentation>
+					<xsd:documentation>2 Codice SIOPE</xsd:documentation>
+					<xsd:documentation>9 Altro codice ad uso dell’amministrazione
+					</xsd:documentation>
+					<xsd:documentation>, e dove "codice tassonomico" riporta il valore desunto dalla Tassonomia in base al tipo di entrata richiesta
+					</xsd:documentation>
+					<xsd:documentation>Esempio: 0/0801100AP/3321.00 per indicare il Contributo
+						Unificato delle spese di giustizia
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="importoSingoloVersamento" type="pay_i:stImportoPositivo" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Indica importo da pagare per l'Ente beneficiario:
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<!-- Dati singoli pagamenti dei Pagati -->
 	<xsd:complexType name="ctDatiSingoloPagamentoPagati">
 		<xsd:sequence>
@@ -1293,6 +1395,26 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<!-- Dovuti Multibeneficiario-->
+	<xsd:complexType name="ctDovutiEntiSecondari">
+		<xsd:sequence>
+			<xsd:element name="versioneOggetto" type="pay_i:stText16"
+						 minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Versione che identifica l’oggetto scambiato.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="datiVersamentoEntiSecondari" type="pay_i:ctDatiVersamentoDovutiEntiSecondari"
+						 minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Aggregazione “dati del versamento” per un pagamento multibeneficiario.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<!-- Pagati -->
 	<xsd:complexType name="ctPagati">
 		<xsd:sequence>
@@ -1600,7 +1722,11 @@
 			<xsd:documentation>Dovuti</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
-
+	<xsd:element name="DovutiEntiSecondari" type="pay_i:ctDovutiEntiSecondari">
+		<xsd:annotation>
+			<xsd:documentation>DovutiEntiSecondari</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
 	<xsd:element name="Pagati" type="pay_i:ctPagati">
 		<xsd:annotation>
 			<xsd:documentation>Pagati</xsd:documentation>

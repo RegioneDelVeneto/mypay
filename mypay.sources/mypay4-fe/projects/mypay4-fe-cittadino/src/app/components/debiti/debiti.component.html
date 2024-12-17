@@ -19,6 +19,12 @@
 -->
 <ng-template #helpPage>
   <div>
+    <p>Una posizione aperta raccoglie le informazioni relative ad uno specifico pagamento atteso da parte di un
+      Beneficiario entro una certa scadenza. Le informazioni relative alle posizioni aperte sono inserite dal
+      Beneficiario, che è l'unico soggetto autorizzato ad aggiornare i dati. In alternativa la posizione può
+      essere inserita autonomamente dall'utente (nella sezione "Altre tipologie di pagamento" l'utente può compilare
+      i dati del pagamento e procedere con la stampa dell’avviso), in questo caso l'utente può annullare la posizione.
+    </p>
     <p>Il filtro "Data" è riferito alla data di scadenza della posizione debitoria.</p>
     <p>Una posizione può risultare come:</p>
     <ul>
@@ -32,8 +38,6 @@
       attendere alcune ore affinché il sistema processi il pagamento. Dopodiché il pagamento sarà consultabile nella
       sezione "Storico", con esito positivo o negativo.</p>
     <p>Nel caso di un "Pagamento inserito nel carrello", è possibile scaricare l'avviso o rimuoverlo dal carrello.</p>
-    <p>Nel caso di un "Pagamento scaduto", non è più possibile procedere al pagamento. Per regolarizzare la propria
-      posizione debitoria è necessario contattare l'Ente Beneficiario.</p>
   </div>
 </ng-template>
 
@@ -118,6 +122,10 @@
       </form>
     </div>
 
+    <div class="title-row">
+         <p class="mat-h3">ATTENZIONE: alcune posizioni debitorie che in questa pagina risultano &quot;da pagare&quot; potrebbero non corrispondere
+           ai dati in tuo possesso. Se trovi posizioni aperte che non ti risultano puoi contattare l'Ente Beneficiario e chiedere l'annullamento.</p>
+    </div>
 
     <p *ngIf="hasSearched && tableData?.length==0">Nessun dato trovato con i criteri di ricerca impostati.</p>
     <my-pay-table-cittadino [tableData]="tableData" [tableColumns]="tableColumns" [parentRef]="this"

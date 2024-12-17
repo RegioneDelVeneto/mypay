@@ -20,50 +20,79 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import {
-    HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest,
-    HttpResponse
+  HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest,
+  HttpResponse
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { AlreadyManagedError } from '../model/already-managed-error';
 import { ConfigurationService } from '../services/configuration.service';
 import { UserService } from '../services/user.service';
+import { PATTERNS } from '../utils/string-utils';
+import { generateRandomUUID } from '../utils/utils';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
 
   private useAuthCookie: boolean;
+  private useCors: boolean;
 
   constructor(
     private toastr: ToastrService,
     private conf: ConfigurationService,
     private userService: UserService) {
-      this.useAuthCookie = this.conf.getBackendProperty('useAuthCookie');
+    this.useAuthCookie = this.conf.getBackendProperty('useAuthCookie');
+    const beUrlString = this.conf.getProperty('baseApiUrl');
+    var isBeUrlAbsolute = PATTERNS.absoluteUrl.test(beUrlString);
+    if(!isBeUrlAbsolute){
+      console.log('beUrl: relative - useCors: false');
+      this.useCors = false;
+    } else {
+      const beUrl = new URL(beUrlString);
+      const feUrl = new URL(window.location.href);
+      this.useCors = beUrl.origin.toLowerCase() !== feUrl.origin.toLowerCase();
+      console.log(`beOrigin [${beUrl.origin}] - feOrigin [${feUrl.origin}] - useCors: ${this.useCors}`);
     }
+  }
 
-  private setAuthHeader(headers: HttpHeaders){
-    if(headers?.has('Authorization')){
+  private setAuthHeader(headers: HttpHeaders) {
+    if (headers?.has('Authorization')) {
       const authHeader = headers.get('Authorization');
-      if(authHeader.startsWith('Bearer '))
-        this.userService.setAccessToken(authHeader.substr(7));
+      if (authHeader.startsWith('Bearer '))
+        this.userService.setAccessToken(authHeader.substring(7));
     }
   }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const baseApiUrl = this.conf.getProperty('baseApiUrl');
-    if(!request.url.startsWith(baseApiUrl+'public/') && !this.useAuthCookie){
-      const accessToken = this.userService.getAccessToken();
-      if(!accessToken){
-        this.toastr.error('Utente non autenticato.','Errore invocando \''+request.url.substr(baseApiUrl.length-1)+'\'.',{disableTimeOut: true});
-        throw new AlreadyManagedError(new HttpErrorResponse({
-          error:'Utente non autenticato',
-          status: 401,
-          url:request.url }));
-      }
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${accessToken}`
+    if (!request.url.startsWith(baseApiUrl + 'public/')) {
+      const setHeadersValue : { [name: string]: string | string[] } = {
+        ReqUid: generateRandomUUID()
+      };
+      if (!this.useAuthCookie) {
+        const accessToken = this.userService.getAccessToken();
+        if (!accessToken) {
+          if(!request.url.startsWith(baseApiUrl+'doLogout'))
+            this.toastr.error('Utente non autenticato.', 'Errore invocando \'' + request.url.substring(baseApiUrl.length - 1) + '\'.', { disableTimeOut: true });
+          throw new AlreadyManagedError(new HttpErrorResponse({
+            error: 'Utente non autenticato',
+            status: 401,
+            url: request.url
+          }));
         }
+        setHeadersValue.Authorization = `Bearer ${accessToken}`;
+        request = request.clone({
+          setHeaders: setHeadersValue
+        });
+      } else if(this.useCors){
+        request = request.clone({
+          setHeaders: setHeadersValue,
+          withCredentials: true
+        });
+      }
+    } else if (this.useAuthCookie && this.useCors && request.url.endsWith('/authpassword')) {
+      request = request.clone({
+        withCredentials: true
       });
     }
     return next.handle(request).pipe(
@@ -73,16 +102,15 @@ export class TokenInterceptor implements HttpInterceptor {
         return event;
       }),
       catchError((error: HttpErrorResponse) => {
-        if(error.status === 401 && ( error?.error?.message === 'TOKEN_EXPIRED' ||
-                                     error?.error?.message === 'TOKEN_EXPIRED') ) {
-          const fakeAuth = this.conf.getBackendProperty<boolean>('fakeAuth',false);
+        if (error.status === 401 && error?.error?.message === 'TOKEN_EXPIRED') {
+          const fakeAuth = this.conf.getBackendProperty<boolean>('fakeAuth', false);
           //token expired: redirect to login
           const toastrMsg = 'È necessario effettuare nuovamente l\'autenticazione.';
-          if(!this.toastr.findDuplicate(toastrMsg))
-            this.toastr.warning(toastrMsg,'Autenticazione scaduta',{
+          if (!this.toastr.findDuplicate(toastrMsg))
+            this.toastr.warning(toastrMsg, 'Autenticazione scaduta', {
               disableTimeOut: !fakeAuth
             });
-          if(fakeAuth){
+          if (fakeAuth) {
             // fake auth initiate login procedure
             this.userService.logout();
             this.userService.goToLogin();
@@ -93,7 +121,7 @@ export class TokenInterceptor implements HttpInterceptor {
           //mark the error as already managed, so that component may deal with it correctly (typically will not show an error message)
           return throwError(new AlreadyManagedError(error));
         } else {
-          if(!this.useAuthCookie)
+          if (!this.useAuthCookie)
             this.setAuthHeader(error.headers);
           return throwError(error);
         }

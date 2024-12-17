@@ -19,32 +19,14 @@
 -->
 <ng-template #template>
 
-  <!-- <mat-form-field appearance="{{'appearance'|global}}">
-    <mat-label>Ordina per</mat-label>
-    <mat-select [(value)]="sortColumnId">
-      <mat-option>Ordinamento predefinito</mat-option>
-      <mat-option *ngFor="let column of tableColumns" value="{{column.id}}">{{column.label}}</mat-option>
-    </mat-select>
-  </mat-form-field>
-  <mat-button-toggle-group #group="orderToggleGroup">
-    <mat-button-toggle value="asc" aria-label="Text align left">
-      <mat-icon>format_align_left</mat-icon>
-    </mat-button-toggle>
-    <mat-button-toggle value="desc" aria-label="Text align center">
-      <mat-icon>format_align_center</mat-icon>
-    </mat-button-toggle>
-  </mat-button-toggle-group> -->
-
-
   <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
     <mat-form-field *ngIf="showTable && showFilter" fxFlex fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}">
       <mat-label>Filtro</mat-label>
       <input matInput [(ngModel)]="tableDataSource.filter" placeholder="Inserire un testo">
     </mat-form-field>
   </div>
-
   <table #tableElementRef *ngIf="showTable" fxFlex mat-table matTableResponsive matSort multiTemplateDataRows [dataSource]="tableDataSource"
-  role="table">
+  role="table" aria-label="tabella">
     <ng-container *ngFor="let column of tableColumns" matColumnDef="{{column.id}}">
       <th id="{{column.id}}" [ngClass]="column.additionalHtmlIdClasses" mat-header-cell *matHeaderCellDef mat-sort-header [disabled]="!column.sortable" [matTooltip]="column.tooltip">
         <ng-container *ngIf="!column.hasIcon">
@@ -55,9 +37,9 @@
         </ng-container>
       </th>
       <tr>
-        <td mat-cell *matCellDef="let element">
+        <td mat-cell *matCellDef="let element" [ngClass]="column.id ==='flgMultibeneficiario' ? 'multibeneficiario-icon': ''">
           <ng-container *ngIf="column.id!=='tableExpandColumn' && (!column.actions || column.enabledActions(tableId, parentRef, element).length == 0 || !column.checkbox)">
-            <mat-label *ngIf="column.type==='text' || getProp(element,column.id) === null"
+            <mat-label *ngIf="(column.type==='text' || getProp(element,column.id) === null)"
                        [ngClass]="{'clickable': isCellClickable(tableId, parentRef, element, column)}"
                        (click)="cellClick(tableId, parentRef, element, column)">
               {{getProp(element,column.id) | dynamicPipe: column.pipe:column.pipeArgs}}
@@ -66,28 +48,17 @@
           </ng-container>
           <ng-container *ngIf="column.actions && column.enabledActions(tableId, parentRef, element).length > 0 && !column.checkbox">
             <div mat-button-row class="button-row" aria-label="Azioni disponibili">
-              <!-- <div class="float-button-container" [class.active]="showFloatingButtons(tableId, element)">
-                <fa-layers class="floating-buttons" *ngFor="let action of column.enabledActions(tableId, parentRef, element)" [fixedWidth]="true">
-                  <fa-icon
-                    [icon] = "action.icon"
-                    (click)= "action.click(tableId, element, parentRef, $event)"
-                    [matTooltip]="action.tooltip" ></fa-icon>
-                  <fa-layers-text *ngIf="action.overlayText" [content]="action.overlayText.text" [class]="action.overlayText.class" [style]="action.overlayText.style" [transform]="action.overlayText.transform"></fa-layers-text>
-                </fa-layers>
-              </div>
-              <fa-icon [icon]="iconEllipsisH" (click)="toggleFloat(element, $event)"></fa-icon> -->
-              <button mat-icon-button aria-label="Azioni disponibili" role="button"
+              <button #menuTrigger="matMenuTrigger" mat-icon-button aria-label="Azioni disponibili" role="button"
               [matMenuTriggerFor]="menu" (click)="openActionMenu(element, $event)">
               <fa-icon [icon]="iconEllipsisH"></fa-icon></button>
               <mat-menu #menu="matMenu" class="menu-detail-panel" xPosition="before">
                 <ng-template matMenuContent>
                   <button mat-menu-item class="menu-detail-item"
                     *ngFor="let action of column.enabledActions(tableId, parentRef, element)"
-                    (click)= "action.click(tableId, element, parentRef, $event)"
+                    (click)= "action.click(tableId, element, parentRef, $event); menuTrigger.closeMenu()"
                     [attr.aria-label]="action.tooltip"
                     role="button" tabindex="0"
                     >
-                    <!-- fa-icon [icon] = "action.icon"></fa-icon -->
                     <span>{{action.tooltip}}</span>
                   </button>
                 </ng-template>
@@ -120,34 +91,39 @@
 
     <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
     <ng-container matColumnDef="expandedDetail">
-      <td mat-cell *matCellDef="let element" [attr.colspan]="tableColumns?.length || 1">
+       <td mat-cell *matCellDef="let element" [attr.colspan]="tableColumns?.length || 1">
         <div *ngIf="element.details!=null" class="mypay4-element-detail"
             [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
-
-            <table class="mat-table-details" mat-table [dataSource]="element.details | detailfilter:detailFilterInclude:detailFilterExclude">
+          <div class="row">
+            <div class="col-xl">
+            <table class="mat-table-details" aria-label="tabella-dettaglio" mat-table [dataSource]="element.details | detailfilter:detailFilterInclude:detailFilterExclude">
               <ng-container matColumnDef="key">
                 <th mat-header-cell *matHeaderCellDef> key </th>
-                <td mat-cell class="detail-row-key bold" *matCellDef="let detailElement"
-                    [ngClass]="{'underline': detailElement.key===SECTION_ID}">
-                    {{ detailElement.key === SECTION_ID ? detailElement.value : detailElement.key }}
+                <td mat-cell class="detail-row-key bold" *matCellDef="let detailElementMB"
+                    [ngClass]="{'underline': detailElementMB.key===SECTION_ID}">
+                    {{ detailElementMB.key === SECTION_ID ? detailElementMB.value : detailElementMB.key }}
                 </td>
               </ng-container>
               <ng-container *ngIf="!element.detailsInHTML" matColumnDef="value">
                 <th mat-header-cell *matHeaderCellDef> value </th>
-                <td mat-cell class="detail-row-value" *matCellDef="let detailElement">
-                  {{ detailElement.key === SECTION_ID ? '' : detailElement.value }}
+                <td mat-cell class="detail-row-value" *matCellDef="let detailElementMB">
+                  {{ detailElementMB.key === SECTION_ID ? '' : detailElementMB.value }}
                 </td>
               </ng-container>
               <ng-container *ngIf="element.detailsInHTML" matColumnDef="value">
                 <th mat-header-cell *matHeaderCellDef> value </th>
-                <td mat-cell class="detail-row-value" *matCellDef="let detailElement"
-                    [innerHTML]="detailElement.key === SECTION_ID ? null : detailElement.value"></td>
+                <td mat-cell class="detail-row-value" *matCellDef="let detailElementMB"
+                    [innerHTML]="detailElementMB.key === SECTION_ID ? null : detailElementMB.value"></td>
               </ng-container>
-              <tr mat-row class="mypay4-nested-table-row" *matRowDef="let detailElement; columns: tableDatailColumnsName;" tabindex="0"></tr>
+              <tr mat-row class="mypay4-nested-table-row" *matRowDef="let detailElementMB; columns: tableDatailColumnsName;" tabindex="0"></tr>
             </table>
+          </div>
+        </div>
 
+         
         </div>
       </td>
+      
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="tableColumnsName"></tr>
@@ -164,6 +140,7 @@
       <tr mat-footer-row *matFooterRowDef="tableColumnsName; sticky: true"></tr>
     </ng-container>
   </table>
+
 
 <mat-paginator fxFlex [style.display]="tableDataSource.data?.length>5 ? 'block' : 'none'" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
 </ng-template>

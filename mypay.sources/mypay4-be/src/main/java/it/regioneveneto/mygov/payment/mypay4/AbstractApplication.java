@@ -20,8 +20,10 @@ package it.regioneveneto.mygov.payment.mypay4;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AbstractApplication {
+public abstract class AbstractApplication {
 
-  public final static String NAME_KEY="mypay4.spring.app.name";
+  public static final String NAME_KEY="mypay4.spring.app.name";
+
+  protected AbstractApplication(){}
 
 }

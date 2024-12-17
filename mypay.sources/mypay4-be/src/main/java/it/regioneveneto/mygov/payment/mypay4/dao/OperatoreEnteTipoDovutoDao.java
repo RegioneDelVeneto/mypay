@@ -152,6 +152,18 @@ public interface OperatoreEnteTipoDovutoDao extends BaseDao {
   List<OperatoreEnteTipoDovuto> getByEnteTipoDovuto(Long mygovEnteTipoDovuto);
 
   @SqlQuery(
+          "    select "+OperatoreEnteTipoDovuto.ALIAS+ALL_FIELDS+", "+EnteTipoDovuto.FIELDS+", "+Operatore.FIELDS +
+                  "  from mygov_operatore_ente_tipo_dovuto " + OperatoreEnteTipoDovuto.ALIAS +
+                  "  join mygov_ente_tipo_dovuto " + EnteTipoDovuto.ALIAS +
+                  "    on "+EnteTipoDovuto.ALIAS+".mygov_ente_tipo_dovuto_id = "+OperatoreEnteTipoDovuto.ALIAS+".mygov_ente_tipo_dovuto_id " +
+                  "  join mygov_operatore "+Operatore.ALIAS +
+                  "    on "+Operatore.ALIAS+".mygov_operatore_id = "+OperatoreEnteTipoDovuto.ALIAS+".mygov_operatore_id " +
+                  " order by mygov_operatore_ente_tipo_dovuto_id "
+  )
+  @RegisterFieldMapper(OperatoreEnteTipoDovuto.class)
+  List<OperatoreEnteTipoDovuto> getAll();
+
+  @SqlQuery(
       "    select count(1) > 0 " +
           "  from mygov_operatore_ente_tipo_dovuto " + OperatoreEnteTipoDovuto.ALIAS +
           " where "+OperatoreEnteTipoDovuto.ALIAS+".mygov_ente_tipo_dovuto_id = :d.mygovEnteTipoDovutoId.mygovEnteTipoDovutoId " +

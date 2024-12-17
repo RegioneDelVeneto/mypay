@@ -17,11 +17,13 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.controller;
 
+import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.FaultBean;
 import it.regioneveneto.mygov.payment.mypay4.config.MyPay4AbstractSecurityConfig;
 import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaPagatore;
 import it.regioneveneto.mygov.payment.mypay4.dto.BasketTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.CartItem;
 import it.regioneveneto.mygov.payment.mypay4.dto.EsitoTo;
+import it.regioneveneto.mygov.payment.mypay4.dto.pagopa.checkout.CartInfo;
 import it.regioneveneto.mygov.payment.mypay4.exception.BadRequestException;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
@@ -33,7 +35,6 @@ import it.regioneveneto.mygov.payment.mypay4.storage.ContentStorage;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.veneto.regione.pagamenti.ente.StShowMyPay;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaCarrelloRPRisposta;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,20 +50,18 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -71,8 +70,12 @@ import java.util.*;
 @ConditionalOnWebApplication
 public class LandingController {
 
-  public final static String ANONYMOUS_PATH = MyPay4AbstractSecurityConfig.PATH_PUBLIC + "/landing";
-  public final static String LEGACY = "/legacy";
+  public static final String ANONYMOUS_PATH = MyPay4AbstractSecurityConfig.PATH_PUBLIC + "/landing";
+  public static final String LEGACY = "/legacy";
+
+  public static final String PAYMENT_OUTCOME_URL = ANONYMOUS_PATH + "/outcome";
+
+  private enum REPLICA_TYPE { DOVUTO, DOVUTO_ELAB, NO_REPLICA }
 
   @Value("${app.fe.cittadino.absolute-path}")
   private String appFeCittadinoAbsolutePath;
@@ -114,8 +117,34 @@ public class LandingController {
   private ExportDovutiService exportDovutiService;
   @Autowired
   private MyBoxService myBoxService;
+  @Autowired
+  private LandingService landingService;
 
   private final SimpleDateFormat dateFormatDdMmYyyy = new SimpleDateFormat("dd/MM/yyyy");
+
+  @GetMapping(ANONYMOUS_PATH + "/inviaDovutiReplicaCheck")
+  public ResponseEntity<?> landingInviaDovutiReplicaCheck(
+      @RequestParam String idSession) {
+    try {
+      Map<String, String> returnMap = new HashMap<>();
+      String[] idTokenContainer = new String[1];
+      Optional<BasketTo> basketTo = storageService.getString(StorageService.WS_USER, idSession)
+          .flatMap(idToken -> {
+            idTokenContainer[0] = idToken;
+            return storageService.getObject(StorageService.WS_USER, idToken, BasketTo.class);
+          });
+      if (basketTo.isEmpty())
+        return ResponseEntity.badRequest().body("idSession not valid: " + idSession);
+      REPLICA_TYPE replicaType = manageReplicaDovutoImpl(basketTo.get());
+      returnMap.put("replica", replicaType.name());
+      String url = landingService.getUrlInviaDovuti(idTokenContainer[0], true);
+      returnMap.put("urlToForceStartPayment", url);
+      return ResponseEntity.ok(returnMap);
+    } catch (Exception e) {
+      log.error("landingInviaDovutiReplicaCheck", e);
+      throw new MyPayException("system error", e);
+    }
+  }
 
   @GetMapping(ANONYMOUS_PATH + "/inviaDovuti")
   public ResponseEntity<?> landingInviaDovuti(
@@ -140,39 +169,42 @@ public class LandingController {
                 .queryParam("esito", "ERROR")
                 .encode()
                 .toUriString();
-            return redirectTo(backUrl);
-          } else if (!"ok".equals(overrideCheckReplicaPayments)) {
-            //case we have to make replica payment check
-            Optional<CartItem> replicaDovuto = basketTo.get().getItems().stream().filter(item ->
-                dovutoService.hasReplicaDovuto(
-                    item.getCodIpaEnte(),
-                    item.getIntestatario().getTipoIdentificativoUnivoco(),
-                    item.getIntestatario().getCodiceIdentificativoUnivoco(),
-                    item.getCausale(),
-                    item.getCodTipoDovuto()).orElse(Boolean.FALSE)
-            ).findFirst();
-            if (replicaDovuto.isPresent()) {
-              log.debug("found DOVUTO payment replica for cart item : {}", replicaDovuto.get());
-              return redirectTo(appFeCittadinoAbsolutePath + "/landing/paymentReplica?type=dovuto&id=" + id);
-            }
-            Optional<CartItem> replicaDovutoElaborato = basketTo.get().getItems().stream().filter(item ->
-                dovutoElaboratoService.hasReplicaDovutoElaborato(
-                    item.getCodIpaEnte(),
-                    item.getIntestatario().getTipoIdentificativoUnivoco(),
-                    item.getIntestatario().getCodiceIdentificativoUnivoco(),
-                    item.getCausale(),
-                    item.getCodTipoDovuto()).orElse(Boolean.FALSE)
-            ).findFirst();
-            if (replicaDovutoElaborato.isPresent()) {
-              log.debug("found DOVUTO_ELABORATO payment replica for cart item : {}" , replicaDovutoElaborato.get());
-              return redirectTo(appFeCittadinoAbsolutePath + "/landing/paymentReplica?type=elab&id=" + id);
+            return Utilities.redirectTo(backUrl);
+          } else {
+            boolean skipOverrideCheckReplicaPayments = false;
+            if(StringUtils.isNotBlank(overrideCheckReplicaPayments))
+              switch(landingService.validateParamCheckReplicaPayments(id, overrideCheckReplicaPayments)){
+                case INVALID:
+                  throw new MyPayException("invalid overrideCheckReplicaPayments");
+                case EXPIRED:
+                  log.info("expired overrideCheckReplicaPayments [{}], ignoring it", overrideCheckReplicaPayments);
+                  break;
+                case VALID:
+                  skipOverrideCheckReplicaPayments = true;
+                  break;
+              }
+
+            if (!skipOverrideCheckReplicaPayments) {
+              //case we have to make replica payment check
+              switch (manageReplicaDovutoImpl(basketTo.get())) {
+                case DOVUTO:
+                  return Utilities.redirectTo(landingService.getUrlPaymentReplica(id, "dovuto"));
+                case DOVUTO_ELAB:
+                  return Utilities.redirectTo(landingService.getUrlPaymentReplica(id, "elab"));
+                case NO_REPLICA: //nothing to do
+              }
             }
           }
 
           //we don't have payment replica, or we have it but used decided to proceed with payment
-          NodoSILInviaCarrelloRPRisposta ncr = paymentManagerService.checkoutCarrello(basketTo.get());
-          log.debug("NodoSILInviaCarrelloRPRisposta: {}", ReflectionToStringBuilder.toString(ncr));
-          return redirectTo(ncr.getUrl());
+          EsitoTo esitoTo = paymentManagerService.checkoutCarrello(null, basketTo.get());
+          if(!StringUtils.equals(esitoTo.getEsito(),Constants.STATO_ESITO_OK)){
+            log.error("EsitoTo checkoutCarrello: {}", ReflectionToStringBuilder.toString(esitoTo));
+            throw new MyPayException("error during checkout: "+Utilities.ifNotNull(esitoTo.getFaultBean(), FaultBean::getFaultCode));
+          } else {
+            log.debug("EsitoTo checkoutCarrello: {}", ReflectionToStringBuilder.toString(esitoTo));
+          }
+          return Utilities.redirectTo(esitoTo.getUrl());
         } else {
           //showMyPay !NONE -> go to UI
 
@@ -185,7 +217,7 @@ public class LandingController {
           ContentStorage.StorageToken tokenFe = storageService.putObject(StorageService.WS_USER, basketTo);
 
           //redirect to UI
-          return redirectTo(appFeCittadinoAbsolutePath + "/landing/inviaDovuti?id=" + tokenFe.getId());
+          return Utilities.redirectTo(appFeCittadinoAbsolutePath + "/landing/inviaDovuti?id=" + tokenFe.getId());
         }
 
       }
@@ -195,7 +227,36 @@ public class LandingController {
     }
   }
 
-  @RequestMapping(ANONYMOUS_PATH + "/esitoPagamento")
+  private REPLICA_TYPE manageReplicaDovutoImpl(BasketTo basketTo){
+    //case we have to make replica payment check
+    Optional<CartItem> replicaDovuto = basketTo.getItems().stream().filter(item ->
+        dovutoService.hasReplicaDovuto(
+            item.getCodIpaEnte(),
+            item.getIntestatario().getTipoIdentificativoUnivoco(),
+            item.getIntestatario().getCodiceIdentificativoUnivoco(),
+            item.getCausale(),
+            item.getCodTipoDovuto()).orElse(Boolean.FALSE)
+    ).findFirst();
+    if (replicaDovuto.isPresent()) {
+      log.debug("found DOVUTO payment replica for cart item : {}", replicaDovuto.get());
+      return REPLICA_TYPE.DOVUTO;
+    }
+    Optional<CartItem> replicaDovutoElaborato = basketTo.getItems().stream().filter(item ->
+        dovutoElaboratoService.hasReplicaDovutoElaborato(
+            item.getCodIpaEnte(),
+            item.getIntestatario().getTipoIdentificativoUnivoco(),
+            item.getIntestatario().getCodiceIdentificativoUnivoco(),
+            item.getCausale(),
+            item.getCodTipoDovuto()).orElse(Boolean.FALSE)
+    ).findFirst();
+    if (replicaDovutoElaborato.isPresent()) {
+      log.debug("found DOVUTO_ELABORATO payment replica for cart item : {}" , replicaDovutoElaborato.get());
+      return REPLICA_TYPE.DOVUTO_ELAB;
+    }
+    return REPLICA_TYPE.NO_REPLICA;
+  }
+
+  @GetMapping(ANONYMOUS_PATH + "/esitoPagamento")
   public ResponseEntity<?> landingPaymentResponse(@RequestParam String idSession, @RequestParam String esito) {
     if (StringUtils.isBlank(idSession)) {
       log.error("idSession parameter is mandatory");
@@ -204,27 +265,40 @@ public class LandingController {
     try {
       CarrelloMultiBeneficiario multiCart = carrelloMultiBeneficiarioService.getByIdSessionFesp(idSession).orElseThrow(NotFoundException::new);
       Ente enteCaller = Optional.ofNullable(enteService.getEnteByCodIpa(multiCart.getCodIpaEnte())).orElseThrow(NotFoundException::new);
-      List<Carrello> carrelliContenuti = Optional.ofNullable(carrelloService.getByMultiBeneficarioId(multiCart.getMygovCarrelloMultiBeneficiarioId())).orElseThrow(NotFoundException::new);
-      carrelliContenuti.forEach(cart -> {
-        try {
-          giornaleService.registraEvento(new Date(), cart.getCodRpSilinviarpIdDominio(),
-              cart.getCodRpDatiVersIdUnivocoVersamento(), cart.getCodRpSilinviarpCodiceContestoPagamento(),
-              cart.getCodRpSilinviarpIdPsp(), cart.getCodRpDatiVersTipoVersamento(), Constants.COMPONENTE_WFESP,
-              Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(), Constants.GIORNALE_TIPO_EVENTO_PA.paaSILInviaRispostaPagamentoCarrel.toString(),
-              Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
-              Constants.NODO_REGIONALE_FESP, cart.getCodRpSilinviarpIdDominio(),
-              identificativoStazioneIntermediarioPa, cart.getCodRpSilinviarpIdCanale(),
-              multiCart.getDeRpSilinviacarrellorpEsito(),
-              esito.contains("OK")? Constants.GIORNALE_ESITO_EVENTO.OK.toString() : Constants.GIORNALE_ESITO_EVENTO.KO.toString());
-        } catch (Exception e) {
-          log.warn("nodoSILInviaCarrelloRP [REQUEST] impossible to insert in the event log", e);
-        }
-      });
-      String redirectUrl;
+      var cart = carrelloService.getByMultiBeneficarioId(multiCart.getMygovCarrelloMultiBeneficiarioId()).orElseThrow(NotFoundException::new);
+      try {
+        giornaleService.registraEvento(new Date(), cart.getCodRpSilinviarpIdDominio(),
+          cart.getCodRpDatiVersIdUnivocoVersamento(), cart.getCodRpSilinviarpCodiceContestoPagamento(),
+          cart.getCodRpSilinviarpIdPsp(), cart.getCodRpDatiVersTipoVersamento(), Constants.COMPONENTE_WFESP,
+          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(), Constants.GIORNALE_TIPO_EVENTO_PA.paaSILInviaRispostaPagamentoCarrel.toString(),
+          Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
+          Constants.NODO_REGIONALE_FESP, cart.getCodRpSilinviarpIdDominio(),
+          identificativoStazioneIntermediarioPa, cart.getCodRpSilinviarpIdCanale(),
+          idSession+" - "+esito,
+          StringUtils.equalsIgnoreCase(esito,"OK") ? Constants.GIORNALE_ESITO_EVENTO.OK.toString() : Constants.GIORNALE_ESITO_EVENTO.KO.toString());
+      } catch (Exception e) {
+        log.warn("paaSILInviaRispostaPagamentoCarrel [RESPONSE] impossible to insert in the event log", e);
+      }
+
+      String redirectUrl = null;
       String idSessionCart = multiCart.getIdSessionCarrello();
       String esitoParam = Utilities.ifEqualsOrElse("OK", "ERROR").apply(esito);
-      String backUrl = Utilities.getDefaultString().apply(multiCart.getRispostaPagamentoUrl(), enteCaller.getEnteSilInviaRispostaPagamentoUrl());
-      if(StringUtils.isBlank(backUrl)) {
+      String backUrl = StringUtils.firstNonBlank(multiCart.getRispostaPagamentoUrl(), enteCaller.getEnteSilInviaRispostaPagamentoUrl());
+      if(StringUtils.isNotBlank(backUrl)){
+        String pollingToken = jwtTokenUtil.generatePollingToken(null, multiCart.getMygovCarrelloMultiBeneficiarioId()+"");
+        try {
+          redirectUrl = UriComponentsBuilder
+            .fromUriString(backUrl)
+            .queryParam("idSession", idSessionCart)
+            .queryParam("esito", esitoParam)
+            .queryParam("pollingToken", pollingToken)
+            .encode()
+            .toUriString();
+        } catch(Exception e){
+          log.warn("error when setting the redirectUrl to url[{}], ignoring the redirect", backUrl, e);
+        }
+      }
+      if(StringUtils.isBlank(redirectUrl)) {
         String msgCode = null;
         switch (multiCart.getMygovAnagraficaStatoId().getCodStato()){
           case Constants.STATO_CARRELLO_PAGATO: msgCode = "pa.esito.ok"; break;
@@ -245,15 +319,70 @@ public class LandingController {
             .build();
         ContentStorage.StorageToken tokenFe = storageService.putObject(StorageService.WS_USER, esitoTo);
         redirectUrl = appFeCittadinoAbsolutePath + "/landing/esitoPagamento?id=" + tokenFe.getId();
-      } else {
-        redirectUrl = UriComponentsBuilder
-          .fromUriString(backUrl)
-          .queryParam("idSession", idSessionCart)
-          .queryParam("esito", esitoParam)
-          .encode()
-          .toUriString();
       }
-      return redirectTo(redirectUrl);
+      return Utilities.redirectTo(redirectUrl);
+    } catch (Exception e) {
+      log.error("landingPaymentResponse", e);
+      throw new MyPayException("system error", e);
+    }
+  }
+
+  @GetMapping(PAYMENT_OUTCOME_URL+"/{outcome}")
+  public ResponseEntity<?> landingPaymentResponseFromCheckout(@PathVariable String outcome, @RequestParam String id) {
+    if (StringUtils.isBlank(id)) {
+      log.error("idSession parameter is mandatory");
+      throw new BadRequestException("idSession parameter is mandatory");
+    }
+    Optional<CartInfo> optionalCartInfo = storageService.getObject(StorageService.WS_USER, id, CartInfo.class);
+    try{
+      String esitoParam;
+      switch(outcome.toUpperCase()){
+        case "OK": //successful payment
+          esitoParam = outcome.toUpperCase();
+          break;
+        case "KO": //error
+        case "CN": //canceled by user
+          esitoParam = "ERROR";
+          optionalCartInfo.ifPresent(cartInfo -> cartInfo.getMygovDovutoIdIuvVolatiliList()
+            .stream()
+            .map(dovutoService::getById)
+            .forEach(dovutoService::eraseCheckoutCartsExpired));
+          break;
+        default:
+          throw new BadRequestException(String.format("landingPaymentResponseFromCheckout, invalid outcome[%s]", outcome));
+      }
+      String redirectUrl = null;
+      if (optionalCartInfo.isPresent()) {
+        CartInfo cartInfo = optionalCartInfo.get();
+        Ente enteCaller = Optional.ofNullable(enteService.getEnteByCodIpa(cartInfo.getCodIpaEnteCaller())).orElseThrow(NotFoundException::new);
+        String idCart = cartInfo.getIdCart();
+        String backUrl = StringUtils.firstNonBlank(cartInfo.getBackUrl(), enteCaller.getEnteSilInviaRispostaPagamentoUrl());
+
+        if(StringUtils.isNotBlank(backUrl)){
+          String pollingToken = jwtTokenUtil.generatePollingToken(null, String.valueOf(cartInfo.getIdCart()));
+          try {
+            redirectUrl = UriComponentsBuilder
+                .fromUriString(backUrl)
+                .queryParam("idSession", idCart)
+                .queryParam("esito", esitoParam)
+                .queryParam("pollingToken", pollingToken)
+                .encode()
+                .toUriString();
+          } catch(Exception e){
+            log.warn("error when setting the redirectUrl to url[{}], ignoring the redirect", backUrl, e);
+          }
+        }
+      }
+      if(StringUtils.isBlank(redirectUrl)) {
+        String msgEsito = messageSource.getMessage(outcome.equalsIgnoreCase(Constants.STATO_ESITO_OK) ? "pa.esito.naok" : "pa.esito.nako", null, Locale.ITALY);
+        EsitoTo esitoTo = EsitoTo.builder()
+            .esito(esitoParam)
+            .returnMsg(msgEsito)
+            .build();
+        ContentStorage.StorageToken tokenFe = storageService.putObject(StorageService.WS_USER, esitoTo);
+        redirectUrl = appFeCittadinoAbsolutePath + "/landing/esitoPagamento?id=" + tokenFe.getId();
+      }
+      return Utilities.redirectTo(redirectUrl);
     } catch (Exception e) {
       log.error("landingPaymentResponse", e);
       throw new MyPayException("system error", e);
@@ -266,8 +395,10 @@ public class LandingController {
       @RequestParam String backUrl,
       @RequestParam(required = false) String email) {
     try {
-      Optional.ofNullable(id).orElseThrow(() -> new BadRequestException("id parameter is mandatory"));
-      Optional.ofNullable(backUrl).orElseThrow(() -> new BadRequestException("backUrl parameter is mandatory"));
+      if(StringUtils.isBlank(id))
+        throw new BadRequestException("id parameter is mandatory");
+      if(StringUtils.isBlank(backUrl))
+        throw new BadRequestException("backUrl parameter is mandatory");
 
       CartItem item = dovutoService.getByIdSession(id)
           .map(dovuto -> CartItem.builder()
@@ -302,11 +433,11 @@ public class LandingController {
           .tipoCarrello(Constants.TIPO_CARRELLO_PRECARICATO_ANONIMO_ENTE)
           .items(Collections.singletonList(item))
           .build();
-      NodoSILInviaCarrelloRPRisposta ncr = paymentManagerService.checkoutCarrello(basketTo);
-      log.debug("NodoSILInviaCarrelloRPRisposta: {}", ReflectionToStringBuilder.toString(ncr));
-      return redirectTo(ncr.getUrl());
+      EsitoTo esitoTo = paymentManagerService.checkoutCarrello(null, basketTo);
+      log.debug("EsitoTo checkoutCarrello: {}", ReflectionToStringBuilder.toString(esitoTo));
+      return Utilities.redirectTo(esitoTo.getUrl());
     } catch (Exception e) {
-      log.error("landingPrecarivatoAnonimoEnte", e);
+      log.error("landingPrecaricatoAnonimoEnte", e);
       throw new MyPayException(messageSource.getMessage("pa.errore.internalError", null, Locale.ITALY));
     }
   }
@@ -323,7 +454,7 @@ public class LandingController {
   public ResponseEntity<Resource> downloadAvvisoLegacy(
       @RequestParam(name = "iuv") String numeroAvviso,
       @RequestParam(name = "ente") String codIpaEnte,
-      @RequestParam(name = "anagrafica", required = false) String anagrafica) throws Exception {
+      @RequestParam(name = "anagrafica", required = false) String anagrafica) throws ParseException {
 
     numeroAvviso = StringUtils.strip(numeroAvviso);
     anagrafica = StringUtils.strip(anagrafica);
@@ -339,7 +470,7 @@ public class LandingController {
     String iuv = Utilities.numeroAvvisoToIuvValidator(numeroAvviso);
     // check if a dovuto exists with ente/IUV
     List<Dovuto> dovutoList = dovutoService.getByIuvEnte(iuv, codIpaEnte);
-    if(dovutoList.size()>0) {
+    if(!dovutoList.isEmpty()) {
       // take the first (in theory it's not possible to have more than one)
       Dovuto dovuto = dovutoList.get(0);
 
@@ -375,7 +506,7 @@ public class LandingController {
       List<DovutoElaborato> dovutoElaboratoAllList = dovutoElaboratoService.searchDovutoElaboratoByIuvEnte(iuv, ente.getCodIpaEnte());
 
       List<DovutoElaborato> dovutoElaboratoList = new ArrayList<>();
-      if( ! dovutoElaboratoAllList.isEmpty() && dovutoElaboratoAllList.size() > 0) {
+      if(!dovutoElaboratoAllList.isEmpty()) {
         List<DovutoElaborato> listDovutoKO = new ArrayList<>();
         for(DovutoElaborato dovutoElaborato : dovutoElaboratoAllList) {
           Boolean carrelloOK = Utilities.verifyCarrelloloOK(carrelloService.getById(dovutoElaborato.getMygovCarrelloId().getMygovCarrelloId()));
@@ -386,12 +517,12 @@ public class LandingController {
             listDovutoKO.add(dovutoElaborato);
           }
         }
-        if ((dovutoElaboratoList.size()==0) && (listDovutoKO.size()>0)) {
+        if (dovutoElaboratoList.isEmpty() && !listDovutoKO.isEmpty()) {
             dovutoElaboratoList.addAll(listDovutoKO);
         }
       }
 
-      if( ! dovutoElaboratoList.isEmpty() && dovutoElaboratoList.size() > 0) {
+      if(!dovutoElaboratoList.isEmpty()) {
         //check all dovutoElaborato in same carrello
         Carrello carrello = null;
         for(DovutoElaborato dovutoElaborato : dovutoElaboratoList) {
@@ -481,11 +612,5 @@ public class LandingController {
     }
   }
 
-  private ResponseEntity<?> redirectTo(String url) throws URISyntaxException {
-    URI uri = new URI(url);
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.setLocation(uri);
-    log.debug("redirecting to :" + url);
-    return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(httpHeaders).build();
-  }
+
 }

@@ -18,12 +18,13 @@
 import { HttpBackend, HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+import { ActivatedRoute } from '@angular/router';
 import { ApiInvokerService } from '../../public-api';
 import { Mappers } from '../mapper/mappers';
 import { User } from '../model/user';
 import { ConfigurationFactory } from '../utils/backend-configuration-factory';
 
-declare var myPayAppModuleName: any;
+declare const myPayAppModuleName: any;
 
 @Injectable({
   providedIn: 'root'
@@ -32,11 +33,22 @@ export class ConfigurationService {
 
   private backendConfigurationFactory: ConfigurationFactory;
   private userFromCookie: User;
+  private mapQueryFlags = new Map<string, string>();
 
   constructor(
-    private httpBackend: HttpBackend
+    private httpBackend: HttpBackend,
+    private route: ActivatedRoute,
   ) {
     this.backendConfigurationFactory = ConfigurationFactory.get();
+    console.log(document.location);
+    const queryParams = new URL(document.location.href).searchParams;
+    queryParams.forEach((value, key) => {
+      if(key.startsWith('flag_')){
+        this.mapQueryFlags.set(key.substring(5), value);
+        console.log('add flag param '+key.substring(5)+': '+value);
+      }
+    });
+
   }
 
   bootstrapConfig(): Promise<void> {
@@ -69,6 +81,10 @@ export class ConfigurationService {
 
   getMyPayAppModuleName(): string {
     return myPayAppModuleName;
+  }
+
+  getFlag(key: string, defaultValue?: string):string {
+    return this.mapQueryFlags.get(key) ?? defaultValue;
   }
 
 }

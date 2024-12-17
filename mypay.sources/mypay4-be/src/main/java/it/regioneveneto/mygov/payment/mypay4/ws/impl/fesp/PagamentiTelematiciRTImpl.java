@@ -21,9 +21,9 @@ import gov.telematici.pagamenti.ws.nodoregionaleperspc.EsitoPaaInviaRT;
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.FaultBean;
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRT;
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRTRisposta;
+import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT;
 import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediCopiaRT;
 import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediCopiaRTRisposta;
-import gov.telematici.pagamenti.ws.ppthead.IntestazionePPT;
 import it.gov.digitpa.schemas._2011.pagamenti.CtDatiSingoloPagamentoRT;
 import it.gov.digitpa.schemas._2011.pagamenti.RT;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
@@ -34,6 +34,7 @@ import it.regioneveneto.mygov.payment.mypay4.service.fesp.*;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.VerificationUtils;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.PagamentiTelematiciEsitoClient;
+import it.regioneveneto.mygov.payment.mypay4.ws.client.fesp.PagamentiTelematiciRPTClient;
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciRT;
 import it.regioneveneto.mygov.payment.mypay4.ws.impl.PagamentiTelematiciEsitoImpl;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants;
@@ -57,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 @Service("PagamentiTelematiciRTFespImpl")
@@ -76,34 +76,33 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
   private String password;
 
   @Autowired
-  GiornaleService giornaleFespService;
+  private EsitoBuilderService esitoBuilderService;
   @Autowired
-  EsitoBuilderService esitoBuilderService;
+  private RptRtService rptRtService;
   @Autowired
-  RptRtService rptRtService;
+  private JAXBTransformService jaxbTransformService;
   @Autowired
-  JAXBTransformService jaxbTransformService;
+  private RptRtDettaglioService rptRtDettaglioService;
   @Autowired
-  RptRtDettaglioService rptRtDettaglioService;
+  private RpEService rpEService;
   @Autowired
-  RpEService rpEService;
+  private RpEDettaglioService rpEDettaglioService;
   @Autowired
-  RpEDettaglioService rpEDettaglioService;
+  private PagamentiTelematiciRPTClient pagamentiTelematiciRPTClient;
   @Autowired
-  PagamentiTelematiciRPTImpl pagamentiTelematiciRPT;
+  private PagamentiTelematiciEsitoImpl pagamentiTelematiciEsitoImpl;
   @Autowired
-  PagamentiTelematiciEsitoImpl pagamentiTelematiciEsitoImpl;
+  private PagamentiTelematiciEsitoClient pagamentiTelematiciEsitoClient;
   @Autowired
-  PagamentiTelematiciEsitoClient pagamentiTelematiciEsitoClient;
+  private RPTConservazioneService rptConservazioneService;
   @Autowired
-  EnteService enteFespService;
-
+  private EnteService enteFespService;
   @Autowired
-  SystemBlockService systemBlockService;
+  private SystemBlockService systemBlockService;
 
   public PaaInviaRTRisposta paaInviaRT(PaaInviaRT bodyrichiesta, IntestazionePPT header) {
     log.info("Executing operation paaInviaRT");
-    return processRT(bodyrichiesta, header, false);
+    return processRT(bodyrichiesta, header);
   }
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
@@ -117,7 +116,7 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
       body.setCodiceContestoPagamento(rpt.getCodRptInviarptCodiceContestoPagamento());
       body.setIdentificativoUnivocoVersamento(rpt.getCodRptInviarptIdUnivocoVersamento());
 
-      NodoChiediCopiaRTRisposta nodoChiediCopiaRTRisposta = pagamentiTelematiciRPT.nodoChiediCopiaRT(body);
+      NodoChiediCopiaRTRisposta nodoChiediCopiaRTRisposta = pagamentiTelematiciRPTClient.nodoChiediCopiaRT(body);
       if (nodoChiediCopiaRTRisposta.getFault() != null) {
         gov.telematici.pagamenti.ws.nodospcpernodoregionale.FaultBean fault = nodoChiediCopiaRTRisposta.getFault();
         log.error("fault returned on nodoChiediCopiaRT rptId[{}]: {}", rpt.getMygovRptRtId(), ToStringBuilder.reflectionToString(fault));
@@ -132,7 +131,7 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
         intestazionePPT.setIdentificativoStazioneIntermediarioPA(rpt.getCodRptInviarptIdStazioneIntermediarioPa());
         intestazionePPT.setIdentificativoUnivocoVersamento(rpt.getCodRptInviarptIdUnivocoVersamento());
         intestazionePPT.setCodiceContestoPagamento(rpt.getCodRptInviarptCodiceContestoPagamento());
-        PaaInviaRTRisposta paaInviaRTRisposta = this.processRT(paaInviaRT, intestazionePPT, true);
+      PaaInviaRTRisposta paaInviaRTRisposta = this.processRT(paaInviaRT, intestazionePPT);
         if (log.isInfoEnabled())
           log.info("RT received rptId[{}]: {}", rpt.getMygovRptRtId(), ToStringBuilder.reflectionToString(paaInviaRTRisposta));
         return Boolean.TRUE;
@@ -148,7 +147,7 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
     }
   }
 
-  private static ThreadLocal<Esito> fakeCtEsito = new ThreadLocal<>();
+  private static final ThreadLocal<Esito> fakeCtEsito = new ThreadLocal<>();
   public static Esito getFakeCtEsito(){
     return fakeCtEsito.get();
   }
@@ -169,13 +168,13 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
         intestazionePPT.getCodiceContestoPagamento(), e);
     }
     try {
-      return this.processRT(paaInviaRT, intestazionePPT, true);
+      return this.processRT(paaInviaRT, intestazionePPT);
     } finally {
       fakeCtEsito.remove();
     }
   }
 
-  private PaaInviaRTRisposta processRT(PaaInviaRT bodyrichiesta, IntestazionePPT header, boolean skipGiornale) {
+  private PaaInviaRTRisposta processRT(PaaInviaRT bodyrichiesta, IntestazionePPT header) {
     Esito ctEsito;
     it.veneto.regione.pagamenti.pa.ppthead.IntestazionePPT paaSILInviaEsitoHeader;
     RT rt;
@@ -185,51 +184,9 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
     String identificativoDominio = header.getIdentificativoDominio();
     String identificativoUnivocoVersamento = header.getIdentificativoUnivocoVersamento();
     String codiceContestoPagamento = header.getCodiceContestoPagamento();
-    Giornale dati = Giornale.builder()
-        .identificativoDominio(identificativoDominio)
-        .identificativoUnivocoVersamento(identificativoUnivocoVersamento)
-        .codiceContestoPagamento(codiceContestoPagamento)
-        .identificativoPrestatoreServiziPagamento(Constants.EMPTY)
-        .tipoVersamento(Constants.EMPTY)
-        .componente(Constants.COMPONENTE_FESP)
-        .categoriaEvento(Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString())
-        .tipoEvento(Constants.GIORNALE_TIPO_EVENTO_FESP.paaInviaRT.toString())
-        .sottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString())
-        .identificativoFruitore(Constants.NODO_DEI_PAGAMENTI_SPC)
-        .identificativoErogatore(header.getIdentificativoIntermediarioPA())
-        .identificativoStazioneIntermediarioPa(header.getIdentificativoStazioneIntermediarioPA())
-        .canalePagamento(Constants.EMPTY)
-        .build();
 
-    BiConsumer<String, String> registraGiornale = (parametriSpecificiInterfaccia, esito) -> {
-      if(skipGiornale)
-        return;
-      try {
-        giornaleFespService.registraEvento(
-            new Date(),
-            dati.getIdentificativoDominio(),
-            dati.getIdentificativoUnivocoVersamento(),
-            dati.getCodiceContestoPagamento(),
-            dati.getIdentificativoPrestatoreServiziPagamento(),
-            dati.getTipoVersamento(),
-            dati.getComponente(),
-            dati.getCategoriaEvento(),
-            dati.getTipoEvento(),
-            dati.getSottoTipoEvento(),
-            dati.getIdentificativoFruitore(),
-            dati.getIdentificativoErogatore(),
-            dati.getIdentificativoStazioneIntermediarioPa(),
-            dati.getCanalePagamento(),
-            parametriSpecificiInterfaccia,
-            esito
-        );
-      } catch (Exception e) {
-        log.warn("paaSILInviaEsito [" + dati.getSottoTipoEvento() + "] impossible to insert in the event log", e);
-      }
-    };
     ManageWsFault<PaaInviaRTRisposta> manageFault = (codeFault, faultString, faultDescr, error) -> {
       log.error(faultString, error);
-      registraGiornale.accept(faultString + (StringUtils.isBlank(faultDescr)?"":(" - "+faultDescr)), Constants.GIORNALE_ESITO_EVENTO.KO.toString());
       PaaInviaRTRisposta paaInviaRTRisposta = new PaaInviaRTRisposta();
       EsitoPaaInviaRT esitoPaaInviaRT = new EsitoPaaInviaRT();
       FaultBean faultBean = VerificationUtils.getNodoFaultBean(identificativoDominio,
@@ -248,21 +205,11 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
     };
 
     PaaInviaRTRisposta response = new PaaInviaRTRisposta();
-    try {
-      String xmlString = jaxbTransformService.marshalling(bodyrichiesta, PaaInviaRT.class);
-      registraGiornale.accept(xmlString, Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-    } catch (Exception ex) {
-      String faultString = "Error executing operation PaaInviaRT ::: Exception :::";
-      String faultDescr = String.format("|%s|%s|%s|", identificativoDominio, identificativoUnivocoVersamento, codiceContestoPagamento);
-      return manageFault.apply(FaultCodeConstants.CODE_PAA_SYSTEM_ERROR, faultString, faultDescr, ex);
-    }
-    dati.setSottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString());
-
-    log.debug("unmarshallingBase64 payload [{}]", rtPayloadInChiaro);
+    log.trace("unmarshallingBase64 payload [{}]", rtPayloadInChiaro);
     try {
       rt = jaxbTransformService.unmarshalling(rtPayloadInChiaro, RT.class);
     } catch (MyPayException e) {
-      String faultString = String.format("{}: Failed to parse Ricevuta Telematica ::: Exception :::", e.getClass().getName());
+      String faultString = String.format("%s: Failed to parse Ricevuta Telematica ::: Exception :::", e.getClass().getName());
       String faultDescr = String.format("|%s|%s|", identificativoUnivocoVersamento, codiceContestoPagamento);
       return manageFault.apply(FaultCodeConstants.CODE_PAA_SYSTEM_ERROR, faultString, faultDescr, e);
     }
@@ -278,112 +225,165 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
 
     RptRt rptRt = rptRtService.getRPTByCodRptIdMessaggioRichiesta(rt.getRiferimentoMessaggioRichiesta());
     if (rptRt == null) {
-      String faultString = String.format("RPT non trovata per Identificativo Messaggio Richiesta [{}]" , rt.getRiferimentoMessaggioRichiesta());
+      String faultString = String.format("RPT non trovata per Identificativo Messaggio Richiesta [%s]" , rt.getRiferimentoMessaggioRichiesta());
       return manageFault.apply(FaultCodeConstants.PAA_RPT_SCONOSCIUTA, faultString);
     }
 
-    String esitoRT = rt.getDatiPagamento().getCodiceEsitoPagamento();
-    Optional<String> optionalEsitoInDB = Optional.ofNullable(rptRt.getCodRtDatiPagCodiceEsitoPagamento());
-    // se in precedenza ho ricevuto una RT ed era ABORTITA
-    boolean precedenteAbortita = optionalEsitoInDB.isPresent() && optionalEsitoInDB.get().equals("9");
-    // Nel caso di una RT ricevuta a seguito di un invio RPT modello
-    // "immediato" con esito risposta invio RPT "KO", memorizzare la RT
-    // sul fesp e non propagarla a pa.
-    boolean immediatoKO = rptRt.getDeRptInviarptEsito().equals("KO") && List.of(0, 1).contains(rptRt.getModelloPagamento());
-    boolean modelloTreOK = esitoRT.equals("0") && rptRt.getModelloPagamento() == 4;
-
-    if (precedenteAbortita && !esitoRT.equals("1")) {
-      // pagato o parzialmente pagato rt con esito non possibile
-      // (RT precedente ABORTITA e ora mi arriva un esito pagato o parzialmente pagato!!)
-      String faultString = String.format("Pagamento con IUV: [{}] abortito" , identificativoUnivocoVersamento);
-      return manageFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
-    } else if (rptRt.getCodRtInviartEsito() != null
-        && (rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_OK)
-        || (rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_KO)
-        && rptRt.getCodRtInviartFaultCode().equals(FaultCodeConstants.PAA_RT_DUPLICATA)))) {
-      // rt gia ricevuta, errore
-      String faultString = String.format("RT gia ricevuta per IUV: {}", identificativoUnivocoVersamento);
-      return manageFaultBiFunction
-          .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, rptRt.getMygovRptRtId()))
-          .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+    // Se il CCP e' relativo ad una rpt_rt gia' presente ma l'identificativo dominio della rt e' differente da quello presente nella rpt_rt
+    // stiamo parlando di una rt arrivata per un ente secondario intermediato da MyPay
+    boolean isRtForSecondaryEnte = false;
+    if (rptRt.getCodRptInviarptCodiceContestoPagamento().equals(rt.getDatiPagamento().getCodiceContestoPagamento()) &&
+            !rptRt.getCodRptDomIdDominio().equals(rt.getDominio().getIdentificativoDominio())) {
+      isRtForSecondaryEnte = true;
+      log.debug("La RT per IUV [{}] e CCP [{}] e' relativa all'Ente secondario dominio [{}] e non all'Ente primario dominio [{}]",
+              rt.getDatiPagamento().getIdentificativoUnivocoVersamento(),
+              rt.getDatiPagamento().getCodiceContestoPagamento(),
+              rt.getDominio().getIdentificativoDominio(), rptRt.getCodRptInviarptIdDominio());
     }
-    log.debug("persisto RT per dominio [%s] e IUV [%s]", identificativoDominio, identificativoUnivocoVersamento);
-    try {
-      saveRt(rptRt.getMygovRptRtId(), header, bodyrichiesta, rt, rtPayloadInChiaro);
-      // Se esito 0 o 2 deve essere presente la busta DatiSingoloPagamento
-      if (List.of("0", "2").contains(esitoRT) && rt.getDatiPagamento().getDatiSingoloPagamentos().isEmpty()) {
-        // rt con esito 0 o 2 ma con busta DatiSingoloPagamento non presente
-        String faultString = String.format("RT con esito: %s non contiene DatiSingoloPagamento" , esitoRT);
-        return manageFaultBiFunction
-            .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, rptRt.getMygovRptRtId()))
-            .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
-      }
-      // Controlla che il numero di pagamenti sia coerente con rpt solo se busta esiste
-      if (!rt.getDatiPagamento().getDatiSingoloPagamentos().isEmpty()) {
-        List<CtDatiSingoloPagamentoRT> dovutiInRT = rt.getDatiPagamento().getDatiSingoloPagamentos();
-        List<RptRtDettaglio> dovutiInRPT = rptRtDettaglioService.getByRptRtId(rptRt);
-        if (dovutiInRT.size() != dovutiInRPT.size()) {
-          String faultString = String.format("RT ricevuta per IUV: %s e Riferimento Messaggio Richiesta: {} " +
-                  "contiene (%d) singoli pagamenti mentre l'RPT associata ne contiene (%d)"
-              , identificativoUnivocoVersamento, rt.getRiferimentoMessaggioRichiesta(), dovutiInRPT.size(), dovutiInRPT.size());
-          return manageFaultBiFunction
-              .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, rptRt.getMygovRptRtId()))
-              .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
-        }
-      }
-      if (!rptRtService.validaUguaglianzaCampiRptRt(rptRt, rt)) {
-        String faultString = String.format("RT ricevuta per IUV: %s contiene dati non corrispondenti all RPT", identificativoUnivocoVersamento);
-        return manageFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
-      }
-      log.debug("costruisco esito per dominio [%s] e IUV [%s]", identificativoDominio, identificativoUnivocoVersamento);
-      ctEsito = esitoBuilderService.buildEsito(rt);
-      paaSILInviaEsitoHeader = esitoBuilderService.buildHeaderEsito(header);
-      log.debug("persisto esito per dominio [{}] e IUV [{}]", identificativoDominio, identificativoUnivocoVersamento);
-      saveE(paaSILInviaEsitoHeader, ctEsito, rptRt.getMygovRpEId());
-    } catch (Exception ex) {
-      log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
-      String faultString = String.format("error while saving Ricevuta Telematica ::: Exception :::");
-      Long idTable = Optional.ofNullable(rptRt).map(RptRt::getMygovRptRtId).orElse(null);
-      return manageFaultBiFunction
-          .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, idTable))
-          .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
-    }
-    PaaSILInviaEsito paaSILInviaEsitoBody = esitoBuilderService.buildBodyEsito(ctEsito, tipoFirma, rtPayloadInChiaro);
-
-    String paaSILInviaEsitoBodyXmlString = jaxbTransformService.marshalling(paaSILInviaEsitoBody, PaaSILInviaEsito.class);
-    dati.setTipoEvento(Constants.GIORNALE_TIPO_EVENTO_FESP.paaSILInviaEsito.toString());
-    dati.setSottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString());
-    registraGiornale.accept(paaSILInviaEsitoBodyXmlString, Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-    // blocchiamo su FESP le RT del modello tre in stato positivo per velocizzare il modello 1
-    // e risponder piu velocemente al nodo 3/9/19
-    // le RT che blocchiamo verranno recuperate del batch chiediCopiaEsito di PA
-    // chiamo PA
-    PaaSILInviaEsitoRisposta paaSILInviaEsitoRisposta = getPaaSILInviaEsitoRisposta(paaSILInviaEsitoHeader, paaSILInviaEsitoBody, esitoRT, precedenteAbortita, immediatoKO, modelloTreOK);
-    String paaSILInviaEsitoXmlString = jaxbTransformService.marshalling(paaSILInviaEsitoRisposta, PaaSILInviaEsitoRisposta.class);
-    log.debug("paaSILInviaEsito Response:", paaSILInviaEsitoXmlString);
-
-    dati.setTipoEvento(Constants.GIORNALE_TIPO_EVENTO_FESP.paaSILInviaEsito.toString());
-    dati.setSottoTipoEvento(Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString());
-    registraGiornale.accept(paaSILInviaEsitoXmlString, paaSILInviaEsitoRisposta.getPaaSILInviaEsitoRisposta().getEsito());
-    try {
-      dati.setTipoEvento(Constants.GIORNALE_TIPO_EVENTO_FESP.paaInviaRT.toString());
-      rpEService.updateRispostaEById(paaSILInviaEsitoRisposta, rptRt.getMygovRpEId());
+    if (isRtForSecondaryEnte) {
+      log.debug("Non persisto RT per dominio [{}] e IUV [{}] perche' relativo ad Ente Secondario", identificativoDominio, identificativoUnivocoVersamento);
+      //saveRt(rptRt.getMygovRptRtId(), header, bodyrichiesta, rt, rtPayloadInChiaro);
       EsitoPaaInviaRT esitoPaaInviaRT = new EsitoPaaInviaRT();
       esitoPaaInviaRT.setEsito(Constants.NODO_REGIONALE_FESP_ESITO_OK);
       response.setPaaInviaRTRisposta(esitoPaaInviaRT);
-      rptRtService.updateRispostaRtById(response, rptRt.getMygovRptRtId());
-      String PaaInviaRTRispostaXmlString = jaxbTransformService.marshalling(response, PaaInviaRTRisposta.class);
-      registraGiornale.accept(PaaInviaRTRispostaXmlString, esitoPaaInviaRT.getEsito());
-    } catch (Exception ex) {
-      log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
-      String faultString = String.format("error while saving Esito ::: Exception :::");
-      Long idTable = Optional.ofNullable(rptRt).map(RptRt::getMygovRptRtId).orElse(null);
-      return manageFaultBiFunction
-          .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, idTable))
-          .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+    } else {
+      String esitoRT = rt.getDatiPagamento().getCodiceEsitoPagamento();
+      Optional<String> optionalEsitoInDB = Optional.ofNullable(rptRt.getCodRtDatiPagCodiceEsitoPagamento());
+      // se in precedenza ho ricevuto una RT ed era ABORTITA
+      boolean precedenteAbortita = optionalEsitoInDB.isPresent() && optionalEsitoInDB.get().equals("9");
+      // Nel caso di una RT ricevuta a seguito di un invio RPT modello
+      // "immediato" con esito risposta invio RPT "KO", memorizzare la RT
+      // sul fesp e non propagarla a pa.
+      boolean immediatoKO = rptRt.getDeRptInviarptEsito().equals("KO") && List.of(0, 1).contains(rptRt.getModelloPagamento());
+      boolean modelloTreOK = esitoRT.equals("0") && rptRt.getModelloPagamento() == 4;
+
+      if (precedenteAbortita && !esitoRT.equals("1")) {
+        // pagato o parzialmente pagato rt con esito non possibile
+        // (RT precedente ABORTITA e ora mi arriva un esito pagato o parzialmente pagato!!)
+        String faultString = String.format("Pagamento con IUV: [%s] abortito", identificativoUnivocoVersamento);
+        return manageFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+      } else if (rptRt.getCodRtInviartEsito() != null
+              && (rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_OK)
+              || (rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_KO)
+              && rptRt.getCodRtInviartFaultCode().equals(FaultCodeConstants.PAA_RT_DUPLICATA)))) {
+        // rt gia ricevuta, errore
+        String faultString = String.format("RT gia ricevuta per IUV: %s", identificativoUnivocoVersamento);
+        return manageFaultBiFunction
+                .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, rptRt.getMygovRptRtId()))
+                .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+      }
+      log.debug("persisto RT per dominio [{}] e IUV [{}]", identificativoDominio, identificativoUnivocoVersamento);
+      try {
+        saveRt(rptRt.getMygovRptRtId(), header, bodyrichiesta, rt, rtPayloadInChiaro);
+        // Se esito 0 o 2 deve essere presente la busta DatiSingoloPagamento
+        if (List.of("0", "2").contains(esitoRT) && rt.getDatiPagamento().getDatiSingoloPagamentos().isEmpty()) {
+          // rt con esito 0 o 2 ma con busta DatiSingoloPagamento non presente
+          String faultString = String.format("RT con esito: %s non contiene DatiSingoloPagamento", esitoRT);
+          return manageFaultBiFunction
+                  .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, rptRt.getMygovRptRtId()))
+                  .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+        }
+        // Controlla che il numero di pagamenti sia coerente con rpt solo se busta esiste
+        if (!rt.getDatiPagamento().getDatiSingoloPagamentos().isEmpty()) {
+          List<CtDatiSingoloPagamentoRT> dovutiInRT = rt.getDatiPagamento().getDatiSingoloPagamentos();
+          List<RptRtDettaglio> dovutiInRPT = rptRtDettaglioService.getByRptRtId(rptRt);
+          if (dovutiInRT.size() != dovutiInRPT.size()) {
+            String faultString = String.format("RT ricevuta per IUV: %s e Riferimento Messaggio Richiesta: %s " +
+                            "contiene (%d) singoli pagamenti mentre l'RPT associata ne contiene (%d)"
+                    , identificativoUnivocoVersamento, rt.getRiferimentoMessaggioRichiesta(), dovutiInRPT.size(), dovutiInRPT.size());
+            return manageFaultBiFunction
+                    .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, rptRt.getMygovRptRtId()))
+                    .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+          }
+        }
+        if (!rptRtService.validaUguaglianzaCampiRptRt(rptRt, rt)) {
+          String faultString = String.format("RT ricevuta per IUV: %s contiene dati non corrispondenti all RPT", identificativoUnivocoVersamento);
+          return manageFault.apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+        }
+        log.debug("costruisco esito per dominio [{}] e IUV [{}]", identificativoDominio, identificativoUnivocoVersamento);
+        ctEsito = esitoBuilderService.buildEsito(rt);
+        paaSILInviaEsitoHeader = esitoBuilderService.buildHeaderEsito(header);
+        log.debug("persisto esito per dominio [{}] e IUV [{}]", identificativoDominio, identificativoUnivocoVersamento);
+        saveE(paaSILInviaEsitoHeader, ctEsito, rptRt.getMygovRpEId());
+      } catch (Exception ex) {
+        log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
+        String faultString = "error while saving Ricevuta Telematica ::: Exception :::";
+        Long idTable = Optional.of(rptRt).map(RptRt::getMygovRptRtId).orElse(null);
+        return manageFaultBiFunction
+                .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, idTable))
+                .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+      }
+      PaaSILInviaEsito paaSILInviaEsitoBody = esitoBuilderService.buildBodyEsito(ctEsito, tipoFirma, rtPayloadInChiaro);
+
+      // blocchiamo su FESP le RT del modello tre in stato positivo per velocizzare il modello 1
+      // e risponder piu velocemente al nodo 3/9/19
+      // le RT che blocchiamo verranno recuperate del batch chiediCopiaEsito di PA
+      // chiamo PA
+      PaaSILInviaEsitoRisposta paaSILInviaEsitoRisposta = getPaaSILInviaEsitoRisposta(paaSILInviaEsitoHeader, paaSILInviaEsitoBody, esitoRT, precedenteAbortita, immediatoKO, modelloTreOK);
+      String paaSILInviaEsitoXmlString = jaxbTransformService.marshalling(paaSILInviaEsitoRisposta, PaaSILInviaEsitoRisposta.class);
+      log.debug("paaSILInviaEsito Response: {}", paaSILInviaEsitoXmlString);
+
+      try {
+        rpEService.updateRispostaEById(paaSILInviaEsitoRisposta, rptRt.getMygovRpEId());
+        EsitoPaaInviaRT esitoPaaInviaRT = new EsitoPaaInviaRT();
+        esitoPaaInviaRT.setEsito(Constants.NODO_REGIONALE_FESP_ESITO_OK);
+        response.setPaaInviaRTRisposta(esitoPaaInviaRT);
+        rptRtService.updateRispostaRtById(response, rptRt.getMygovRptRtId());
+      } catch (Exception ex) {
+        log.error(FaultCodeConstants.PAA_SYSTEM_ERROR, ex);
+        String faultString = "error while saving Esito ::: Exception :::";
+        Long idTable = Optional.of(rptRt).map(RptRt::getMygovRptRtId).orElse(null);
+        return manageFaultBiFunction
+                .andThen(paaInviaRTRisposta -> manageFaultWithUpdate.apply(paaInviaRTRisposta, idTable))
+                .apply(FaultCodeConstants.PAA_SYSTEM_ERROR, faultString);
+      }
     }
+
+    String codRtDomIdDominio = rt.getDominio().getIdentificativoDominio();
+    String codRtIdMessaggioRicevuta = rt.getIdentificativoMessaggioRicevuta();
+    Date dtRtDataOraMessaggioRicevuta = rt.getDataOraMessaggioRicevuta().toGregorianCalendar().getTime();
+    String codRtEnteBenefIdUnivBenefCodiceIdUnivoco = rt.getEnteBeneficiario()
+            .getIdentificativoUnivocoBeneficiario().getCodiceIdentificativoUnivoco();
+    String codRtSoggVersIdUnivVersCodiceIdUnivocoString = null;
+    String deRtSoggVersAnagraficaVersante = null;
+
+    if (rt.getSoggettoVersante() != null) {
+      codRtSoggVersIdUnivVersCodiceIdUnivocoString = rt.getSoggettoVersante().getIdentificativoUnivocoVersante()
+              .getCodiceIdentificativoUnivoco();
+      deRtSoggVersAnagraficaVersante = rt.getSoggettoVersante().getAnagraficaVersante();
+    }
+    String codRtSoggPagIdUnivPagTipoIdUnivoco = rt.getSoggettoPagatore().getIdentificativoUnivocoPagatore()
+            .getTipoIdentificativoUnivoco().toString();
+    String codRtSoggPagIdUnivPagCodiceIdUnivoco = rt.getSoggettoPagatore().getIdentificativoUnivocoPagatore()
+            .getCodiceIdentificativoUnivoco();
+    String deRtSoggPagAnagraficaPagatore = rt.getSoggettoPagatore().getAnagraficaPagatore();
+    String deRtSoggPagEmailPagatore = rt.getSoggettoPagatore().getEMailPagatore();
+    String codRtDatiPagCodiceEsitoPagamento = rt.getDatiPagamento().getCodiceEsitoPagamento();
+    String codRtDatiPagIdUnivocoVersamento = rt.getDatiPagamento().getIdentificativoUnivocoVersamento();
+    String codRtDatiPagCodiceContestoPagamento = rt.getDatiPagamento().getCodiceContestoPagamento();
+
+    String idAggregazione = null;
+    String causaleVersamento = null;
+    if(!rt.getDatiPagamento().getDatiSingoloPagamentos().isEmpty()) {
+      CtDatiSingoloPagamentoRT ctDatiSingoloPagamentoRT = rt.getDatiPagamento().getDatiSingoloPagamentos().get(0);
+      idAggregazione = codRtDomIdDominio + "-" + ctDatiSingoloPagamentoRT.getDatiSpecificiRiscossione();
+      causaleVersamento = ctDatiSingoloPagamentoRT.getCausaleVersamento();
+    }
+
+    Long mygovRptRtId = rptRt.getMygovRptRtId();
+
+    RT_Conservazione rtConservazione =rptConservazioneService.insertRtConservazione(mygovRptRtId, codRtDomIdDominio, codRtDatiPagIdUnivocoVersamento,
+            codRtDatiPagCodiceContestoPagamento, codRtIdMessaggioRicevuta, rtPayloadInChiaro, dtRtDataOraMessaggioRicevuta,
+            causaleVersamento, codRtSoggPagIdUnivPagTipoIdUnivoco,
+            deRtSoggPagAnagraficaPagatore, codRtSoggPagIdUnivPagCodiceIdUnivoco, deRtSoggPagEmailPagatore,
+            codRtEnteBenefIdUnivBenefCodiceIdUnivoco, idAggregazione, codRtSoggVersIdUnivVersCodiceIdUnivocoString,
+            deRtSoggVersAnagraficaVersante, codRtDatiPagCodiceEsitoPagamento,
+            null);
+    log.debug("CONSERVAZIONE: "+rtConservazione);
+
     return response;
   }
+
 
   private PaaSILInviaEsitoRisposta getPaaSILInviaEsitoRisposta(it.veneto.regione.pagamenti.pa.ppthead.IntestazionePPT header, PaaSILInviaEsito paaSILInviaEsitoBody, String esitoRT, boolean precedenteAbortita, boolean immediatoKO, boolean modelloTreOK) {
     PaaSILInviaEsitoRisposta paaSILInviaEsitoRisposta = new PaaSILInviaEsitoRisposta();
@@ -414,8 +414,8 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
     } else {
       log.debug("non invoco paaSILInviaEsito per dominio [{}] e IUV [{}]", header.getIdentificativoDominio(), header.getIdentificativoUnivocoVersamento());
       if (List.of("0","2").contains(esitoRT)) {
-        String msg = String.format("Ricevuto esito pagamento positivo con precedenteAbortita [{}], " +
-            "immediatoKO [{}], modelloTreOK [{}], esitoRT [{}]", precedenteAbortita, immediatoKO, modelloTreOK, esitoRT);
+        String msg = String.format("Ricevuto esito pagamento positivo con precedenteAbortita [%s], " +
+            "immediatoKO [%s], modelloTreOK [%s], esitoRT [%s]", precedenteAbortita, immediatoKO, modelloTreOK, esitoRT);
         if(modelloTreOK)
           log.debug(msg);
         else
@@ -431,13 +431,6 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
     return paaSILInviaEsitoRisposta;
   }
 
-  /**
-   * @param mygovRptRtId
-   * @param header
-   * @param bodyrichiesta
-   * @param rt
-   * @param rtPayload
-   */
   private void saveRt(Long mygovRptRtId, IntestazionePPT header, PaaInviaRT bodyrichiesta, RT rt, byte[] rtPayload) {
 
     RptRt rptRt = rptRtService.updateRtById(mygovRptRtId, header, bodyrichiesta, rt, rtPayload);
@@ -449,11 +442,6 @@ public class PagamentiTelematiciRTImpl implements PagamentiTelematiciRT {
     log.debug("fine updateRtByRptIuv ");
   }
 
-  /**
-   * @param header
-   * @param esito
-   * @param mygovRpEId
-   */
   private void saveE(it.veneto.regione.pagamenti.pa.ppthead.IntestazionePPT header, Esito esito, Long mygovRpEId) {
     RpE rpe = rpEService.updateEById(mygovRpEId, esito, header);
     log.debug("updateE lettura caricamento singoli pagamenti");

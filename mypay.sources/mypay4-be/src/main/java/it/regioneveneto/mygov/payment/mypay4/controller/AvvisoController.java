@@ -22,19 +22,29 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.regioneveneto.mygov.payment.mypay4.config.MyPay4AbstractSecurityConfig;
 import it.regioneveneto.mygov.payment.mypay4.dto.DovutoElaboratoTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.DovutoTo;
+import it.regioneveneto.mygov.payment.mypay4.exception.BadRequestException;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
 import it.regioneveneto.mygov.payment.mypay4.model.AnagraficaStato;
 import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
 import it.regioneveneto.mygov.payment.mypay4.model.DovutoElaborato;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
 import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
 import it.regioneveneto.mygov.payment.mypay4.security.JwtTokenUtil;
 import it.regioneveneto.mygov.payment.mypay4.security.Operatore;
 import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
-import it.regioneveneto.mygov.payment.mypay4.service.*;
+import it.regioneveneto.mygov.payment.mypay4.service.AnagraficaStatoService;
+import it.regioneveneto.mygov.payment.mypay4.service.DovutoElaboratoService;
+import it.regioneveneto.mygov.payment.mypay4.service.DovutoService;
+import it.regioneveneto.mygov.payment.mypay4.service.EnteService;
+import it.regioneveneto.mygov.payment.mypay4.service.EnteTipoDovutoService;
+import it.regioneveneto.mygov.payment.mypay4.service.JasperService;
+import it.regioneveneto.mygov.payment.mypay4.service.RecaptchaService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
+import it.regioneveneto.mygov.payment.mypay4.ws.util.SumUtilis;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.exolab.castor.xml.ValidationException;
@@ -56,8 +66,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Tag(name = "Avvisi", description = "Gestione avvisi di pagamento")
@@ -66,9 +81,9 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class AvvisoController {
 
-  private final static String AUTHENTICATED_PATH ="avvisi";
-  private final static String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="avvisi";
+  private static final String ANONYMOUS_PATH= MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   private DovutoService dovutoService;
@@ -92,6 +107,9 @@ public class AvvisoController {
   private AnagraficaStatoService anagraficaStatoService;
 
   @Autowired
+  private EnteService enteService;
+
+  @Autowired
   MessageSource messageSource;
 
   @GetMapping(AUTHENTICATED_PATH +"/search")
@@ -99,8 +117,10 @@ public class AvvisoController {
       @AuthenticationPrincipal UserWithAdditionalInfo user,
       @RequestParam String numeroAvviso, @RequestParam Boolean owner,
       @RequestParam(required = false) String codIdUnivoco,
-      @RequestParam(required = false) String anagrafica) {
-    return searchAvvisoImpl(user, owner, numeroAvviso, codIdUnivoco, anagrafica);
+      @RequestParam(required = false) String anagrafica,
+      @RequestParam(required = false) String codIpaEnte,
+      @RequestParam(required = false) String codTipoDovuto) {
+    return searchAvvisoImpl(user, owner, numeroAvviso, codIdUnivoco, anagrafica, codIpaEnte, codTipoDovuto);
   }
 
   @SecurityRequirements
@@ -109,25 +129,33 @@ public class AvvisoController {
       @RequestParam String numeroAvviso,
       @RequestParam(required = false) String codIdUnivoco,
       @RequestParam(required = false) String anagrafica,
+      @RequestParam(required = false) String codIpaEnte,
+      @RequestParam(required = false) String codTipoDovuto,
       @RequestParam String recaptcha) {
 
     boolean captchaVerified = recaptchaService.verify(recaptcha,"searchAvviso");
     if(!captchaVerified){
-      Map<String, Object> responseMap = new HashMap<>();
-      responseMap.put("errorCode", "Errore verifica recaptcha");
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+      log.info("error verifying recaptcha operation[searchAvviso] iuv[{}] ipa[{}] tipoDovuto[{}]", codIdUnivoco, codIpaEnte, codTipoDovuto);
+      throw new BadRequestException("Errore verifica recaptcha");
     }
-    return searchAvvisoImpl(null, false, numeroAvviso, codIdUnivoco, anagrafica);
+    return searchAvvisoImpl(null, false, numeroAvviso, codIdUnivoco, anagrafica, codIpaEnte, codTipoDovuto);
   }
 
-  private ResponseEntity<?> searchAvvisoImpl(UserWithAdditionalInfo user,Boolean owner, String numeroAvviso, String codIdUnivoco, String anagrafica){
+  ResponseEntity<Map<String, Object>> searchAvvisoImpl(UserWithAdditionalInfo user,Boolean owner, String numeroAvviso,
+                                             String codIdUnivoco, String anagrafica, String codIpaEnte, String codTipoDovuto){
     Map<String, Object> responseMap = new HashMap<>();
     ResponseEntity.BodyBuilder responseBuilder;
 
     try {
       Map<String, String> map = this.inputValidator(user, numeroAvviso, owner, codIdUnivoco, anagrafica);
 
-      List<DovutoTo> dovuti = dovutoService.searchDovutoOnTipoAttivo(null, null, map.get("IUV"),
+      Long mygovEnteId = null;
+      codIpaEnte = StringUtils.stripToNull(codIpaEnte);
+      if(codIpaEnte!=null)
+        mygovEnteId = Optional.of(codIpaEnte).map(enteService::getEnteByCodIpa).map(Ente::getMygovEnteId)
+          .orElseThrow(()-> new ValidatorException("Ente non valido"));
+
+      List<DovutoTo> dovuti = dovutoService.searchDovutoOnTipoAttivo(mygovEnteId, codTipoDovuto, map.get("IUV"),
           map.get("codRpSoggIdUnivCodiceIdUnivoco"), map.get("deRpSoggPagAnagraficaPagatore"), false);
 
       List<DovutoTo> debiti = dovuti.stream().peek(dovuto -> {
@@ -136,9 +164,19 @@ public class AvvisoController {
           dovuto.setSecurityTokenAvviso(jwtTokenUtil.generateSecurityToken(user, ""+dovuto.getId()));
         }
       }).collect(Collectors.toList());
+
+      //Retrieve the amount of importo dovuto multibeneficiario for 'debito' if it exists
+      if(!debiti.isEmpty()) {
+        BigDecimal importoMB = dovutoService.getImportoSingoloVerdamentoMBByIdDovuto(dovuti.get(0).getId());
+        if(null != importoMB) {
+          debiti.get(0).setImporto(SumUtilis.sumAmount(debiti.get(0).getImporto(), importoMB.toString()));
+          debiti.get(0).setMultibeneficiario(true);
+        }
+      }
+
       responseMap.put("debiti", debiti);
 
-      List<DovutoElaborato> pagati = dovutoElaboratoService.searchDovutoElaboratoByIuvIdPagatore(map.get("IUV"),
+      List<DovutoElaborato> pagati = dovutoElaboratoService.searchDovutoElaboratoByIuvIdPagatore(mygovEnteId, map.get("IUV"),
           map.get("codRpSoggIdUnivCodiceIdUnivoco"), map.get("deRpSoggPagAnagraficaPagatore"));
       List<DovutoElaboratoTo> debitiPagati = pagati.stream()
         .map(dovutoElaboratoService::mapDovutoElaboratoToDto)
@@ -148,6 +186,17 @@ public class AvvisoController {
           }
         })
         .collect(Collectors.toList());
+
+      //Retrieve the amount of importo dovuto multibeneficiario for 'pagati' if exsist
+      if(!debitiPagati.isEmpty()) {
+        debitiPagati.forEach(pagato -> {
+          BigDecimal importoMB = dovutoElaboratoService.getImportoDovutoMultibeneficiarioElaboratoByIdDovuto(pagato.getId());
+          if(null != importoMB) {
+            pagato.setImporto(SumUtilis.sumAmountPagati(pagato.getImporto(), importoMB.toString()));
+            pagato.setMultibeneficiario(true);
+          }
+        });
+      }
       responseMap.put("pagati", debitiPagati);
 
       responseBuilder = ResponseEntity.status(HttpStatus.OK);
@@ -162,13 +211,18 @@ public class AvvisoController {
 
   @GetMapping(AUTHENTICATED_PATH +"/download/{id}")
   public ResponseEntity<Resource> downloadAvviso(
-      @AuthenticationPrincipal UserWithAdditionalInfo user, @PathVariable Long id, @RequestParam(required = false) String securityToken) throws Exception {
+      @AuthenticationPrincipal UserWithAdditionalInfo user, @PathVariable Long id, @RequestParam(required = false) String securityToken) {
 
     Dovuto dovuto = Optional.ofNullable(dovutoService.getById(id)).orElseThrow(NotFoundException::new);
 
+    //retrieve "importo singolo versamento" for dovuto multibeneficiario
+    BigDecimal importoDovutoMB = dovutoService.getImportoSingoloVerdamentoMBByIdDovuto(id);
+    if(importoDovutoMB != null ) // if 'importoDovutoMB' is not null, i add in the amount of importo singolo versamento dovuto
+      dovuto.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento().add(importoDovutoMB));
+
     //for avvisi not belonging to logged user (or when anonymous), verify security token
     // (to be sure that user found id in a legitimate way, i.e. searching with iuv and codice fiscale)
-    if(user==null || !user.getCodiceFiscale().equals(dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco())) {
+    if(user==null || !StringUtils.equalsIgnoreCase(user.getCodiceFiscale(),dovuto.getCodRpSoggPagIdUnivPagCodiceIdUnivoco())) {
       try {
         String oid = jwtTokenUtil.parseSecurityToken(user, securityToken);
         if (!("" + id).equals(oid)) {
@@ -188,7 +242,7 @@ public class AvvisoController {
   public ResponseEntity<Resource> downloadAvvisoAnonymous(
       @PathVariable Long id,
       @RequestParam String recaptcha,
-      @RequestParam(required = false) String securityToken) throws Exception {
+      @RequestParam(required = false) String securityToken) {
 
     boolean captchaVerified = recaptchaService.verify(recaptcha,"downloadAvviso");
     if(!captchaVerified){
@@ -198,7 +252,7 @@ public class AvvisoController {
     return this.downloadAvviso(null, id, securityToken);
   }
 
-  ResponseEntity<Resource> downloadAvvisoImpl(Dovuto dovuto) throws Exception {
+  ResponseEntity<Resource> downloadAvvisoImpl(Dovuto dovuto) {
     try {
       ByteArrayOutputStream reportStream = jasperService.generateAvviso(dovuto);
 
@@ -221,9 +275,8 @@ public class AvvisoController {
           .body(new InputStreamResource(isReport));
 
     } catch (Exception e) {
-      log.error(e.getMessage());
-      log.error("Si e verificato un errore nella generazione dell'avviso per il dovuto: " + dovuto.toString(), e);
-      throw e;
+      log.error("Si e verificato un errore nella generazione dell'avviso per il dovuto: {}", dovuto.toString(), e);
+      throw new MyPayException("error downloading avviso", e);
     }
   }
 
@@ -233,6 +286,11 @@ public class AvvisoController {
       @AuthenticationPrincipal UserWithAdditionalInfo user, @PathVariable Long id) throws Exception {
 
     Dovuto dovuto = Optional.ofNullable(dovutoService.getById(id)).orElseThrow(NotFoundException::new);
+
+    //retrieve "importo singolo versamento" for dovuto multibeneficiario
+    BigDecimal importoDovutoMB = dovutoService.getImportoSingoloVerdamentoMBByIdDovuto(id);
+    if(importoDovutoMB != null ) // if 'importoDovutoMB' is not null, i add in the amount of importo singolo versamento dovuto
+      dovuto.setNumRpDatiVersDatiSingVersImportoSingoloVersamento(dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento().add(importoDovutoMB));
     List<EnteTipoDovuto> authorizedTipoDovuto = enteTipoDovutoService.getByMygovEnteIdAndOperatoreUsername(dovuto.getNestedEnte().getMygovEnteId(), user.getUsername());
 
     boolean error = authorizedTipoDovuto.stream().filter(etd -> etd.getCodTipo().equals(dovuto.getCodTipoDovuto())).count() != 1;

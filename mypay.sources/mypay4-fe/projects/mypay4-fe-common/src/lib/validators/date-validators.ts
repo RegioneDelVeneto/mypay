@@ -16,6 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { AbstractControl, FormGroup, ValidatorFn } from '@angular/forms';
+import { DateTime } from 'luxon';
 
 export class DateValidators {
 
@@ -28,6 +29,30 @@ export class DateValidators {
   private static notAfter(dateTo: AbstractControl): ValidatorFn {
     return (dateFrom: AbstractControl): { [key: string]: any } | null =>
       (!dateFrom.value || ! dateTo.value || !dateFrom.value > dateTo.value) ? null : {dateRange: true}
+  }
+
+  //Validation that works on Luxon (DateTime) date fields
+  // error is shown on both dateFrom and dateTo FormControl (if touched) (error code is 'dateRangeMonth')
+  // this validation should be added at FormGroup level
+  static dateRangeMonth(dateFromField: string, dateToField: string): ValidatorFn {
+    return (fg: FormGroup): { [key: string]: any } | null => {
+      const dateFrom = fg.get(dateFromField);
+      const dateTo = fg.get(dateToField);
+      const date1 = DateTime.fromISO(dateFrom.value);
+      const date2 = DateTime.fromISO(dateTo.value);
+      const diffInMonths = date2.diff(date1, 'month');
+      diffInMonths.toObject();
+      const error = diffInMonths.months > 1;
+      [dateFrom, dateTo].forEach(control => {
+        if (!error && control.hasError('dateRangeMonth')) {
+          control.setErrors({ dateRangeMonth: null });
+          control.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+        } else if (error && !control.hasError('dateRangeMonth')) {
+          control.setErrors({ dateRangeMonth: true });
+        }
+      });
+      return error ? { dateRangeMonth: true } : null;
+    }
   }
 
 

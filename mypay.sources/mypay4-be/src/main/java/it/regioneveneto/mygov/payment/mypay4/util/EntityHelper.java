@@ -17,9 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.util;
 
-import it.regioneveneto.mygov.payment.mypay4.model.IdentificativoUnivoco;
-import it.regioneveneto.mygov.payment.mypay4.model.RegistroOperazione;
-import it.regioneveneto.mygov.payment.mypay4.model.fesp.AttivaRptE;
+import it.regioneveneto.mygov.payment.mypay4.model.Receipt;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -31,8 +29,8 @@ public class EntityHelper {
 
   public static String getFieldListWithPrefix(Class theClass, String alias, boolean hardcodeAlias) {
     return prefixFieldList.computeIfAbsent(alias + "_", key ->
-        "public final static String ALIAS = \"" + alias + "\";\n" +
-            "public final static String FIELDS = \"" +
+        "public static final String ALIAS = \"" + alias + "\";\n" +
+            "public static final String FIELDS = \"" +
             Arrays.stream(theClass.getDeclaredFields())
                 .filter(field -> Modifier.isPrivate(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
                 .map(field -> hardcodeAlias ? (alias + ".") : "\"+ALIAS+\"." + camelToSnake(field.getName()) + " as " + key + field.getName())
@@ -89,7 +87,7 @@ public class EntityHelper {
   }
 
   public static void main(String[] args) {
-    System.out.println(getFieldListWithPrefix(RegistroOperazione.class));
+    System.out.println(getFieldListWithPrefix(Receipt.class));
   }
 
 }

@@ -18,6 +18,9 @@
 package it.regioneveneto.mygov.payment.mypay4.ws.client;
 
 import it.regioneveneto.mygov.payment.mypay4.service.common.SystemBlockService;
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.ws.helper.OutcomeHelper;
 import it.veneto.regione.pagamenti.pa.PaaSILInviaEsito;
 import it.veneto.regione.pagamenti.pa.PaaSILInviaEsitoRisposta;
 import it.veneto.regione.pagamenti.pa.ppthead.IntestazionePPT;
@@ -30,8 +33,30 @@ public class PagamentiTelematiciEsitoClient extends BaseClient {
   @Autowired
   SystemBlockService systemBlockService;
 
+  private final GiornaleService giornaleCommonService;
+
+  public PagamentiTelematiciEsitoClient(GiornaleService giornaleCommonService){
+    this.giornaleCommonService = giornaleCommonService;
+  }
+
   public PaaSILInviaEsitoRisposta paaSILInviaEsito(PaaSILInviaEsito request, IntestazionePPT header, String wsUrl) {
     systemBlockService.blockByOperationName("pa.client.paaSILInviaEsito");
-    return (PaaSILInviaEsitoRisposta) getWebServiceTemplate().marshalSendAndReceive(wsUrl, request, getMessageCallback(header));
+    return giornaleCommonService.wrapRecordSoapClientEvent(
+      Constants.GIORNALE_MODULO.FESP,
+      header.getIdentificativoDominio(),
+      header.getIdentificativoUnivocoVersamento(),
+      header.getCodiceContestoPagamento(),
+      Constants.EMPTY,
+      Constants.EMPTY,
+      Constants.COMPONENTE_FESP,
+      Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString(),
+      Constants.GIORNALE_TIPO_EVENTO_FESP.paaSILInviaEsito.toString(),
+      header.getIdentificativoIntermediarioPA(),
+      header.getIdentificativoDominio(),
+      header.getIdentificativoStazioneIntermediarioPA(),
+      null,
+      () -> (PaaSILInviaEsitoRisposta) getWebServiceTemplate().marshalSendAndReceive(wsUrl, request, getMessageCallback(header)),
+      OutcomeHelper::getOutcome
+    );
   }
 }

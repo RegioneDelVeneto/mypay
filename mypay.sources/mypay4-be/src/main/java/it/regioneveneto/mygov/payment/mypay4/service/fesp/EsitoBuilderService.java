@@ -180,7 +180,7 @@ public class EsitoBuilderService {
    * @param header
    * @return
    */
-  public IntestazionePPT buildHeaderEsito(gov.telematici.pagamenti.ws.ppthead.IntestazionePPT header) {
+  public IntestazionePPT buildHeaderEsito(gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT header) {
     IntestazionePPT result = new IntestazionePPT();
     result.setCodiceContestoPagamento(header.getCodiceContestoPagamento());
     result.setIdentificativoDominio(header.getIdentificativoDominio());

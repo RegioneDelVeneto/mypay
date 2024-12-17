@@ -38,5 +38,8 @@ public class WSFaultResponseWrapperException extends MyPayException {
     }
   }
 
+  public Object getRawFaultResponse(){
+    return faultResponse;
+  }
 
 }

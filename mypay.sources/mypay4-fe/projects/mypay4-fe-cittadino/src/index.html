@@ -20,20 +20,42 @@
 <!doctype html>
 <html lang="it">
 <head>
+  <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
   <meta charset="utf-8">
   <title>MyPay - Cittadino</title>
+  <meta name="description" content="MyPay, il Portale dei pagamenti">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="assets/images/favicon-16x16.png" sizes=16x16>
   <link rel="icon" type="image/png" href="assets/images/android-icon-192x192.png" sizes=192x192>
-  <!--link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"-->
+  <style>
+    .loader {
+      margin: 50px auto 0;
+      border: 16px solid #f3f3f3;
+      border-top: 16px solid #3498db;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 
   <!-- https://github.com/ToX82/cookie-bar -->
   <script type="text/javascript" src="assets/cookiebar/cookiebar-latest.min.js?forceLang=it&theme=mypa&customize=1&tracking=1&thirdparty=1&always=1&noGeoIp=1&showNoConsent=1&hideDetailsBtn=1&blocking=1&remember=30&logoUrl=assets%2Fimages%2Flogo-MyPay-white.png"></script>
-  <script>myPayAppModuleName='cittadino'</script>
+  <script>const myPayAppModuleName='cittadino'</script>
 </head>
 <body class="mat-typography">
   <app-root>
+    <div id="initialLoader" class="loader"></div>
     <div id="errorMsgElement" style="padding: 20% 0; text-align: center;"></div>
   </app-root>
 </body>

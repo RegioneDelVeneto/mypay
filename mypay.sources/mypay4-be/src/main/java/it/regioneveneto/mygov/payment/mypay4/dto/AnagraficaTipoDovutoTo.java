@@ -60,6 +60,10 @@ public class AnagraficaTipoDovutoTo extends BaseTo implements Serializable {
     this.setTipoServizio(enteTipoDovuto.getTipoServizio());
     this.setMotivoRiscossione(enteTipoDovuto.getMotivoRiscossione());
     this.setCodTassonomico(enteTipoDovuto.getCodTassonomico());
+    this.setUrlNotificaPnd(enteTipoDovuto.getUrlNotificaPnd());
+    this.setUserPnd(enteTipoDovuto.getUserPnd());
+    this.setPswPnd(enteTipoDovuto.getPswPnd());
+    this.setUrlNotificaAttualizzazionePnd(enteTipoDovuto.getUrlNotificaAttualizzazionePnd());
   }
 
   private Long mygovEnteTipoDovutoId;
@@ -88,9 +92,7 @@ public class AnagraficaTipoDovutoTo extends BaseTo implements Serializable {
   private String tipoServizio;
   private String motivoRiscossione;
   private String codTassonomico;
-
-  private boolean flgScadenzaObbligatoriaEnable;
-
+  
   // Data in mygov_ente_sil
   private String nomeApplicativo;
   private String deUrlInoltroEsitoPagamentoPush;
@@ -99,4 +101,9 @@ public class AnagraficaTipoDovutoTo extends BaseTo implements Serializable {
   private String codServiceAccountJwtUscitaSecretKeyId;
   private String codServiceAccountJwtUscitaSecretKey;
   private boolean flgJwtAttivo;
+
+  private String urlNotificaPnd;
+  private String userPnd;
+  private String pswPnd;
+  private String urlNotificaAttualizzazionePnd;
 }

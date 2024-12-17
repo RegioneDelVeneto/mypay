@@ -18,6 +18,9 @@
 package it.regioneveneto.mygov.payment.mypay4.ws.server;
 
 import it.regioneveneto.mygov.payment.mypay4.logging.LogExecution;
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.ws.helper.OutcomeHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.impl.PagamentiTelematiciEsitoImpl;
 import it.veneto.regione.pagamenti.pa.PaaSILInviaEsito;
 import it.veneto.regione.pagamenti.pa.PaaSILInviaEsitoRisposta;
@@ -44,12 +47,33 @@ public class PagamentiTelematiciEsitoEndpoint extends BaseEndpoint {
   @Qualifier("PagamentiTelematiciEsitoImpl")
   private PagamentiTelematiciEsitoImpl pagamentiTelematiciEsito;
 
+  @Autowired
+  private GiornaleService giornaleCommonService;
+
   @LogExecution
   @PayloadRoot(namespace = NAMESPACE_URI, localPart = "paaSILInviaEsito")
   @ResponsePayload
   public PaaSILInviaEsitoRisposta paaSILInviaEsito(
       @RequestPayload PaaSILInviaEsito request,
       @SoapHeader("{http://www.regione.veneto.it/pagamenti/pa/ppthead}intestazionePPT") SoapHeaderElement header){
-    return pagamentiTelematiciEsito.paaSILInviaEsito(request, unmarshallHeader(header, IntestazionePPT.class));
+
+    IntestazionePPT intestazionePPT = unmarshallHeader(header, IntestazionePPT.class);
+    return giornaleCommonService.wrapRecordSoapServerEvent(
+      Constants.GIORNALE_MODULO.PA,
+      intestazionePPT.getIdentificativoDominio(),
+      intestazionePPT.getIdentificativoUnivocoVersamento(),
+      intestazionePPT.getCodiceContestoPagamento(),
+      null,
+      null,
+      Constants.COMPONENTE_PA,
+      Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString(),
+      Constants.GIORNALE_TIPO_EVENTO_FESP.paaSILAttivaRP.toString(),
+      intestazionePPT.getIdentificativoIntermediarioPA(),
+      intestazionePPT.getIdentificativoDominio(),
+      intestazionePPT.getIdentificativoStazioneIntermediarioPA(),
+      null,
+      () -> pagamentiTelematiciEsito.paaSILInviaEsito(request, intestazionePPT),
+      OutcomeHelper::getOutcome
+    );
   }
 }

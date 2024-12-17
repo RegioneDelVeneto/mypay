@@ -22,7 +22,7 @@ Obiettivo del progetto MyPay4 è rendere disponibile una piattaforma dedicata al
 
 Col progetto si vogliono offrire servizi compatibili con le linee guida Agid in termini di adempienza agli SLA, all’accessibilità (UNI-en 301549-2018), all’enhancement della piattaforma in termini di usabilità e user experience per i cittadini, gli operatori e gli Enti.
 
-Il progetto si basa sulle Specifiche Attuative del Nodo dei Pagamenti – SPC Versione 2.4.3 
+Il progetto si basa sulle Specifiche Attuative del Nodo dei Pagamenti – SPC Versione 3.6 
 
 Il sistema è fortemente orientata al mondo cloud e incentrata su concetti di scalabilità orizzontale e verticale al fine di potersi adattare in modo dinamico ed automatico ai crescenti carichi previsti vista la forte spinta all’utilizzo di strumenti di pagamenti telematici integrati con PagoPa.
 

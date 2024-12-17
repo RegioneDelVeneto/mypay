@@ -39,7 +39,7 @@ import java.util.Properties;
 
 public class ReportUtilities {
 
-  private final static Logger log = LoggerFactory.getLogger(ReportUtilities.class);
+  private static final Logger log = LoggerFactory.getLogger(ReportUtilities.class);
 
   public static ByteArrayOutputStream generateAvviso(JasperReport jasperReport, Map<String, Object> parameters) throws JRException {
     JasperPrint jasperPrint = generateLocaledReport("IT", jasperReport, parameters);
@@ -119,6 +119,7 @@ public class ReportUtilities {
       parameters.put("L_DESTINATARIO_AVVISO", prop.getProperty("L_DESTINATARIO_AVVISO"));
       parameters.put("L_DOVE_PAGARE", prop.getProperty("L_DOVE_PAGARE"));
       parameters.put("L_ENTE_CREDITORE", prop.getProperty("L_ENTE_CREDITORE"));
+      parameters.put("L_ENTE_CREDITORE_MIN", prop.getProperty("L_ENTE_CREDITORE_MIN"));
       parameters.put("L_ENTRO_IL", prop.getProperty("L_ENTRO_IL"));
       parameters.put("L_EURO", prop.getProperty("L_EURO"));
       parameters.put("L_INTESTATO_A", prop.getProperty("L_INTESTATO_A"));

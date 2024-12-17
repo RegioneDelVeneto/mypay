@@ -19,7 +19,7 @@ package it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp;
 
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRT;
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRTRisposta;
-import gov.telematici.pagamenti.ws.ppthead.IntestazionePPT;
+import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT;
 
 public interface PagamentiTelematiciRT {
   PaaInviaRTRisposta paaInviaRT(PaaInviaRT request, IntestazionePPT header);

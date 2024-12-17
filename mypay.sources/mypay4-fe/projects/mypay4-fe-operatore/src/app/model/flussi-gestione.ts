@@ -69,8 +69,15 @@ export class FlussoFile extends WithActions {
   name: string;
   dataProduzione: DateTime;
   dataCreazione: DateTime;
+  operatore: string;
   dimensione: number;
+  showDownload: boolean;
   securityToken: string;
+
+  dataFine: DateTime;
+  dataInizio: DateTime;
+  stato: string;
+  id: number;
 }
 
 export enum TipoFlusso {

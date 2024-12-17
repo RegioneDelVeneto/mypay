@@ -17,36 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.ws.client.fesp.mock;
 
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazioneCarrelloPPT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediCopiaRT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediCopiaRTRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediElencoFlussiRendicontazione;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediElencoFlussiRendicontazioneRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediElencoQuadraturePA;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediElencoQuadraturePARisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediFlussoRendicontazione;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediFlussoRendicontazioneRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediInformativaPSP;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediInformativaPSPRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediListaPendentiRPT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediListaPendentiRPTRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediQuadraturaPA;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediQuadraturaPARisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediSceltaWISP;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediSceltaWISPRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediStatoRPT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediStatoRPTRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaCarrelloRPT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaCarrelloRPTRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaRPT;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaRPTRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaRichiestaStorno;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaRichiestaStornoRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaRispostaRevoca;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoInviaRispostaRevocaRisposta;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.TipoElencoFlussiRendicontazione;
-import gov.telematici.pagamenti.ws.nodospcpernodoregionale.TipoIdRendicontazione;
+import gov.telematici.pagamenti.ws.nodospcpernodoregionale.*;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.fesp.PagamentiTelematiciRPTClient;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -66,6 +37,7 @@ import java.util.UUID;
 public class PagamentiTelematiciRPTMockClient extends PagamentiTelematiciRPTClient {
   private final DatatypeFactory datatypeFactory;
   public PagamentiTelematiciRPTMockClient(){
+    super(null);
     try{
       this.datatypeFactory = DatatypeFactory.newInstance();
     }catch(Exception e){

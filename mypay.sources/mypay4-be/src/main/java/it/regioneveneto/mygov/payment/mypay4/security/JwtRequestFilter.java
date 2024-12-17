@@ -36,12 +36,14 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -49,6 +51,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 
 import static it.regioneveneto.mygov.payment.mypay4.config.MyPay4AbstractSecurityConfig.PATH_A2A;
@@ -59,9 +62,10 @@ import static it.regioneveneto.mygov.payment.mypay4.config.MyPay4AbstractSecurit
 @ConditionalOnWebApplication
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-  public final static String AUTHORIZATION_HEADER = "Authorization";
-  final static String CLAIMS_ATTRIBUTE = "__CLAIMS_"+ UUID.randomUUID();
-  final static String FORCE_TOKEN_UPDATE_ATTRIBUTE = "__JWT_UPDATE_"+ UUID.randomUUID();
+  public static final String AUTHORIZATION_HEADER = "Authorization";
+  public static final String REQUEST_UID_HEADER = "ReqUid";
+  static final String CLAIMS_ATTRIBUTE = "__CLAIMS_"+ UUID.randomUUID();
+  static final String FORCE_TOKEN_UPDATE_ATTRIBUTE = "__JWT_UPDATE_"+ UUID.randomUUID();
 
   @Value("${static.serve.enabled:false}")
   private String staticContentEnabled;
@@ -74,6 +78,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
   private boolean usageCheckEnabled;
   @Value("${jwt.usage-check.ignorelongcall.milliseconds:0}")
   private long usageCheckIgnoreLongCallMilliseconds;
+
+  @Value("${server.servlet.context-path:}")
+  private String serverServletContextPath;
 
   @Autowired
   private JwtTokenUtil jwtTokenUtil;
@@ -107,6 +114,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+
+    //print debug info for cors
+    if(log.isTraceEnabled()) {
+      String origin = request.getHeader(HttpHeaders.ORIGIN);
+      if (origin != null) {
+        boolean isCorsRequest = CorsUtils.isCorsRequest(request);
+        log.trace("url[{}] origin[{}] isCorsRequest[{}] ", request.getRequestURL(), origin, isCorsRequest);
+      }
+    }
+
     return Arrays.stream(antPathRequestMatchers).anyMatch(antPathRequestMatcher -> antPathRequestMatcher.matches(request));
   }
 
@@ -122,6 +139,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     boolean tokenCheckOk = false;
     boolean isA2ACall = isApplication2ApplicationCall(request);
     boolean isEmailValidationCall = isEmailValidationCall(request);
+    Optional<String> requestUid = Optional.ofNullable(request.getHeader(REQUEST_UID_HEADER));
 
     if(isA2ACall || !jwtTokenUtil.isTokenInCookie()) {
       // JWT Token is in the form "Bearer token". Remove Bearer word and get only the Token
@@ -147,7 +165,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
           jws = jwtTokenUtil.parseToken(jwtToken);
         }
         claims = jws.getBody();
+        //token must have expire no longer than 24 hours
+        if(claims.getIssuedAt()==null || claims.getIssuedAt().toInstant().isBefore(Instant.now().minusSeconds(3600*24))){
+          throw new InvalidJwtException(jws.getHeader(), claims, "Invalid field iat ["+claims.getIssuedAt()+"]");
+        }
+        if(claims.getExpiration()==null || claims.getExpiration().toInstant().isAfter(Instant.now().plusSeconds(3600*24))){
+          throw new InvalidJwtException(jws.getHeader(), claims, "Invalid field exp ["+claims.getExpiration()+"]");
+        }
         jti = claims.getId();
+        //jti cannot be empty
+        if( StringUtils.isBlank(jti) ){
+          throw new InvalidJwtException(jws.getHeader(), claims, "Invalid field jti");
+        }
         //subject cannot be empty
         String subject = claims.getSubject();
         if( StringUtils.isBlank(subject) ){
@@ -160,7 +189,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 //        Long rolledAt = jwtTokenUsageService.wasTokenRolled(jti);
 //        log.debug("wasTokenAlreadyRolled: " + jti + " : " + rolledAt);
 //        if (rolledAt == null)
-        if (usageCheckEnabled && wasTokenAlreadyUsed(jti)) {
+        if (usageCheckEnabled && wasTokenAlreadyUsed(jti, requestUid)) {
           throw new AlreadyUsedJwtException(jws.getHeader(), claims, "Token was already used");
         } else if (!isA2ACall && !jwtTokenUtil.isAuthToken(jws)){
           throw new InvalidJwtException(jws.getHeader(), claims, "Invalid token type");
@@ -190,6 +219,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
               .sysAdmin(utenteProfileService.isSystemAdministrator(userTenantsAndRoles))
               .authenticatingAuthority(claims.get(JwtTokenUtil.JWT_CLAIM_AUTH_AUTHORITY, String.class))
               .authenticationMethod(claims.get(JwtTokenUtil.JWT_CLAIM_AUTH_METHOD, String.class))
+              //used with federated login auth
+              .app(claims.get(JwtTokenUtil.JWT_CLAIM_APP, String.class))
+              .ente(claims.get(JwtTokenUtil.JWT_CLAIM_ENTE, String.class))
               .build();
         }
         //set the current user (with details) from JWT Token into Spring Security configuration
@@ -221,10 +253,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         //do not set the token as "used" when operation took more than X seconds,
         // to decrease the risk that user ignored the operation front-end side and tried to navigate
         if(usageCheckIgnoreLongCallMilliseconds > 0 && stopWatch.getTime() > usageCheckIgnoreLongCallMilliseconds){
-          log.debug("token tot set as used because response time longer than threshold [{}/{}]ms", stopWatch.getTime(), usageCheckIgnoreLongCallMilliseconds);
+          log.debug("token not set as used because response time longer than threshold [{}/{}]ms", stopWatch.getTime(), usageCheckIgnoreLongCallMilliseconds);
         } else {
           log.debug("operation completed, elapsed time ms[{}]", stopWatch.getTime());
           jwtTokenUsageService.markTokenUsed(jti);
+          if(requestUid.isPresent())
+            jwtTokenUsageService.markTokenUsedReqUid(jti, requestUid.get());
         }
       }
     } catch(Exception e){
@@ -246,21 +280,31 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     //}
   }
 
-  private boolean wasTokenAlreadyUsed(String jti) {
+  private boolean wasTokenAlreadyUsed(String jti, Optional<String> requestUid) {
     Long lastUsed = jwtTokenUsageService.getTokenUsageTime(jti);
     if (lastUsed == null) {
-      log.debug("wasTokenAlreadyUsed: " + jti + " : null");
+      log.debug("wasTokenAlreadyUsed [{}]: null", jti);
       return false;
     } else {
       long now = System.currentTimeMillis();
       boolean used = now - lastUsed > gracePeriod;
-      log.debug("wasTokenAlreadyUsed (lastUsed): " + jti + " :" + used);
+      log.debug("wasTokenAlreadyUsed (lastUsed) [{}]: {}", jti, used ? (now+"-"+lastUsed) : "null" );
+
       if(used) {
         Long rolledAt = jwtTokenUsageService.wasTokenRolled(jti);
-        log.debug("wasTokenAlreadyRolled: " + jti + " : " + rolledAt);
+        log.debug("wasTokenAlreadyRolled [{}]: {}", jti, rolledAt);
         used = rolledAt==null || now - rolledAt > gracePeriod;
-        log.debug("wasTokenAlreadyUsed (alreadyRolled): " + jti + " :" + used);
+        if(!used)
+          log.debug("wasTokenAlreadyUsed (alreadyRolled) [{}]: false", jti);
       }
+
+      if(used && requestUid.isPresent()) {
+        String originalRequestUid = jwtTokenUsageService.getTokenUsageReqUid(jti);
+        used = !StringUtils.equals(originalRequestUid, requestUid.get());
+        if(!used)
+          log.debug("wasTokenAlreadyUsed (requestUid) [{}]: false", jti);
+      }
+
       return used;
     }
   }
@@ -270,11 +314,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     if(this.a2aPath == null){
       this.a2aPath = "...";
       try {
-        String a2aPath = request.getContextPath();
-        if (a2aPath.endsWith("/"))
-          a2aPath = a2aPath.substring(0, a2aPath.length() - 1);
-        a2aPath = a2aPath + PATH_A2A + "/";
-        log.info("A2A path: " + a2aPath);
+        String contextPath = StringUtils.stripToEmpty(serverServletContextPath);
+        if (contextPath.endsWith("/"))
+          contextPath = contextPath.substring(0, contextPath.length() - 1);
+        String a2aPath = contextPath + PATH_A2A + "/";
+        log.info("ContextPath: {} - A2A path: {}", contextPath, a2aPath);
         this.a2aPath = a2aPath;
       } catch(Exception e){
         log.error("error initializing A2A path", e);
@@ -291,11 +335,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     if(this.emailValidationPath == null){
       this.emailValidationPath = "...";
       try {
-        String emailValidationPath = request.getContextPath();
-        if (emailValidationPath.endsWith("/"))
-          emailValidationPath = emailValidationPath.substring(0, emailValidationPath.length() - 1);
-        emailValidationPath = emailValidationPath + PATH_EMAIL_VALIDATION;
-        log.info("EmailValidation path: " + emailValidationPath);
+        String contextPath = StringUtils.stripToEmpty(serverServletContextPath);
+        if (contextPath.endsWith("/"))
+          contextPath = contextPath.substring(0, contextPath.length() - 1);
+        String emailValidationPath = contextPath + PATH_EMAIL_VALIDATION;
+        log.info("ContextPath: {} - EmailValidation path: {}", contextPath, emailValidationPath);
         this.emailValidationPath = emailValidationPath;
       }catch(Exception e){
         log.error("error initializing EmailValidation path", e);

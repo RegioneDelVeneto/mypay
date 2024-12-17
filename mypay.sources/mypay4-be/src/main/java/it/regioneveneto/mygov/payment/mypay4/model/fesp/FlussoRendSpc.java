@@ -34,8 +34,8 @@ import java.sql.Timestamp;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovFlussoRendSpcId")
 public class FlussoRendSpc extends BaseEntity {
 
-  public final static String ALIAS = "FESP_FlussoRendSpc";
-  public final static String FIELDS = ""+ALIAS+".mygov_flusso_rend_spc_id as FESP_FlussoRendSpc_mygovFlussoRendSpcId"+
+  public static final String ALIAS = "FESP_FlussoRendSpc";
+  public static final String FIELDS = ""+ALIAS+".mygov_flusso_rend_spc_id as FESP_FlussoRendSpc_mygovFlussoRendSpcId"+
       ","+ALIAS+".version as FESP_FlussoRendSpc_version,"+ALIAS+".cod_ipa_ente as FESP_FlussoRendSpc_codIpaEnte"+
       ","+ALIAS+".identificativo_psp as FESP_FlussoRendSpc_identificativoPsp"+
       ","+ALIAS+".cod_identificativo_flusso as FESP_FlussoRendSpc_codIdentificativoFlusso"+

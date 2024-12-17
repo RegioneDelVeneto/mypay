@@ -17,6 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.config;
 
+import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +57,7 @@ public class CacheConfig extends CachingConfigurerSupport {
   @Value("${cache.clienttimeout.milliseconds:5000}")
   private long clientTimeout;
 
+  @SuppressWarnings("java:S1872")
   private RedisCacheConfiguration createCacheConfiguration(CacheConfigurationProperties properties, String cacheName) {
     long timeoutInSeconds;
     if(cacheName==null){
@@ -91,21 +93,20 @@ public class CacheConfig extends CachingConfigurerSupport {
       .build();
     switch (properties.getType()) {
       case sentinel:
-        log.info("Redis (/Lettuce) sentinel configuration enabled. With cache timeout " + properties.getTimeoutSeconds() + " seconds");
+        log.info("Redis (/Lettuce) sentinel configuration enabled. With cache timeout {} seconds", properties.getTimeoutSeconds());
         RedisSentinelConfiguration redisSentinelConfig = new RedisSentinelConfiguration(properties.getSentinelMaster(),
             new HashSet<>(properties.getSentinelNodes()));
         redisSentinelConfig.setPassword(properties.getPassword());
         return new LettuceConnectionFactory(redisSentinelConfig,clientConfig);
       case cluster:
-        log.info("Redis (/Lettuce) cluster configuration enabled. With cache timeout " + properties.getTimeoutSeconds() + " seconds");
+        log.info("Redis (/Lettuce) cluster configuration enabled. With cache timeout {} seconds", properties.getTimeoutSeconds());
         RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration(properties.getClusterNodes());
         redisClusterConfiguration.setMaxRedirects(properties.getClusterMaxRedirects());
         if(StringUtils.isNotBlank(properties.getPassword()))
           redisClusterConfiguration.setPassword(properties.getPassword());
-        //LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder().readFrom(ReadFrom.REPLICA_PREFERRED).build();
         return new LettuceConnectionFactory(redisClusterConfiguration,LettuceClientConfiguration.defaultConfiguration());
       case standalone:
-        log.info("Redis (/Lettuce) standalone configuration enabled. With cache timeout " + properties.getTimeoutSeconds() + " seconds");
+        log.info("Redis (/Lettuce) standalone configuration enabled. With cache timeout {} seconds", properties.getTimeoutSeconds());
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setHostName(properties.getStandaloneHost());
         redisStandaloneConfiguration.setPort(properties.getStandalonePort());
@@ -114,7 +115,7 @@ public class CacheConfig extends CachingConfigurerSupport {
 
         return new LettuceConnectionFactory(redisStandaloneConfiguration, clientConfig);
       default:
-        throw new RuntimeException("invalid redis configuration type: "+properties.getType());
+        throw new MyPayException("invalid redis configuration type: "+properties.getType());
     }
   }
 
@@ -147,6 +148,7 @@ public class CacheConfig extends CachingConfigurerSupport {
 @Data
 class CacheConfigurationProperties {
 
+  @SuppressWarnings("java:S115")
   public enum TYPE { standalone, cluster, sentinel }
 
   private TYPE type = TYPE.standalone;

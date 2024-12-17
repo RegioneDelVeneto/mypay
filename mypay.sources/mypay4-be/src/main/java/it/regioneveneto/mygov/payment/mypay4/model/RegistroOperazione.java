@@ -37,8 +37,8 @@ public class RegistroOperazione extends BaseEntity {
     ENTE_FUNZ, ENTE_TIP_DOV, OPER_TIP_DOV
   }
 
-  public final static String ALIAS = "RegistroOperazione";
-  public final static String FIELDS = ""+ALIAS+".mygov_registro_operazione_id as RegistroOperazione_mygovRegistroOperazioneId"+
+  public static final String ALIAS = "RegistroOperazione";
+  public static final String FIELDS = ""+ALIAS+".mygov_registro_operazione_id as RegistroOperazione_mygovRegistroOperazioneId"+
       ","+ALIAS+".dt_operazione as RegistroOperazione_dtOperazione"+
       ","+ALIAS+".cod_fed_user_id_operatore as RegistroOperazione_codFedUserIdOperatore"+
       ","+ALIAS+".cod_tipo_operazione as RegistroOperazione_codTipoOperazione"+

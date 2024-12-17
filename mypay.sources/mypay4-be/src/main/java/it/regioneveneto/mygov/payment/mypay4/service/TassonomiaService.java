@@ -22,11 +22,12 @@ import it.regioneveneto.mygov.payment.mypay4.dao.FlussoTassonomiaDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.TassonomiaDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.FlussoTasMasTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.TassonomiaCodDescTo;
-import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
+import it.regioneveneto.mygov.payment.mypay4.dto.TassonomiaTo;
+import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
 import it.regioneveneto.mygov.payment.mypay4.model.FlussoTassonomia;
-import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
+import it.regioneveneto.mygov.payment.mypay4.model.Tassonomia;
 import it.regioneveneto.mygov.payment.mypay4.service.common.CacheService;
-import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +40,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Predicate;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static it.regioneveneto.mygov.payment.mypay4.controller.BackofficeFlussoController.FILE_TYPE_TASSONOMIA_IMPORT;
 
 @Slf4j
 @Service
@@ -50,8 +54,8 @@ import static it.regioneveneto.mygov.payment.mypay4.controller.BackofficeFlussoC
 public class TassonomiaService {
 
   private static String MESSAGE_PROPERTY = "pa.batch.import.";
-  public final static String STATO_FLUSSO_ERRORE = "ERRORE_CARICAMENTO";
-  public final static String STATO_FLUSSO_ERRORE_ELABORAZIONE= "ERRORE_ELABORAZIONE";
+  public static final String STATO_FLUSSO_ERRORE = "ERRORE_CARICAMENTO";
+  public static final String STATO_FLUSSO_ERRORE_ELABORAZIONE= "ERRORE_ELABORAZIONE";
   private static String STATO_CARICATO = "CARICATO";
 
   @Autowired
@@ -60,8 +64,6 @@ public class TassonomiaService {
   @Autowired
   private FlussoTassonomiaDao flussoTassonomiaDao;
 
-  //@Autowired
-  //private AnagraficaStatoService anagraficaStatoService;
 
   @Autowired
   private MessageSource messageSource;
@@ -96,27 +98,7 @@ public class TassonomiaService {
     return tassonomiaDao.getCodTassFromSelect(tipoEnte, macroArea, codTipoServizio, motivoRiscossione);
   }
 
-  @Transactional(propagation = Propagation.REQUIRED)
-  public void onUploadFile(UserWithAdditionalInfo user, String flussoType, String filePathString, String authToken) {
-    if (!flussoType.equals(FILE_TYPE_TASSONOMIA_IMPORT))
-      throw new ValidatorException("invalid upload file type");
 
-    /*
-    AnagraficaStato anagraficaStato = anagraficaStatoService.getByCodStatoAndTipoStato(STATO_CARICATO, Constants.STATO_TIPO_FLUSSO);
-    Path filePath = Paths.get(filePathString);
-    String fileName = filePath.getFileName().toString();
-    FlussoTassonomia flussoTassonmia = FlussoTassonomia.builder()
-        .mygovAnagraficaStatoId(anagraficaStato)
-        .iuft(fileName.substring(0, fileName.length() - 4))
-        .numRigheTotali(0L)
-        .numRigheElaborateCorrettamente(0L)
-        .deNomeOperatore(user.getCodiceFiscale())
-        .dePercorsoFile(filePath.getParent().toString())
-        .deNomeFile(fileName)
-        .codRequestToken(authToken).build();
-    long mygovFlussoTassonomiaId = flussoTassonomiaDao.insert(flussoTassonmia);
-     */
-  }
 
   private FlussoTasMasTo mapTassonomiaToDto(FlussoTassonomia flussoTassonomia) {
     FlussoTasMasTo tassonomiaTo = new FlussoTasMasTo();
@@ -145,9 +127,68 @@ public class TassonomiaService {
     return tassonomiaTo;
   }
 
-  public String getRightTaxonomicCode(String datiSpecificiRiscossione, String codiceTassonomicoTipoDovuto) {
-    Predicate<String> matching = s -> s.matches(Constants.TAXONOMIC_CODE_PATTERN) && s.startsWith(codiceTassonomicoTipoDovuto);
-    return matching.test(datiSpecificiRiscossione) ?
-        datiSpecificiRiscossione : codiceTassonomicoTipoDovuto.concat(datiSpecificiRiscossione);
+  public String getMyPayTransferCategoryPatternFormat(Dovuto dovuto, String codiceTassonomicoTipoDovuto) {
+    var out = new AtomicReference<>(codiceTassonomicoTipoDovuto.concat(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione()));
+    Matcher matcher = Pattern.compile("^(9/.*?/).*$").matcher(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
+    if(matcher.find())
+      tassonomiaDao.getByTipoEnte(dovuto.getNestedEnte().getCodTipoEnte()).stream()
+        .map(Tassonomia::getCodiceTassonomico)
+        .filter(matcher.group(1)::contains)
+        .findAny().ifPresent(s -> out.set(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione()));
+    return out.get();
+  }
+
+  @Cacheable(value=CacheService.CACHE_NAME_TASSONOMIA, key="{'ifExitsCodiceTassonomico',#codiceTassonomico}")
+  public boolean ifExitsCodiceTassonomico(String codiceTassonomico) {
+    boolean result = false;
+    if (StringUtils.isNotBlank(codiceTassonomico)) {
+      Boolean existsCodiceTassonomico = tassonomiaDao.ifExitsCodiceTassonomico(codiceTassonomico);
+      result = (existsCodiceTassonomico != null && existsCodiceTassonomico.compareTo(Boolean.TRUE) == 0 );
+    }
+    return result;
+  }
+
+  public String getCleanTransferCategory(Dovuto dovuto, EnteTipoDovuto enteTipoDovuto) {
+    var transferCategory = getMyPayTransferCategoryPatternFormat(dovuto, enteTipoDovuto.getCodTassonomico());
+    Matcher matcher = Pattern.compile("^9/(.*?)/.*$").matcher(transferCategory);
+    if(matcher.find())
+      return matcher.group(1);
+    return String.format("%s%s%s%s", dovuto.getNestedEnte().getCodTipoEnte(),
+      enteTipoDovuto.getMacroArea(), enteTipoDovuto.getTipoServizio(), enteTipoDovuto.getMotivoRiscossione());
+  }
+
+  public Set<Tassonomia> getAllExpiring() { return tassonomiaDao.getAllExpiring();  }
+
+  public Set<TassonomiaTo> getAll() { return tassonomiaDao.getAll();  }
+
+  public Map<String, TassonomiaTo> getAllMapped() {
+    return tassonomiaDao.getAll().stream().collect(Collectors.toMap(TassonomiaTo::getDatiSpecificiIncasso, Function.identity()));
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public Tassonomia upsert(TassonomiaTo tassonomiaTo) {
+    var tassonomia = Tassonomia.builder()
+        .mygovTassonomiaId(tassonomiaTo.getId())
+        .version(Integer.parseInt(tassonomiaTo.getVersioneTassonomia()))
+        .tipoEnte(tassonomiaTo.getCodiceTipoEnte())
+        .descrizioneTipoEnte(tassonomiaTo.getDescrizioneTipoEnte())
+        .progMacroArea(tassonomiaTo.getProgressivoMacroArea())
+        .nomeMacroArea(tassonomiaTo.getNomeMacroArea())
+        .descMacroArea(tassonomiaTo.getDescricioneMacroArea())
+        .codTipoServizio(tassonomiaTo.getCodiceTipoServizio())
+        .tipoServizio(tassonomiaTo.getTipoServizio())
+        .descrizioneTipoServizio(tassonomiaTo.getDescrizioneTipoEnte())
+        .motivoRiscossione(tassonomiaTo.getMotivoRiscossione())
+        .dtInizioValidita(tassonomiaTo.getDataInizioValidita())
+        .dtFineValidita(tassonomiaTo.getDataFineValidita())
+        .codiceTassonomico(tassonomiaTo.getDatiSpecificiIncasso())
+        .build();
+    if (tassonomia.getMygovTassonomiaId() == null) {
+      long aLong = tassonomiaDao.insert(tassonomia);
+      tassonomia.setMygovTassonomiaId(aLong);
+    } else {
+      tassonomiaDao.update(tassonomia);
+    }
+    return tassonomia;
   }
 }

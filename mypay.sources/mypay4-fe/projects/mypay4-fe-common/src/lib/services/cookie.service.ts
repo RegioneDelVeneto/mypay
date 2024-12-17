@@ -19,7 +19,7 @@ import * as _ from 'lodash';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 
 import { CookieConsent } from '../model/cookie-consent';
 
@@ -36,7 +36,9 @@ export class CookieService {
   private consentState: CookieConsent = new CookieConsent();
   private consentStateObs = new BehaviorSubject<CookieConsent>(this.consentState);
 
-  constructor() {
+  constructor(
+    private zone: NgZone
+  ) {
     this.getCookieObservable().subscribe(cookie => {
       //console.log("modified cookies: ", cookie);
       const cookieValue = cookie.match(/(;)?cookiebar=([^;]*);?/)?.[2];
@@ -97,8 +99,10 @@ export class CookieService {
     const subject = new BehaviorSubject<string>(document.cookie);
     Object.defineProperty(target, key, {
         set: value => {
-            setter.call(document, value);
-            subject.next(document.cookie);
+            this.zone.run(() => {
+              setter.call(document, value);
+              subject.next(document.cookie);
+            });
         }
     });
     return subject.asObservable();
@@ -109,11 +113,15 @@ export class CookieService {
   }
 
   public setMissingNeededConsent():void {
-    this.missingNeededConsent.next(true);
+    if(this.missingNeededConsent.getValue()!=true){
+      this.missingNeededConsent.next(true);
+    }
   }
 
   public unsetMissingNeededConsent():void {
-    this.missingNeededConsent.next(false);
+    if(this.missingNeededConsent.getValue()!=false){
+      this.missingNeededConsent.next(false);
+    }
   }
 
 }

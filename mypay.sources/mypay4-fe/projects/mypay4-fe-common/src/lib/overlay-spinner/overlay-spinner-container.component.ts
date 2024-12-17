@@ -15,18 +15,17 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-overlay-spinner-container',
   templateUrl: './overlay-spinner-container.component.html',
   styleUrls: ['./overlay-spinner-container.component.css']
 })
-export class OverlaySpinnerContainerComponent implements OnInit {
+export class OverlaySpinnerContainerComponent {
 
-  constructor() { }
-
-  ngOnInit() {
+  constructor() { 
+    //This is intentionally empty
   }
-
+  
 }

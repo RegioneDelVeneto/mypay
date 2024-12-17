@@ -53,12 +53,12 @@ public class OperatoreAspect {
 
   private Long adminEnteId;
 
-  private final static Set<String> ADMIN_ROLE_SET = Set.of(Operatore.Role.ROLE_ADMIN.name());
+  private static final Set<String> ADMIN_ROLE_SET = Set.of(Operatore.Role.ROLE_ADMIN.name());
 
   @Autowired
   private EnteDao enteDao;
 
-  private final static ThreadLocal<Consumer<Long>> deferredCheckConsumer = new ThreadLocal<>();
+  private static final ThreadLocal<Consumer<Long>> deferredCheckConsumer = new ThreadLocal<>();
 
   public static void deferredCheck(Long mygovEnteId){
     deferredCheckConsumer.get().accept(mygovEnteId);

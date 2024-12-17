@@ -17,18 +17,18 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 -->
-<div class="container">
+<div class="container" *ngIf="!hidden">
 
   <div fxFlex fxLayout="column" fxLayoutAlign="start center">
 
-    <div class="title-row">
+    <div class="title-row" *ngIf="!extAppFlow">
       <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
-      <p class="mat-h3">Scegli <ng-container *ngIf="codIpaEnteLanding==null">l'ente che vuoi pagare e poi </ng-container> il servizio per il quale vuoi effettuare il pagamento, compila i
-        campi richiesti e procedi con il pagamento</p>
+      <p class="mat-h3">Scegli <ng-container *ngIf="codIpaEnteLanding==null">l'ente che vuoi pagare e poi </ng-container> il servizio per il quale
+        vuoi effettuare il pagamento, compila i campi richiesti, che saranno utilizzati per comporre la causale di versamento, e procedi con il pagamento</p>
     </div>
 
     <ng-container *ngIf="hasConsent">
-      <mat-expansion-panel class="mypay-search-expansion-panel w100 mat-elevation-z0"
+      <mat-expansion-panel class="mypay-search-expansion-panel w100 mat-elevation-z0" *ngIf="!extAppFlow"
       [ngClass]="{'no-bottom-border': hasSearched && currentTipoDovuto}" [expanded]="!hasSearched || !currentTipoDovuto">
         <mat-expansion-panel-header aria-label="espandi o chiudi pannello selezione ente e tipo dovuto" collapsedHeight="auto">
           <div class="w100" *ngIf="hasSearched && currentTipoDovuto">
@@ -81,13 +81,15 @@
         </form>
       </mat-expansion-panel>
 
+      <div *ngIf="extAppFlow && hasSearched && !currentTipoDovuto" class="mat-elevation-z0 min-height" fxFlex="1 1 0" fxLayout="column">&nbsp;</div>
+
       <mat-card *ngIf="hasSearched && currentTipoDovuto" #cardDynamo class="mat-elevation-z0" fxFlex="1 1 0" fxLayout="column">
         <mat-card-content>
           <div class="w100 white" style="margin-top:20px;">
             <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px">
               <!-- Make sure if <app-messages> is needed. -->
               <spontaneo-dynamo [fieldBeans]="fieldBeans" [currentEnte]="currentEnte" [currentTipoDovuto]="currentTipoDovuto"
-                  [importoPrefissato]="importoPrefissato" (reload)="onReset()">
+                  [importoPrefissato]="importoPrefissato" (reload)="onReset()" [extAppSpontaneousPayment]="extAppSpontaneousPayment">
               </spontaneo-dynamo>
             </div>
           </div>

@@ -34,8 +34,8 @@ import java.math.BigDecimal;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovDovutoCarrelloId")
 public class DovutoCarrello extends BaseEntity {
 
-  public final static String ALIAS = "DovutoCarrello";
-  public final static String FIELDS = ""+ALIAS+".mygov_dovuto_carrello_id as DovutoCarrello_mygovDovutoCarrelloId"+
+  public static final String ALIAS = "DovutoCarrello";
+  public static final String FIELDS = ""+ALIAS+".mygov_dovuto_carrello_id as DovutoCarrello_mygovDovutoCarrelloId"+
       ","+ALIAS+".mygov_dovuto_id as DovutoCarrello_mygovDovutoId"+
       ","+ALIAS+".mygov_carrello_id as DovutoCarrello_mygovCarrelloId"+
       ","+ALIAS+".num_rp_dati_vers_dati_sing_vers_commissione_carico_pa as DovutoCarrello_numRpDatiVersDatiSingVersCommissioneCaricoPa"+

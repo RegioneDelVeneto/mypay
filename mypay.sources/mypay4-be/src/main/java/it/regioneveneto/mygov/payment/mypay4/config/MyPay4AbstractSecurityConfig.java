@@ -18,6 +18,7 @@
 package it.regioneveneto.mygov.payment.mypay4.config;
 
 import io.jsonwebtoken.lang.Assert;
+import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.security.*;
 import it.regioneveneto.mygov.payment.mypay4.service.UtenteService;
 import lombok.extern.slf4j.Slf4j;
@@ -50,24 +51,26 @@ import org.springframework.web.servlet.resource.ResourceResolverChain;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public abstract class MyPay4AbstractSecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-  public final static String PATH_PUBLIC = "/public";
-  public final static String PATH_APP_ADMIN = "/appadmin";
-  public final static String PATH_WS = "/ws";
-  public final static String PATH_A2A = "/a2a";
-  public final static String PATH_EMAIL_VALIDATION = "/email";
-  public final static String PATH_OPERATORE = "/operatore";
+  public static final String PATH_PUBLIC = "/public";
+  public static final String PATH_APP_ADMIN = "/appadmin";
+  public static final String PATH_WS = "/ws";
+  public static final String PATH_A2A = "/a2a";
+  public static final String PATH_EMAIL_VALIDATION = "/email";
+  public static final String PATH_OPERATORE = "/operatore";
 
   @Value("${cors.enabled:false}")
-  private String corsEnabled;
-  @Value("${auth.fake.enabled:false}")
-  protected String fakeAuthEnabled;
-
+  private boolean corsEnabled;
+  @Value("${cors.origins:}")
+  private String[] corsOrigins;
+  @Value("${jwt.use-header-auth.enabled:false}")
+  private boolean useHeaderAuth;
   @Value("${static.serve.enabled:false}")
   private String staticContentEnabled;
   @Value("${static.serve.paths:/staticContent}")
@@ -156,12 +159,15 @@ public abstract class MyPay4AbstractSecurityConfig extends WebSecurityConfigurer
   @Override
   protected void configure(HttpSecurity httpSecurity) throws Exception {
     SecurityConfigWhitelist securityConfigWhitelist = getSecurityWhitelist();
-    //HttpSecurity httpSecurityRef = httpSecurity;
-    if("true".equalsIgnoreCase(corsEnabled)) {
+    if(this.corsEnabled) {
       log.warn("enabling CORS (security)");
       httpSecurity = httpSecurity.cors().and();
     }
-    httpSecurity.csrf().disable()
+    httpSecurity
+        //CSRF disabled as not necessary in our use case and also because
+        // Spring implmentation cannot work correctly when frontend and backend domain are not the same
+        // See here for details: https://stackoverflow.com/questions/45816835/csrf-issue-with-spring-angular-2-oauth2-cors
+        .csrf().disable()
         .authorizeRequests()
         .antMatchers(ArrayUtils.addAll(securityConfigWhitelist.getAuthWithelist())).permitAll()
         .requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
@@ -178,12 +184,15 @@ public abstract class MyPay4AbstractSecurityConfig extends WebSecurityConfigurer
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    if("true".equalsIgnoreCase(corsEnabled)) {
-      log.warn("enabling CORS");
+    if(this.corsEnabled) {
+      log.warn("enabling CORS, origins ({}): {}", this.corsOrigins.length, Arrays.toString(this.corsOrigins));
+      if(this.corsOrigins.length == 0)
+        throw new MyPayException("Cors origin param cannot be null if cors is enabled");
       registry.addMapping("/**")
-          .exposedHeaders(JwtRequestFilter.AUTHORIZATION_HEADER, HttpHeaders.CONTENT_DISPOSITION)
+          .allowedOriginPatterns(this.corsOrigins)
+          .allowCredentials(!this.useHeaderAuth)
+          .exposedHeaders(HttpHeaders.SET_COOKIE, JwtRequestFilter.AUTHORIZATION_HEADER, HttpHeaders.CONTENT_DISPOSITION)
           .allowedMethods("*");
-      //.allowCredentials(true).exposedHeaders("Set-Cookie");
     }
   }
 
@@ -221,5 +230,17 @@ public abstract class MyPay4AbstractSecurityConfig extends WebSecurityConfigurer
     return targetUrl;
   }
 
+  public static void main(String[] args) {
+    try{
+      //method to generate encoded password for Fake Authentication
+      // has to be hardcoded in it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo
+      BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+      String rawPassowrd = "6Y$twMOtGJ#1P5";
+      System.out.println("raw password: "+rawPassowrd);
+      System.out.println("encoded password: "+encoder.encode(rawPassowrd));
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+  }
 }
 

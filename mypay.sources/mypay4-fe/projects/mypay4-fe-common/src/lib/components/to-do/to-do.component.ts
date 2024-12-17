@@ -15,18 +15,16 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-to-do',
   templateUrl: './to-do.component.html',
   styleUrls: ['./to-do.component.scss']
 })
-export class ToDoComponent implements OnInit {
+export class ToDoComponent {
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
+  constructor() {
+    //This is intentionally empty
+   }
 }

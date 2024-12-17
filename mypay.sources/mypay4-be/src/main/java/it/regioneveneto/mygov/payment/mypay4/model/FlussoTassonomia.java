@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovFlussoTassonomiaId")
 public class FlussoTassonomia extends BaseEntity {
 
-  public final static String ALIAS = "FlussoTassonomia";
-  public final static String FIELDS = ""+ALIAS+".mygov_flusso_tassonomia_id as FlussoTassonomia_mygovFlussoTassonomiaId"+
+  public static final String ALIAS = "FlussoTassonomia";
+  public static final String FIELDS = ""+ALIAS+".mygov_flusso_tassonomia_id as FlussoTassonomia_mygovFlussoTassonomiaId"+
       ","+ALIAS+".version as FlussoTassonomia_version"+
       ","+ALIAS+".mygov_anagrafica_stato_id as FlussoTassonomia_mygovAnagraficaStatoId,"+ALIAS+".iuft as FlussoTassonomia_iuft"+
       ","+ALIAS+".num_righe_totali as FlussoTassonomia_numRigheTotali"+
@@ -44,7 +44,8 @@ public class FlussoTassonomia extends BaseEntity {
       ","+ALIAS+".dt_ultima_modifica as FlussoTassonomia_dtUltimaModifica"+
       ","+ALIAS+".de_nome_operatore as FlussoTassonomia_deNomeOperatore"+
       ","+ALIAS+".de_percorso_file as FlussoTassonomia_dePercorsoFile,"+ALIAS+".de_nome_file as FlussoTassonomia_deNomeFile"+
-      ","+ALIAS+".cod_request_token as FlussoTassonomia_codRequestToken,"+ALIAS+".cod_errore as FlussoTassonomia_codErrore";
+      ","+ALIAS+".cod_request_token as FlussoTassonomia_codRequestToken,"+ALIAS+".cod_errore as FlussoTassonomia_codErrore"+
+      ","+ALIAS+".hash as FlussoTassonomia_hash";
 
   private Long mygovFlussoTassonomiaId;
   private int version;
@@ -60,4 +61,5 @@ public class FlussoTassonomia extends BaseEntity {
   private String deNomeFile;
   private String codRequestToken;
   private String codErrore;
+  private String hash;
 }

@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovCarrelloMultiBeneficiarioId")
 public class CarrelloMultiBeneficiario extends BaseEntity{
 
-  public final static String ALIAS = "CarrelloMultiBeneficiario";
-  public final static String FIELDS = ""+ALIAS+".mygov_carrello_multi_beneficiario_id as CarrelloMultiBeneficiario_mygovCarrelloMultiBeneficiarioId"+
+  public static final String ALIAS = "CarrelloMultiBeneficiario";
+  public static final String FIELDS = ""+ALIAS+".mygov_carrello_multi_beneficiario_id as CarrelloMultiBeneficiario_mygovCarrelloMultiBeneficiarioId"+
       ","+ALIAS+".version as CarrelloMultiBeneficiario_version"+
       ","+ALIAS+".mygov_anagrafica_stato_id as CarrelloMultiBeneficiario_mygovAnagraficaStatoId"+
       ","+ALIAS+".cod_ipa_ente as CarrelloMultiBeneficiario_codIpaEnte"+

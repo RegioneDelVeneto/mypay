@@ -40,11 +40,11 @@ import java.util.List;
 @ConditionalOnWebApplication
 public class BackofficeFlussoController {
 
-  private final static String AUTHENTICATED_PATH ="admin/flussi";
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="admin/flussi";
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
-  public final static String FILE_TYPE_TASSONOMIA_IMPORT = "TASSONOMIA_IMPORT";
-  public final static String FILE_TYPE_MASSIVA_IMPORT = "MASSIVA_IMPORT";
+  public static final String FILE_TYPE_TASSONOMIA_IMPORT = "TASSONOMIA_IMPORT";
+  public static final String FILE_TYPE_MASSIVA_IMPORT = "MASSIVA_IMPORT";
 
   @Autowired
   private TassonomiaService tassonomiaService;

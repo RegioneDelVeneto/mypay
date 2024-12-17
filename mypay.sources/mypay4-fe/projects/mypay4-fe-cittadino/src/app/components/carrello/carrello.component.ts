@@ -20,17 +20,17 @@ import { DateTime } from 'luxon';
 import { FileSaverService } from 'ngx-filesaver';
 import { ToastrService } from 'ngx-toastr';
 import {
-    ConfirmDialogComponent
+  ConfirmDialogComponent
 } from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
 import {
-    ApiInvokerService, Comune, controlToUppercase, LocationService, manageError, Nazione,
-    OverlaySpinnerService, PATTERNS, ProcessHTTPMsgService, Provincia, TableAction, TableColumn,
-    UserService, validateFormFun, WithTitle
+  ApiInvokerService, blank2Null, Comune, ConfigurationService, controlToUppercase, LocationService, manageError,
+  Nazione, OverlaySpinnerService, PATTERNS, ProcessHTTPMsgService, Provincia, TableAction,
+  TableColumn, UserService, validateFormFun, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
-import { Observable, of, Subject, Subscription } from 'rxjs';
-import { delay, first, flatMap } from 'rxjs/operators';
+import { forkJoin, Observable, of, Subject, Subscription } from 'rxjs';
+import { delay, first, map } from 'rxjs/operators';
 
-import { BreakpointObserver } from '@angular/cdk/layout';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CdkStepper, StepperSelectionEvent } from '@angular/cdk/stepper';
 import { CurrencyPipe } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
@@ -40,10 +40,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
 import { Router } from '@angular/router';
 import {
-    faAddressCard, faCheck, faEnvelope, faEuroSign, faMoneyBillWave, faPen, faReceipt,
-    faShoppingCart, faTrash
+  faAddressCard, faCheck, faEnvelope, faEuroSign, faMoneyBillWave, faPen, faReceipt,
+  faShoppingCart, faTrash
 } from '@fortawesome/free-solid-svg-icons';
 
+import { Attualizzazione } from '../../model/altri-interface';
 import { Carrello } from '../../model/carrello';
 import { Debito } from '../../model/debito';
 import { Esito } from '../../model/esito';
@@ -88,23 +89,25 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
   private formMailValidationSub: Subscription;
   private carrelloSub: Subscription;
   private codFiscaleUppercaseSub: Subscription;
-  private smallScreenSub: Subscription;
+  verticalStepper: Observable<boolean>;
 
   itemCarrelloByIntestatari: {id:string, info:Person, content:ItemCarrello[]}[];
   empty: boolean = true;
   versante: Person;
   importoTotale: number;
+  dovutiEntiSecondari: any;
   logged: boolean = false;
   isStepCompleted = {};
   isStepEditable = {};
   stepsInfo:any = {};
-  smallScreen: boolean = false;
   paymentUrl: string = null;
   validationEmail: string = null;
   backUrl: string = null;
   idSession: string = null;
   tipoCarrello: string = null;
   triggerEsternoAnonimo: boolean = false;
+  disablePayButton: boolean = false;
+  private modelloUnico: boolean;
 
   formErrors = { };
   private formMailValidationValidationFun;
@@ -158,41 +161,58 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
     private recaptchaService: RecaptchaService,
     private dialog: MatDialog,
     private breakpointObserver: BreakpointObserver,
+    private conf: ConfigurationService,
   ) {
+    this.modelloUnico = conf.getBackendProperty<boolean>('modelloUnico', false);
+
     const versante:Person = this.router.getCurrentNavigation()?.extras?.state?.versante;
     if(versante){
+      this.carrelloService.preloaded.versante = versante;
       console.log('preloading versante with values: ',versante);
       this.versante = versante;
+    } else if(this.carrelloService.preloaded.versante){
+      this.versante = this.carrelloService.preloaded.versante;
     }
     const idSession = this.router.getCurrentNavigation()?.extras?.state?.idSession;
     if(idSession){
+      this.carrelloService.preloaded.idSession = idSession;
       console.log('preloading idSession with value: '+idSession);
       this.idSession = idSession;
+    }else if(this.carrelloService.preloaded.idSession){
+      this.idSession = this.carrelloService.preloaded.idSession;
     }
-    const backUrl = this.router.getCurrentNavigation()?.extras?.state?.backUrl;
+    const backUrl:string = blank2Null(this.router.getCurrentNavigation()?.extras?.state?.backUrl);
     if(backUrl){
+      this.carrelloService.preloaded.backUrl = backUrl;
       console.log('preloading backUrl with value: '+backUrl);
       this.backUrl = backUrl;
+    }else if(this.carrelloService.preloaded.backUrl){
+      this.backUrl = this.carrelloService.preloaded.backUrl;
     }
     const tipoCarrello = this.router.getCurrentNavigation()?.extras?.state?.tipoCarrello;
     if(tipoCarrello){
-      console.log('preloading backUrl with value: '+tipoCarrello);
+      this.carrelloService.preloaded.tipoCarrello = tipoCarrello;
+      console.log('preloading tipoCarrello with value: '+tipoCarrello);
       this.tipoCarrello = tipoCarrello;
+    }else if(this.carrelloService.preloaded.tipoCarrello){
+      this.tipoCarrello = this.carrelloService.preloaded.tipoCarrello;
     }
-    this.triggerEsternoAnonimo = ["ESTERNO_ANONIMO", "ESTERNO_ANONIMO_MULTIENTE"].includes(this.tipoCarrello);
+    this.triggerEsternoAnonimo = CarrelloService.isEsternoAnonimo(this.tipoCarrello);
+
+    const dovutiEntiSecondari = this.router.getCurrentNavigation()?.extras?.state?.dovutiEntiSecondari ?? this.carrelloService.preloaded.dovutiEntiSecondari;
+    if(dovutiEntiSecondari){
+      this.carrelloService.preloaded.dovutiEntiSecondari = dovutiEntiSecondari;
+      this.dovutiEntiSecondari = dovutiEntiSecondari;
+    }
+
+    //make stepper responsive
+    this.verticalStepper = this.breakpointObserver.observe([
+      Breakpoints.XSmall,
+      Breakpoints.Small
+    ]).pipe(map(result => result.matches));
   }
 
   ngOnInit(): void {
-
-    //stepper responsiveness
-    // this.smallScreenSub = this.breakpointObserver.observe([
-    //     Breakpoints.XSmall,
-    //     Breakpoints.Small
-    //   ]).subscribe(result => {
-    //     this.smallScreen = result.matches;
-    //     console.log('small screen: ',this.smallScreen);
-    // });
-
     this.formGroupMailValidation = new FormGroup({});
     this.formMailValidationValidationFun = validateFormFun(this.formGroupMailValidation, this.formErrors, this.formValidationMessages);
     this.formMailValidationSub = this.formGroupMailValidation.valueChanges.subscribe(this.formMailValidationValidationFun);
@@ -248,6 +268,8 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
 
     if(this.carrelloService.size() > 0)
       this.carrelloService.triggerRefresh();
+
+    this.disablePayButton = false;
   }
 
   ngOnDestroy(){
@@ -257,9 +279,15 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
     this.carrelloSub?.unsubscribe();
     this.codFiscaleUppercaseSub?.unsubscribe();
     this.recaptchaService.deactivate();
-    this.smallScreenSub?.unsubscribe();
   }
 
+  get anagraficaLabel(){
+    return this.formGroup.get('versante_tipoSoggetto').value=='F'?'Nome e Cognome':"Denominazione";
+  }
+
+  get anagraficaPlaceholder(){
+    return this.formGroup.get('versante_tipoSoggetto').value=='F'?'Inserire nome e cognome':"Inserire denominazione";
+  }
   onChangeTipoPersona(event: MatButtonToggleChange) {
     const control = this.formGroup.get('versante_codiceIdentificativoUnivoco');
     control.setValidators(this.codiceIdentificativoUnivocoDetails[event?.value].validators);
@@ -345,10 +373,11 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
 
   private updateCarrello(carrello: ItemCarrello[], thisRef: CarrelloComponent){
     thisRef.empty = !carrello?.length;
+    console.log('empty: ', thisRef.empty);
     const newIntestatari: Map<string, {id: string, anonimo: boolean, info:Person, content:ItemCarrello[]}> = new Map();
-    this.importoTotale = 0;
+    thisRef.importoTotale = 0;
     carrello.forEach(itemCarrello => {
-      this.importoTotale += itemCarrello.importo;
+      thisRef.importoTotale += itemCarrello.importo;
       if(Person.isPersonAnonimo(itemCarrello.intestatario))
         itemCarrello.intestatario = Person.normalizeAnonimoDetails(itemCarrello.intestatario);
       const idIntestatario = Person.idIntestatario(itemCarrello.intestatario);
@@ -362,20 +391,20 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
     });
 
     const alreadyExistingSubjects = new Set();
-    for (const [controlName, control] of Object.entries(this.formGroup.controls)) {
+    for (const [controlName, control] of Object.entries(thisRef.formGroup.controls)) {
       const subject = controlName.substring(0, controlName.lastIndexOf('_'));
       if(subject!=='versante' && !newIntestatari.has(subject))
-        this.formGroup.removeControl(controlName);
+      thisRef.formGroup.removeControl(controlName);
       else
         alreadyExistingSubjects.add(subject);
     }
 
     newIntestatari.forEach(intestatario => {
       if(!alreadyExistingSubjects.has(intestatario.id)) {
-        this.controlNames.forEach(controlName => {
-          this.formGroup.addControl(intestatario.id+'_'+controlName,new FormControl());
+        thisRef.controlNames.forEach(controlName => {
+          thisRef.formGroup.addControl(intestatario.id+'_'+controlName,new FormControl());
         });
-        this.setUserData(intestatario.id, intestatario.info);
+        thisRef.setUserData(intestatario.id, intestatario.info);
       }
     });
     thisRef.itemCarrelloByIntestatari = [...newIntestatari.values()];
@@ -436,15 +465,10 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
       }
     }
     if(ItemCarrello.isDebito(elementRef)){
-      var downloadAvvisoFun;
-      if(thisRef.logged)
-        downloadAvvisoFun = thisRef.avvisoService.downloadAvviso(elementRef);
-      else
-        downloadAvvisoFun = thisRef.recaptchaService.submitToken('downloadAvviso').pipe(
-          flatMap(token => thisRef.avvisoService.downloadAvvisoAnonymous(elementRef, token))
-        );
-
-      downloadAvvisoFun.subscribe(response => {
+      thisRef.recaptchaService.submitWithRecaptchaHandling<any>('downloadAvviso', 
+        recaptchaToken => thisRef.avvisoService.downloadAvvisoAnonymous(elementRef, recaptchaToken),
+        () => thisRef.avvisoService.downloadAvviso(elementRef)
+      ).subscribe(response => {
         const contentDisposition = response.headers.get('content-disposition');
         const fileName = ApiInvokerService.extractFilenameFromContentDisposition(contentDisposition)  ?? 'mypay4_avviso_'+elementRef.id+'.pdf';
         const contentType = response.headers.get('content-type') ?? 'application/pdf; charset=utf-8';
@@ -460,51 +484,30 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
   }
 
   downloadAvvisoForSpontaneo(spontaneo: Spontaneo, thisRef: CarrelloComponent) {
-    // const intestatario = thisRef.logged ? thisRef.versante : new Person();
-    // if (thisRef.logged) {
-    //   intestatario.tipoIdentificativoUnivoco = "F";
-    // } else {
-    //   intestatario.anagrafica = thisRef.formGroup.get('versante_anagrafica').value;
-    //   intestatario.tipoIdentificativoUnivoco = thisRef.formGroup.get('versante_tipoSoggetto').value;
-    //   intestatario.codiceIdentificativoUnivoco = thisRef.formGroup.get('versante_codiceIdentificativoUnivoco').value;
-    //   intestatario.email = thisRef.formGroup.get('versante_email').value;
-    // }
-    // intestatario.indirizzo = thisRef.formGroup.get('versante_indirizzo').value;
-    // intestatario.civico = thisRef.formGroup.get('versante_civico').value;
-    // intestatario.cap = thisRef.formGroup.get('versante_cap').value;
-    // intestatario.nazioneId = thisRef.formGroup.get('versante_nazione').value;
-    // intestatario.provinciaId = thisRef.formGroup.get('versante_provincia').value;
-    // intestatario.localitaId = thisRef.formGroup.get('versante_comune').value;
-    // spontaneo.intestatario = intestatario;
-
     const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
-    let prepareAvvisoFun;
-    if(this.userService.isLogged())
-      prepareAvvisoFun = this.spontaneoService.prepareAvviso(spontaneo);
-    else
-      prepareAvvisoFun = this.recaptchaService.submitToken('prepareAvviso').pipe(
-        flatMap(token => this.spontaneoService.prepareAvvisoAnonymous(spontaneo, token))
-      );
-    prepareAvvisoFun.subscribe(debito => {
+
+    thisRef.recaptchaService.submitWithRecaptchaHandling<Debito>('prepareAvviso', 
+      recaptchaToken => {
+        spontaneo.mailValidationToken = thisRef.mailValidationResponse.validatedToken;
+        return thisRef.spontaneoService.prepareAvvisoAnonymous(spontaneo, recaptchaToken);
+      },
+      () => thisRef.spontaneoService.prepareAvviso(spontaneo)
+    ).subscribe(debito => {
       Debito.setDetails(debito);
       thisRef.carrelloService.remove(spontaneo);
       thisRef.carrelloService.add(debito);
-      let downloadAvvisoFun;
-      if(this.userService.isLogged())
-        downloadAvvisoFun = this.avvisoService.downloadAvviso(debito);
-      else
-        downloadAvvisoFun = this.recaptchaService.submitToken('downloadAvviso').pipe(
-          flatMap(token => this.avvisoService.downloadAvvisoAnonymous(debito, token))
-        );
-      downloadAvvisoFun.subscribe(response => {
-        this.overlaySpinnerService.detach(spinner);
+      thisRef.recaptchaService.submitWithRecaptchaHandling<any>('downloadAvviso',
+        recaptchaToken => thisRef.avvisoService.downloadAvvisoAnonymous(debito, recaptchaToken),
+        () => thisRef.avvisoService.downloadAvviso(debito)
+      ).subscribe(response => {
+        thisRef.overlaySpinnerService.detach(spinner);
         const contentDisposition = response.headers.get('content-disposition');
         const fileName = ApiInvokerService.extractFilenameFromContentDisposition(contentDisposition)  ?? 'mypay4_avviso_'+debito.id+'.pdf';
         const contentType = response.headers.get('content-type') ?? 'application/pdf; charset=utf-8';
         const blob:any = new Blob([response.body], { type: contentType });
         thisRef.fileSaverService.save(blob, fileName);
-		  }, manageError('Errore scaricando l\'avviso di pagamento', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );
-    }, manageError('Errore creando l\'avviso di pagamento', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) )
+		  }, manageError('Errore scaricando l\'avviso di pagamento', thisRef.toastrService, () => {thisRef.overlaySpinnerService.detach(spinner)}) );
+    }, manageError('Errore creando l\'avviso di pagamento', thisRef.toastrService, () => {thisRef.overlaySpinnerService.detach(spinner)}) )
   }
 
   setOptionalDataFromForm(person: Person, personId: string = null){
@@ -528,6 +531,42 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
       thisRef.toastrService.error(removeError,'Errore rimuovendo dal carrello',{disableTimeOut: true});
   else
     thisRef.toastrService.info('Elemento rimosso dal carrello');
+  }
+
+  onImportUpdate(stepper: MatStepper) {
+    const items = this.itemCarrelloByIntestatari.map(obj => obj.content).reduce((a, b) => a.concat(b), []);
+    if (items.find(item => item.urlNotificaPnd)) {
+      this.dialog.open(ConfirmDialogComponent, { autoFocus: false, data: { message: 'Attenzione: l\'importo potrebbe variare in base alle notifiche ricevute' } })
+        .afterClosed().pipe(first()).subscribe(result => {
+          if (result === 'true') {
+            //aggiorno importi
+            const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
+            let request = items.filter(item => item.urlNotificaPnd)
+              .map(item => this.recaptchaService.submitWithRecaptchaHandling<any>('updateImporto',
+                recaptchaToken => this.carrelloService.updateBasketPndAnonymous(item.codIpaEnte, item.codTipoDovuto, item.codIuv, recaptchaToken),
+                () => this.carrelloService.updateBasketPnd(item.codIpaEnte, item.codTipoDovuto, item.codIuv)
+              ));
+            forkJoin(request).subscribe((response: Attualizzazione[]) => {
+              items.filter(item => item.urlNotificaPnd).forEach((item, index) => {
+                if (item.importo !== response[index].importoPosizione) {
+                  item.importoAtt = true;
+                  item.importo = response[index].importoPosizione;
+                  if (response[index].bilancio) {
+                    item.bilancio = response[index].bilancio;
+                  }
+                }
+              });
+              this.importoTotale = 0;
+              items.forEach(item => this.importoTotale += item.importo)
+              this.overlaySpinnerService.detach(spinner);
+              this.onDataInsert(stepper);
+            }, manageError('Errore aggiornando l\'importo', this.toastrService, () => { this.overlaySpinnerService.detach(spinner) }))
+          } else
+            return;
+        })
+    } else {
+      this.onDataInsert(stepper);
+    }
   }
 
   onDataInsert(stepper: MatStepper){
@@ -565,8 +604,8 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
         }
       } else {
         //init mail verification
-        this.recaptchaService.submitToken('requestMailValidation').pipe(
-          flatMap(recaptchaResponse => this.mailValidationService.requestMailValidation(this.validationEmail, recaptchaResponse))
+        this.recaptchaService.submitWithRecaptchaHandling<MailValidationRequest>('requestMailValidation', 
+          recaptchaToken => this.mailValidationService.requestMailValidation(this.validationEmail, recaptchaToken)
         ).subscribe(mailValidationRequest => {
           this.mailValidationRequest = mailValidationRequest;
           this.validPin = mailValidationRequest.pin;
@@ -596,8 +635,8 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
     if(this.mailValidationRequest){
       this.mailValidationRequest.pin = pin;
       //validate code on server
-      mailValidationFun = this.recaptchaService.submitToken('verifyMailValidation').pipe(
-        flatMap(recaptchaResponse => this.mailValidationService.verifyMailValidation(this.mailValidationRequest, recaptchaResponse))
+      mailValidationFun = this.recaptchaService.submitWithRecaptchaHandling<MailValidationResponse>('verifyMailValidation', 
+        recaptchaToken => this.mailValidationService.verifyMailValidation(this.mailValidationRequest, recaptchaToken)
       );
     } else {
       //case when we had problem sending mail validation request: in this case use
@@ -635,7 +674,7 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
           stepper.next();
         }
       }
-    });
+    }, manageError('Errore validando l\'email', this.toastrService));
   }
 
   onBackToDataInsert(stepper: MatStepper){
@@ -751,6 +790,8 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
   }
 
   checkout(overrideReplicaPaymentCheck: boolean = false){
+    this.disablePayButton = true;
+    const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
     const basket = new Carrello();
     let items = this.itemCarrelloByIntestatari.map(obj => obj.content).reduce((a,b)=> a.concat(b),[]);
     basket.totalAmount = this.importoTotale;
@@ -759,6 +800,7 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
     basket.items=[];
     basket.versante = this.versante;
     basket.tipoCarrello = this.tipoCarrello;
+    basket.dovutiEntiSecondari =this.dovutiEntiSecondari;
     items.forEach(item => {
       this.setOptionalDataFromForm(item.intestatario);
       //clone and remove useless fields
@@ -768,44 +810,49 @@ export class CarrelloComponent implements OnInit, OnDestroy, WithTitle {
       Object.keys(itemToAdd).filter(key => key.startsWith('__cellClickable')).forEach(key => delete itemToAdd[key]);
       basket.items.push(itemToAdd);
     });
-    const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
 
-    let processOrderFun;
-    if(this.userService.isLogged())
-      processOrderFun = this.carrelloService.processOrder(basket, overrideReplicaPaymentCheck);
-    else
-      processOrderFun = this.recaptchaService.submitToken('checkoutCarrello').pipe(
-          flatMap(token => this.carrelloService.processOrderAnonymous(basket, overrideReplicaPaymentCheck, token))
-        );
-    processOrderFun.subscribe( (data:Esito) => {
-        if(data.esito === 'OK'){
-          this.stepper.next();
-          this.paymentUrl = data.url;
-          this.overlaySpinnerService.detach(spinner);
-          console.log('redirecting to pagopa');
-          setTimeout(() => {
-            window.location.href = this.paymentUrl;
-          }, 1000);
-        } else if(data.esito === 'KO_REPLICA'){
-          this.overlaySpinnerService.detach(spinner);
-          let msg:string;
-          if(data.returnMsg === 'REPLICA_DOVUTO')
-            msg = 'ATTENZIONE: hai un altro pagamento con la stessa causale in attesa dell\'esito.';
+    if(!this.userService.isLogged())
+      basket.mailValidationToken = this.mailValidationResponse.validatedToken;
+    this.recaptchaService.submitWithRecaptchaHandling<Esito>('checkoutCarrello', 
+      recaptchaToken => this.carrelloService.processOrderAnonymous(basket, overrideReplicaPaymentCheck, recaptchaToken),
+      () => this.carrelloService.processOrder(basket, overrideReplicaPaymentCheck)
+    ).subscribe( data => {
+      if(data.esito === 'OK'){
+        this.stepper.next();
+        this.paymentUrl = data.url;
+        this.overlaySpinnerService.detach(spinner);
+        console.log('redirecting to pagopa');
+        setTimeout(() => {
+          window.location.href = this.paymentUrl;
+        }, 1000);
+      } else if(data.esito === 'KO_REPLICA'){
+        this.overlaySpinnerService.detach(spinner);
+        let msg:string;
+        if(data.returnMsg === 'REPLICA_DOVUTO')
+          msg = 'ATTENZIONE: hai un altro pagamento con la stessa causale in attesa dell\'esito.';
+        else
+          msg = 'ATTENZIONE: hai già eseguito un pagamento con la stessa causale nelle ultime 24 ore.';
+        msg += '\nConfermi di voler procedere con il pagamento?';
+        this.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
+        .afterClosed().pipe(first()).subscribe(result => {
+          if(result==="true")
+            this.checkout(true);
           else
-            msg = 'ATTENZIONE: hai già eseguito un pagamento con la stessa causale nelle ultime 24 ore.';
-          msg += '\nConfermi di voler procedere con il pagamento?';
-          this.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
-          .afterClosed().pipe(first()).subscribe(result => {
-            if(result==="true")
-              this.checkout(true);
-          });
-        } else {
-          manageError("Errore nell'invio della richiesta di pagamento",
-            this.toastrService, () => {this.overlaySpinnerService.detach(spinner)})
-          (ProcessHTTPMsgService.trimMessage("Errore di sistema: ", data.returnMsg, data.errorUid));
-        }
+            this.disablePayButton = false;
+        });
+      } else if(data.esito === 'KO_MANAGED'){
+        manageError("Errore nell'invio della richiesta di pagamento",
+          this.toastrService, () => {this.overlaySpinnerService.detach(spinner)})
+        (ProcessHTTPMsgService.trimMessage(data.returnMsg));
+        this.disablePayButton = false;
+      } else {
+        manageError("Errore nell'invio della richiesta di pagamento",
+          this.toastrService, () => {this.overlaySpinnerService.detach(spinner)})
+        (ProcessHTTPMsgService.trimMessage("Errore di sistema: ", data.returnMsg, data.errorUid));
+        this.disablePayButton = false;
+      }
 
-      }, manageError("Errore nell'invio della richiesta di pagamento", this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );
+    }, manageError("Errore nell'invio della richiesta di pagamento", this.toastrService, () => {this.overlaySpinnerService.detach(spinner); this.disablePayButton=false;}) );
   }
 
   versanteCfAnonimoOnChange(checked: boolean){

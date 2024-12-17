@@ -20,16 +20,20 @@ import { DateTime } from 'luxon';
 import { FileSaverService } from 'ngx-filesaver';
 import { ToastrService } from 'ngx-toastr';
 import {
+    ConfirmDialogComponent
+} from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
+import {
     ApiInvokerService, DateValidators, Ente, manageError, OverlaySpinnerService, TableAction,
     TableColumn, TipoDovuto, validateFormFun, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Observable, Subscription } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { first, map, startWith } from 'rxjs/operators';
 
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import {
     faCartPlus, faCashRegister, faPrint, faReceipt, faTrash
 } from '@fortawesome/free-solid-svg-icons';
@@ -62,6 +66,7 @@ export class DebitiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
   iconRemoveCart = faTrash;
   iconReceipt = faReceipt;
   iconCashRegister = faCashRegister;
+  iconTrash = faTrash;
 
   @ViewChild('sForm') searchFormDirective;
 
@@ -93,7 +98,8 @@ export class DebitiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
     new TableColumn('rowActions', 'Azioni', { sortable: false, tooltip: 'Azioni', actions: [
       new TableAction(this.iconReceipt, this.downloadAvviso, this.downloadAvvisoEnabled, 'Scarica avviso'),
       new TableAction(this.iconAddCart, this.addToCarrello, this.addToCarrelloEnabled, 'Aggiungi al carrello'),
-      new TableAction(this.iconRemoveCart, this.removeFromCarrello, this.removeFromCarrelloEnabled, 'Rimuovi dal carrello')
+      new TableAction(this.iconRemoveCart, this.removeFromCarrello, this.removeFromCarrelloEnabled, 'Rimuovi dal carrello'),
+      new TableAction(this.iconTrash, this.gotoRemove, this.gotoRemoveEnabled, 'Annulla dovuto'),
       ] } ) ];
   tableData: Debito[];
   detailFilterExclude = ['dataScadenza'];
@@ -118,7 +124,9 @@ export class DebitiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
     private toastrService: ToastrService,
     private overlaySpinnerService: OverlaySpinnerService,
     private elementRef: ElementRef,
-    private fileSaverService: FileSaverService) {
+    private fileSaverService: FileSaverService,
+    private dialog: MatDialog,
+  ) {
     this.form = this.formBuilder.group({
       ente: ['', [this.enteValidator]],
       tipoDovuto: ['', [this.tipoDovutoValidator]],
@@ -221,8 +229,18 @@ export class DebitiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
         this.hasSearched = true;
         data.forEach(element => {
           Debito.setDetails(element);
+
+          /*
+          if(element.entePrimarioDetail != null)
+            Debito.setDetailEntePrimario(element);
+
+          if(element.dovutoMultibeneficiario != null) // if dovutoMultibeneficiario is not null, i set dovuto multubeneficiario detail
+            Debito.setDetailMB(element);
+            */
+
           this.carrelloService.updateState(element); //magage state "inserito nel carrello"
         })
+
         this.tableData = data;
         this.overlaySpinnerService.detach(spinner);
       }, manageError('Errore effettuando la ricerca', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}) );
@@ -258,8 +276,11 @@ export class DebitiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
     const addError = thisRef.carrelloService.add(elementRef);
     if(addError)
       thisRef.toastrService.error(addError,'Errore aggiungendo al carrello',{disableTimeOut: true});
-    else
+    else {
       thisRef.toastrService.info('Elemento aggiunto al carrello');
+      if (elementRef.multibeneficiario)
+        thisRef.toastrService.info('Si fa presente che non è possibile aggiungere altri elementi al carrello.', null, {disableTimeOut: true});
+    }
   }
 
   addToCarrelloEnabled(elementRef: Debito, thisRef: DebitiComponent){
@@ -278,6 +299,27 @@ export class DebitiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
 
   removeFromCarrelloEnabled(elementRef: Debito, thisRef: DebitiComponent){
     return thisRef.carrelloService.canRemove(elementRef);
+  }
+
+  gotoRemove(elementRef: Debito, thisRef: DebitiComponent, eventRef: any) {
+    if(eventRef)
+      eventRef.stopPropagation();
+
+    const msg = 'Confermi di voler annullare il dovuto?';
+    thisRef.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
+      .afterClosed().pipe(first()).subscribe(result => {
+        if(result==="false") return;
+        const spinner = thisRef.overlaySpinnerService.showProgress(thisRef.elementRef);
+        thisRef.debitoService.removeDovuto(elementRef.id).subscribe(response => {
+          thisRef.overlaySpinnerService.detach(spinner);
+          thisRef.toastrService.info('Dovuto annullato correttamente.' );
+          thisRef.tableData = thisRef.tableData.filter(elem => elem.id !== elementRef.id);
+        }, manageError('Errore annullando il dovuto', thisRef.toastrService, () => {thisRef.overlaySpinnerService.detach(spinner)}) );
+    });
+  }
+
+  gotoRemoveEnabled(elementRef: Debito, thisRef: DebitiComponent) {
+    return elementRef.annullabile;
   }
 
 }

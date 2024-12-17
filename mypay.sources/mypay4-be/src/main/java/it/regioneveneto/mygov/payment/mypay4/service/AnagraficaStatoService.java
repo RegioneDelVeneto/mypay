@@ -38,7 +38,7 @@ import java.util.Optional;
 @Slf4j
 public class AnagraficaStatoService {
 
-  private static final String tipoStatoEnte = "ente";
+  private static final String TIPO_STATO_ENTE = "ente";
 
   @Resource
   private AnagraficaStatoService self;
@@ -49,7 +49,7 @@ public class AnagraficaStatoService {
   private Map<String, Long> mapIdByTipoAndCode = new HashMap<>();
 
   public List<AnagraficaStato> getStatoEnteForSelect() {
-    return self.getByTipoStato(tipoStatoEnte);
+    return self.getByTipoStato(TIPO_STATO_ENTE);
   }
 
   // since these are reference data that never change, it's possible to assume they can be stored locally to improve performance

@@ -61,16 +61,13 @@ import java.util.stream.Collectors;
 @ConditionalOnWebApplication
 public class MyBoxController {
 
-  public final static String AUTHENTICATED_PATH = "mybox";
-  public final static String ANONYMOUS_PATH = MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
-  public final static String UPLOAD_FLUSSO_PATH = ANONYMOUS_PATH+"/uploadFlusso";
-  public final static String DOWNLOAD_FLUSSO_PATH = ANONYMOUS_PATH+"/download";
+  public static final String AUTHENTICATED_PATH = "mybox";
+  public static final String ANONYMOUS_PATH = MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/"+ AUTHENTICATED_PATH;
+  public static final String UPLOAD_FLUSSO_PATH = ANONYMOUS_PATH+"/uploadFlusso";
+  public static final String DOWNLOAD_FLUSSO_PATH = ANONYMOUS_PATH+"/download";
 
   @Value("${mypay.path.import.dovuti}")
   private String dovutiImportPath;
-
-  @Value("${mypay.path.import.tassonomia}")
-  private String tassonomiaImportPath;
 
   @Autowired
   MyBoxService myBoxService;
@@ -80,9 +77,6 @@ public class MyBoxController {
 
   @Autowired
   it.regioneveneto.mygov.payment.mypay4.service.fesp.EnteService enteFespService;
-
-  @Autowired
-  TassonomiaService tassonomiaService;
 
   @Autowired
   private JwtTokenUtil jwtTokenUtil;
@@ -150,10 +144,12 @@ public class MyBoxController {
         uploaded = myBoxService.uploadFile(ente.getCodIpaEnte() + File.separator + dovutiImportPath, file, null);
         flussoService.onUploadFile(user.getUsername(), ente, type, uploaded.getLeft(), uploaded.getRight(), file);
         break;
+      /*
       case BackofficeFlussoController.FILE_TYPE_TASSONOMIA_IMPORT:
         uploaded = myBoxService.uploadFile(tassonomiaImportPath, file, null);
-        tassonomiaService.onUploadFile(user, type, uploaded.getLeft(), uploaded.getRight());
+        flussoTassonomiaService.onUploadFile(user, type, uploaded.getLeft(), uploaded.getRight());
         break;
+        */
       default:
         throw new ValidatorException("invalid upload file type");
     }
@@ -186,9 +182,20 @@ public class MyBoxController {
     log.trace("{}|{}|{} <--> {}",type,mygovEnteId,filename,oid);
 
     String path = "";
+    Ente ente = null;
     switch (type){
+      case FlussoController.FILE_TYPE_FLUSSI_EXPORT_SCADUTI:
+        ente = enteService.getEnteById(mygovEnteId);
+        if(ente==null)
+          throw new ValidatorException("invalid ente");
+        path = ente.getCodIpaEnte();
+        if (!(type+"|"+mygovEnteId+"|"+filename).equals(oid)) {
+          throw new MyPayException("codice sicurezza non valido");
+        }
+        break;
       case FlussoController.FILE_TYPE_FLUSSI_EXPORT:
-        Ente ente = enteService.getEnteById(mygovEnteId);
+      case FlussoController.FILE_TYPE_FLUSSI_CONSERVAZIONE:
+        ente = enteService.getEnteById(mygovEnteId);
         if(ente==null)
           throw new ValidatorException("invalid ente");
         path = ente.getCodIpaEnte();
@@ -259,7 +266,7 @@ public class MyBoxController {
     } else if(listEntryStreamNotEmpty.size()>1){
       log.error("invalid MultipartFile size {}", listEntryStreamNotEmpty.size());
       throw new BadRequestException("request multipart non valida, file presenti: "+listEntryStreamNotEmpty.size());
-    } else if(multipartFileMap.size() > 0){
+    } else if(!multipartFileMap.isEmpty()){
       log.error("invalid MultipartFile size, empty file");
       throw new BadRequestException("request multipart non valida, file vuoto");
     } else {

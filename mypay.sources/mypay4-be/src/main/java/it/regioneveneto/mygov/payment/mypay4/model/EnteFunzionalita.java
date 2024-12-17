@@ -33,8 +33,8 @@ import java.sql.Timestamp;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovEnteFunzionalitaId")
 public class EnteFunzionalita extends BaseEntity {
 
-  public final static String ALIAS = "EnteFunzionalita";
-  public final static String FIELDS = ""+ALIAS+".mygov_ente_funzionalita_id as EnteFunzionalita_mygovEnteFunzionalitaId"+
+  public static final String ALIAS = "EnteFunzionalita";
+  public static final String FIELDS = ""+ALIAS+".mygov_ente_funzionalita_id as EnteFunzionalita_mygovEnteFunzionalitaId"+
       ","+ALIAS+".cod_ipa_ente as EnteFunzionalita_codIpaEnte,"+ALIAS+".cod_funzionalita as EnteFunzionalita_codFunzionalita"+
       ","+ALIAS+".flg_attivo as EnteFunzionalita_flgAttivo";
 

@@ -38,4 +38,5 @@ public class WsExportFlussoIncomeTo extends BaseTo {
   private boolean ricevuta;
   private boolean incrementale;
   private String versioneTracciato;
+  private String passwordMypivot;
 }

@@ -59,8 +59,12 @@ export function mapper<T>(object: T, mapperDef: MapperDef[]):T {
         object[def.property] = DateTime.fromFormat(_.join(_.range(0,7).map(i => object[def.property]?.[i] || 0),":"),"y:M:d:H:m:s:S");
       }
     } else if(def.type === MapperType.Currency){
-      if(typeof object[def.property] === 'string')
-        object[def.property] = Number(object[def.property]?.replace(',','.'));
+      if(typeof object[def.property] === 'string'){
+        let numString:string = object[def.property];
+        if(numString!=null && numString.indexOf(',')>-1 && numString.indexOf('.')>-1)
+          numString = numString?.replace('.','');
+        object[def.property] = Number(numString?.replace(',','.'));
+      }
     } else if(def.type === MapperType.Function){
       object[def.property] = def.format(object);
     } else if(def.type == MapperType.Rename){

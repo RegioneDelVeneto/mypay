@@ -35,8 +35,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovCarrelloRptId")
 public class CarrelloRpt extends BaseEntity {
 
-  public final static String ALIAS = "FESP_CarrelloRpt";
-  public final static String FIELDS = ""+ALIAS+".mygov_carrello_rpt_id as FESP_CarrelloRpt_mygovCarrelloRptId,"+ALIAS+".version as FESP_CarrelloRpt_version"+
+  public static final String ALIAS = "FESP_CarrelloRpt";
+  public static final String FIELDS = ""+ALIAS+".mygov_carrello_rpt_id as FESP_CarrelloRpt_mygovCarrelloRptId,"+ALIAS+".version as FESP_CarrelloRpt_version"+
       ","+ALIAS+".cod_ack_carrello_rpt as FESP_CarrelloRpt_codAckCarrelloRpt"+
       ","+ALIAS+".mygov_carrello_rp_id as FESP_CarrelloRpt_mygovCarrelloRpId"+
       ","+ALIAS+".dt_creazione as FESP_CarrelloRpt_dtCreazione"+

@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovPushEsitoSilId")
 public class PushEsitoSil extends BaseEntity {
 
-  public final static String ALIAS = "PushEsitoSil";
-  public final static String FIELDS = ""+ALIAS+".mygov_push_esito_sil_id as PushEsitoSil_mygovPushEsitoSilId"+
+  public static final String ALIAS = "PushEsitoSil";
+  public static final String FIELDS = ""+ALIAS+".mygov_push_esito_sil_id as PushEsitoSil_mygovPushEsitoSilId"+
       ","+ALIAS+".mygov_dovuto_elaborato_id as PushEsitoSil_mygovDovutoElaboratoId"+
       ","+ALIAS+".dt_creazione as PushEsitoSil_dtCreazione,"+ALIAS+".dt_ultimo_tentativo as PushEsitoSil_dtUltimoTentativo"+
       ","+ALIAS+".num_tentativi_effettuati as PushEsitoSil_numTentativiEffettuati"+
@@ -52,4 +52,11 @@ public class PushEsitoSil extends BaseEntity {
   private boolean flgEsitoInvioPush;
   private String codEsitoInvioFaultCode;
   private String deEsitoInvioFaultDescription;
+
+  //nested into mygov_flusso
+  private Long nestedMygovEnteId;
+  //nested into mygov_dovuto_elaborato
+  private Long nestedMygovCarrelloId;
+  //nested into mygov_ente_tipo_dovuto
+  private Integer nestedMaxTentativiInoltroEsito;
 }

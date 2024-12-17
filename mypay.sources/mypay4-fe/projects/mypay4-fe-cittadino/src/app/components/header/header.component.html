@@ -30,7 +30,7 @@
         [class]="item.active?'active-first':null" fxShow.gt-md
         (click)="menuService.onClickFirstLevel(item)">
           <span class="side-user-icon">
-            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img" />
+            <img *ngIf="item.hasImgIcon()" alt="menu-item-icon" [src]="item.icon" class="side-user-icon-img" />
             <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon" size="lg"></fa-icon>
           </span>
           <span>{{item.getHeaderLabel()}}</span>
@@ -48,7 +48,7 @@
         (click)="menuService.onClickFirstLevel(item)"
         [attr.aria-labelledby]="item.getId()">
           <span class="side-user-icon">
-            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+            <img *ngIf="item.hasImgIcon()" alt="menu-item-icon" [src]="item.icon" class="side-user-icon-img"/>
             <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon" size="lg" alt="{{item}}"></fa-icon>
           </span>
           <span id="{{item.getId()}}" class="sr-only">{{item.getAriaLabel()}}</span>
@@ -70,7 +70,7 @@
         routerLinkActive="active-second"
         [attr.aria-label]="item.labelHeader">
           <span class="side-user-icon">
-            <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+            <img *ngIf="item.hasImgIcon()" alt="menu-item-icon" [src]="item.icon" class="side-user-icon-img"/>
             <fa-icon *ngIf="item.hasFAIcon() && !item.hasFABadge()" [icon]="item.icon" size="lg"></fa-icon>
             <fa-layers class="badge-fa-layers" *ngIf="item.hasFAIcon() && item.hasFABadge()" [fixedWidth]="true">
               <fa-icon [icon] = "item.icon" size="lg"></fa-icon>

@@ -21,6 +21,7 @@ import it.regioneveneto.mygov.payment.mypay4.dao.ValidazioneEmailDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.ValidazioneEmailTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.BadRequestException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
 import it.regioneveneto.mygov.payment.mypay4.model.Utente;
 import it.regioneveneto.mygov.payment.mypay4.model.ValidazioneEmail;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
@@ -67,6 +68,9 @@ public class ValidazioneEmailService {
   @Autowired
   private UtenteService utenteService;
 
+  @Autowired
+  private EnteService enteService;
+
   public Optional<ValidazioneEmail> get(Long mygovUtenteId) {
     return validazioneEmailDao.get(mygovUtenteId);
   }
@@ -91,19 +95,25 @@ public class ValidazioneEmailService {
     return ValidazioneEmailTo.builder()
         .emailAddress(model.getMygovUtenteId().getDeEmailAddressNew())
         .expireDt(model.getDtPrimoInvio().toLocalDateTime().plus(expireHours, ChronoUnit.HOURS))
-        .cantRequestNewMailBeforeSeconds((int) Math.min(resendWaitMinutes*60, waitSeconds))
+        .cantRequestNewMailBeforeSeconds((int) Math.min(resendWaitMinutes*60l, waitSeconds))
         .remainingTries(maxTries - model.getNumTentativi())
         .build();
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public void initiateEmailValidationProcess(String username, String emailAddress){
+  public void initiateEmailValidationProcess(String username, String emailAddress, String codIpaEnte){
     if(!Utilities.isValidEmail(emailAddress)){
-      log.error("invalid email [{}], user [{}]", emailAddress, username);
+      log.error("invalid email [{}], user [{}] codIpaEnte[{}]", emailAddress, username, codIpaEnte);
       throw new BadRequestException("invalid email");
     }
 
     Utente utente = utenteService.getByCodFedUserId(username).orElseThrow(NotFoundException::new);
+
+    String nomeEnte = null;
+    if(StringUtils.isNotBlank(codIpaEnte))
+      nomeEnte = Optional.ofNullable(enteService.getEnteByCodIpa(codIpaEnte))
+        .map(Ente::getDeNomeEnte)
+        .orElseThrow(NotFoundException::new);
 
     // check if another validation not expired
     self.get(utente.getMygovUtenteId()).ifPresent(v -> {
@@ -124,7 +134,7 @@ public class ValidazioneEmailService {
     validazioneEmailDao.insert(v);
 
     //send mail
-    mailService.sendUserMailValidationMail(emailAddress, v.getCodice());
+    mailService.sendUserMailValidationMail(emailAddress, v.getCodice(), nomeEnte);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -191,13 +201,6 @@ public class ValidazioneEmailService {
     dto.setOutcome(outcome);
     return dto;
   }
-
-
-//  @Transactional(propagation = Propagation.REQUIRED)
-//  public void insert(String emailAddress) {
-//    validazioneEmailDao.insert(validazioneEmail);
-//    self.clearCacheByEmail(validazioneEmail.getDeEmailAddress());
-//  }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public void update(ValidazioneEmail validazioneEmail) {

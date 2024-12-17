@@ -21,7 +21,7 @@
 <mat-sidenav-container aria-label="Pagina" role="main" [hasBackdrop]="false">
     <mat-sidenav #sidenav mode="side" aria-label="Sidebar" role="navigation"
     [fixedInViewport]="true">
-    <div class="side-user-item" role="navigation" cdkTrapFocus tabindex="-1">
+    <div class="side-user-item" role="navigation" aria-label="Sidebar-header" cdkTrapFocus tabindex="-1">
       <fa-icon [icon]="iconUser" size="3x" class="padding-right side-menu-item"
       style="vertical-align: middle;" aria-label="Immagine del profilo" tabindex="0"></fa-icon>
       <mat-label *ngIf="userService.isLogged()" class="side-menu-item"
@@ -44,7 +44,7 @@
         <mat-list-item *ngFor="let item of menuService.getMainMenu()" style="overflow-y: auto" role="listitem">
           <button mat-button [class]="item.active?'active-first':null" (click)="onClickMenu(item)">
             <mat-label class="side-user-icon">
-              <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+              <img *ngIf="item.hasImgIcon()" alt="menu-item-icon" [src]="item.icon" class="side-user-icon-img"/>
               <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon"></fa-icon>
             </mat-label>
             <mat-label class="side-menu-item">{{item.getSidebarLabel()}}</mat-label>
@@ -59,7 +59,7 @@
           <mat-list-item *ngIf="item.auth" [class.active-first]="item.active" [class.disabled-link]="!item.url" (click)="onClickMenu(item)"
           role="listitem">
             <mat-label class="side-user-icon">
-              <img *ngIf="item.hasImgIcon()" [src]="item.icon" class="side-user-icon-img"/>
+              <img *ngIf="item.hasImgIcon()" alt="menu-item-icon" [src]="item.icon" class="side-user-icon-img"/>
               <fa-icon *ngIf="item.hasFAIcon()" [icon]="item.icon"></fa-icon>
             </mat-label>
             <mat-label>{{item.getSidebarLabel()}}</mat-label>
@@ -70,7 +70,7 @@
             <ng-container *ngFor="let subItem of item.submenu">
               <mat-list-item *ngIf="subItem.auth" [class]="subItem.active?'active-first':null" role="listitem" (click)="onClickMenu(subItem)">
                 <mat-label class="side-user-icon">
-                  <img *ngIf="subItem.hasImgIcon()" [src]="subItem.icon" class="side-user-icon-img"/>
+                  <img *ngIf="subItem.hasImgIcon()" alt="menu-item-icon" [src]="subItem.icon" class="side-user-icon-img"/>
                   <fa-icon *ngIf="subItem.hasFAIcon()" [icon]="subItem.icon"></fa-icon>
                 </mat-label>
                 <mat-label>{{ subItem.getSidebarLabel() }}</mat-label>

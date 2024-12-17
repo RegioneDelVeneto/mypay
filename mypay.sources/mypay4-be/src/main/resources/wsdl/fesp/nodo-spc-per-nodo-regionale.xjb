@@ -34,6 +34,9 @@
         <xjc:simple />
         <xjc:javaType name="java.lang.String" xmlType="xs:string" adapter="it.regioneveneto.mygov.payment.mypay4.ws.helper.TrimStringXmlAdapter"/>
       </jaxb:globalBindings>
+      <jaxb:schemaBindings>
+        <jaxb:package name="gov.telematici.pagamenti.ws.nodospcperregionale" />
+      </jaxb:schemaBindings>
     </jaxb:bindings>
 
 </jaxb:bindings>

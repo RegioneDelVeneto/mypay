@@ -17,7 +17,7 @@
  */
 import { DateTime } from 'luxon';
 import {
-    ApiInvokerService, BaseUrlService, Ente, Mappers, TipoDovuto
+  ApiInvokerService, BaseUrlService, Ente, Mappers, TipoDovuto
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Observable } from 'rxjs';
 
@@ -36,7 +36,7 @@ export class PagatoService {
     private apiInvokerService: ApiInvokerService
   ) { }
 
-  searchPagati(ente: Ente, dateFrom: DateTime, dateTo: DateTime, causale: string, tipoDovuto: TipoDovuto): Observable<Pagato[]> {
+  searchPagati(ente: Ente, dateFrom: DateTime, dateTo: DateTime, causale: string, tipoDovuto: TipoDovuto, state: string): Observable<Pagato[]> {
     let params = new HttpParams();
     params = params
       .append('from', dateFrom.toFormat('yyyy/MM/dd'))
@@ -47,6 +47,8 @@ export class PagatoService {
       params = params.append('causale', causale);
     if(tipoDovuto)
       params = params.append('codTipoDovuto', tipoDovuto.codTipo);
+    if(state)
+      params = params.append('state', state);
 
     return this.apiInvokerService.get<Pagato[]>
       (this.baseUrlService.getCittadinoUrl() + 'pagati/search', {params:params}, new Mappers({mapperS2C: Pagato}));

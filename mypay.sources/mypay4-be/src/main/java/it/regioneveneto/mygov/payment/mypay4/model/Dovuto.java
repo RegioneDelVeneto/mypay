@@ -29,7 +29,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovDovutoId")
@@ -39,10 +39,10 @@ public class Dovuto extends BaseEntity {
   //   This special handling is due to località selected by select list nazione/provincia/comune and on list of comuni
   //   there are some values whose length > 35. The choice of 35 chars is due to max length of corresponding field
   //   on PagoPA api.
-  public final static int MAX_LENGTH_LOCALITA = 35;
+  public static final int MAX_LENGTH_LOCALITA = 35;
 
-  public final static String ALIAS = "Dovuto";
-  public final static String FIELDS = ""+ALIAS+".mygov_dovuto_id as Dovuto_mygovDovutoId,"+ALIAS+".version as Dovuto_version"+
+  public static final String ALIAS = "Dovuto";
+  public static final String FIELDS = ""+ALIAS+".mygov_dovuto_id as Dovuto_mygovDovutoId,"+ALIAS+".version as Dovuto_version"+
       ","+ALIAS+".flg_dovuto_attuale as Dovuto_flgDovutoAttuale,"+ALIAS+".mygov_flusso_id as Dovuto_mygovFlussoId"+
       ","+ALIAS+".num_riga_flusso as Dovuto_numRigaFlusso,"+ALIAS+".mygov_anagrafica_stato_id as Dovuto_mygovAnagraficaStatoId"+
       ","+ALIAS+".mygov_carrello_id as Dovuto_mygovCarrelloId,"+ALIAS+".cod_iud as Dovuto_codIud"+
@@ -68,7 +68,9 @@ public class Dovuto extends BaseEntity {
       ","+ALIAS+".dt_creazione_cod_iuv as Dovuto_dtCreazioneCodIuv"+
       ","+ALIAS+".mygov_dati_marca_bollo_digitale_id as Dovuto_mygovDatiMarcaBolloDigitaleId"+
       ","+ALIAS+".de_causale_visualizzata as Dovuto_deCausaleVisualizzata,"+ALIAS+".bilancio as Dovuto_bilancio"+
-      ","+ALIAS+".flg_genera_iuv as Dovuto_flgGeneraIuv,"+ALIAS+".id_session as Dovuto_idSession";
+      ","+ALIAS+".flg_genera_iuv as Dovuto_flgGeneraIuv,"+ALIAS+".id_session as Dovuto_idSession"+
+      ","+ALIAS+".gpd_iupd as Dovuto_gpdIupd"+
+      ","+ALIAS+".gpd_status as Dovuto_gpdStatus";
 
 
   private Long mygovDovutoId;
@@ -110,6 +112,9 @@ public class Dovuto extends BaseEntity {
   private String bilancio;
   private boolean flgGeneraIuv;
   private String idSession;
+  private boolean flgIuvVolatile;
+  private String gpdIupd;
+  private Character gpdStatus;
 
   @Nested(Ente.ALIAS)
   private Ente nestedEnte; // Ente joined by mygov_flusso.

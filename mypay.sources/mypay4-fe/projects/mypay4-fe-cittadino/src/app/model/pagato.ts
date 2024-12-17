@@ -16,7 +16,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { DateTime } from 'luxon';
-import { MapperDef, MapperType, WithActions } from 'projects/mypay4-fe-common/src/public-api';
+import { MapperDef, MapperType, WithActions} from 'projects/mypay4-fe-common/src/public-api';
+import { DovutoMultibeneficiario } from 'projects/mypay4-fe-operatore/src/app/model/dovuto-multibeneficiario';
 
 export class Pagato extends WithActions {
   public static readonly MAPPER_S2C_DEF = [
@@ -65,5 +66,15 @@ export class Pagato extends WithActions {
   dataPagamentoMonth: string;
   dataPagamentoYear: string;
 
+  //Ente primario
+  entePrimarioElaboratoDetail: any;
+  detailEntePrimario: object[];
+
+  //dovuto multibeneficiario
+  dovutoMultibeneficiario: DovutoMultibeneficiario;
+  detailMultiBeneficiario: object[];
+  isMultibeneficiario: boolean;
+
   details: object[];
+
 }

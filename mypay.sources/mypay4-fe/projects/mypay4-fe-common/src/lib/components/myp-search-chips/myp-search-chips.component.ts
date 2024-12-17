@@ -15,7 +15,7 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -26,11 +26,10 @@ import { SearchFilter, SearchFilterDef } from '../../model/search-filter';
   templateUrl: './myp-search-chips.component.html',
   styleUrls: ['./myp-search-chips.component.scss']
 })
-export class MypSearchChipsComponent implements OnInit {
+export class MypSearchChipsComponent {
 
   searchOpenState: boolean = true;
   chips: SearchFilter[] = [];
-  //iconTrash = faTrash;
   iconTrash = faTimes;
 
   @Input() formDef: { [key: string]: SearchFilterDef; };
@@ -38,10 +37,9 @@ export class MypSearchChipsComponent implements OnInit {
   @Input() parentRef: any;
   @Input() removeFilterCallback: (any) => void;
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+  constructor() {
+    //This is intentionally empty
+   }
 
   setSearchPanelState(opened: boolean){
     this.searchOpenState = opened;

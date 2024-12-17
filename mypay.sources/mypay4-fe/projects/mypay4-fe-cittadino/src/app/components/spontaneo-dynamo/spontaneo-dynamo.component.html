@@ -19,7 +19,12 @@
 -->
 <ng-template #helpPageDatiIntestatario>
   <div>
-    <p>In questa sezione sono richiesti i dati angrafici della persona fisica (cognome e nome) oppure i dati identificativi della persona giuridica</p>
+    <p>
+        Il soggetto intestatario o soggetto debitore è colui che ha contratto un debito a favore dell’Ente Creditore, ovvero effettua
+        un pagamento di sua iniziativa per ottenere un servizio o una certificazione. Rappresenta il soggetto (persona Fisica o Giuridica)
+        debitore di somme di denaro nei confronti della Pubblica Amministrazione. L’intestatario può essere diverso dal versante
+        (soggetto che effettua materialmente il pagamento).
+    </p>
   </div>
 </ng-template>
 
@@ -40,12 +45,12 @@
                             <content-editing-property [schemaItem]="item" [key]="i.toString()" [form]="form.get(item.name)" [labelClass]="labelClass" [inputClass]="inputClass" [readOnly]="addedToCart"></content-editing-property>
                         </div>
                         <div *ngIf="i > 0" class="col-xs-1">
-                            <button class="btn btn-danger" type="button" (click)="removeFieldButtonClicked(item, i)"><i class="fa fa-minus-circle"></i></button>
+                            <button class="btn btn-danger" type="button" (click)="removeFieldButtonClicked(item, i)"><em class="fa fa-minus-circle"></em></button>
                         </div>
                     </div>
                 </div>
             </div>
-            <button class="btn btn-secondary" type="button" (click)="addFieldButtonClicked(item)"><i class="fa fa-plus-circle"></i></button>
+            <button class="btn btn-secondary" type="button" (click)="addFieldButtonClicked(item)"><em class="fa fa-plus-circle"></em></button>
         </div>
     </ng-container>
 
@@ -95,8 +100,9 @@
     <div fxLayout="row wrap" fxLayoutAlign="end center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
       <button type="button" mat-flat-button color="primary" aria-label="Indietro" (click)="onReload()">Indietro</button>
       <button type="button" mat-flat-button color="primary" aria-label="Reset" (click)="onReset()">Reset</button>
-      <button type="submit" *ngIf="!addedToCart" mat-flat-button [disabled]="form.invalid" color="accent" aria-label="Aggiungi al carrello">Aggiungi al carrello</button>
-      <button type="button" *ngIf="addedToCart" mat-flat-button [routerLink]="'/carrello'" color="accent" aria-label="Vai al carrello">Vai al carrello</button>
+      <button type="submit" *ngIf="!addedToCart && !extAppFlow" mat-flat-button [disabled]="form.invalid || disablePayButton" color="accent" aria-label="Aggiungi al carrello">Aggiungi al carrello</button>
+      <button type="button" *ngIf="addedToCart && !extAppFlow" mat-flat-button [routerLink]="'/carrello'" color="accent" aria-label="Vai al carrello">Vai al carrello</button>
+      <button type="submit" *ngIf="extAppFlow" mat-flat-button [disabled]="form.invalid || disablePayButton" color="accent" aria-label="Paga">Paga</button>
     </div>
   </div>
 </form>

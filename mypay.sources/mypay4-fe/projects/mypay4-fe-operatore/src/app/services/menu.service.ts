@@ -15,9 +15,8 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { some } from 'lodash';
 import {
-    MenuItem, MyPayBreadcrumbsService, UserService
+  MenuItem, MyPayBreadcrumbsService, UserService
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Subscription } from 'rxjs';
 
@@ -29,7 +28,7 @@ import { routes } from '../app-routing/app-routing.module';
 import { CardsComponent as AdminCardsComponent } from '../components/admin/cards/cards.component';
 import { EnteListComponent } from '../components/admin/enti/ente-list/ente-list.component';
 import { GiornaleComponent } from '../components/admin/giornale/giornale.component';
-import { TassonomieComponent } from '../components/admin/tassonomie/tassonomie.component';
+import { TaxonomyComponent } from '../components/admin/taxonomy/taxonomy.component';
 import { TipoListComponent } from '../components/admin/tipi-dovuto/tipo-list/tipo-list.component';
 import { UtentiComponent } from '../components/admin/utenti/utenti.component';
 import { CardsComponent } from '../components/cards/cards.component';
@@ -39,6 +38,7 @@ import { FlussiExportComponent } from '../components/flussi-export/flussi-export
 import { FlussiImportComponent } from '../components/flussi-import/flussi-import.component';
 import { FlussiSpcComponent } from '../components/flussi-spc/flussi-spc.component';
 import { EnteService } from './ente.service';
+import { FlussiConservazioneComponent } from '../components/flussi-conservazione/flussi-conservazione.component';
 
 @Injectable({
   providedIn: 'root'
@@ -70,13 +70,15 @@ export class MenuService implements OnDestroy {
       new MenuItem(32,'/flussi-export', FlussiExportComponent.prototype, {}),
       new MenuItem(33,'/flussi-spc/rendicontazione', FlussiSpcComponent.prototype, {}),
       new MenuItem(34,'/flussi-spc/quadratura', 'Flussi di quadratura', {icon: FlussiSpcComponent.prototype.titleIcon}),
+      new MenuItem(35,'/flussi-conservazione', FlussiConservazioneComponent.prototype, {}),
     ];
 
     const subMenuAdmin = [
       new MenuItem(41,'/admin/enti',EnteListComponent.prototype, {roles:[UserService.BACK_OFFICE_ADMIN_ROLE, UserService.BACK_OFFICE_ADMIN_ENTE_ROLE], needEnte:false}),
       new MenuItem(42,'/admin/utenti',UtentiComponent.prototype, {roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
       new MenuItem(43,'/admin/tipiDovuto',TipoListComponent.prototype, {roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
-      new MenuItem(44,'/admin/tassonomie',TassonomieComponent.prototype, {roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
+      //new MenuItem(44,'/admin/tassonomie',TassonomieComponent.prototype, {roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
+      new MenuItem(44,'/admin/taxonomy',TaxonomyComponent.prototype, {roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
       //new MenuItem(45,'/admin/massive','Gestione massiva', {icon:faExpandArrowsAlt, roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
       new MenuItem(46,'/admin/giornale/pa','Giornale degli eventi - PA', {icon: GiornaleComponent.prototype.titleIcon, roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),
       new MenuItem(47,'/admin/giornale/fesp','Giornale degli eventi - FESP', {icon: GiornaleComponent.prototype.titleIcon, roles:[UserService.BACK_OFFICE_ADMIN_ROLE], needEnte:false}),

@@ -34,11 +34,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
 @ComponentScan(basePackages = "it.regioneveneto.mygov.payment.mypay4")
-//@ComponentScan(basePackages = "it.regioneveneto.mygov.payment.mypay4",
-//    excludeFilters = {
-//        // exclude everything strictly related to tasks
-//        @ComponentScan.Filter(type = FilterType.REGEX, pattern="it\\.regioneveneto\\.mygov\\.payment\\.mypay4\\.scheduled\\..*")
-//    })
 @EnableCaching
 @EnableTransactionManagement
 @EnableAsync
@@ -51,7 +46,7 @@ public class WebApplication extends AbstractApplication {
     log.debug("constructor WebApplication");
   }
 
-  final static public String NAME = "WebApplication";
+  public static final String NAME = "WebApplication";
   public static void main(String[] args) {
     log.debug("starting main class WebApplication");
     System.setProperty(NAME_KEY, NAME);
@@ -76,15 +71,5 @@ public class WebApplication extends AbstractApplication {
       return new TomcatServletWebServerFactory();
     }
   }
-
-//  @Bean
-//  CommandLineRunner test(MailService mailService) {
-//    return args -> {
-//      mailService.sendMailAddressValidationMail("serdimic@eng.it", "123456");
-//      mailService.sendMailEsitoPagamento("mario.verdi@mail.com", new String[]{"serdimic@eng.it","mario.rossi@nomail.it"}, new HashMap<>());
-//      mailService.sendMailEsitoPagamento("mario.verdi@mail.com", new String[]{"serdimiche@eng.it","mario.rossi@nomail.it"}, new HashMap<>());
-//
-//    };
-//  }
 
 }

@@ -55,6 +55,9 @@ public class EnteFunzionalitaService {
   @Autowired
   private RegistroOperazioneService registroOperazioneService;
 
+  public List<EnteFunzionalita> getAll() {
+    return enteFunzionalitaDao.getAll();
+  }
   public List<EnteFunzionalita> getAllByCodIpaEnte(String codIpaEnte) {
     return enteFunzionalitaDao.getAllByCodIpaEnte(codIpaEnte, null);
   }

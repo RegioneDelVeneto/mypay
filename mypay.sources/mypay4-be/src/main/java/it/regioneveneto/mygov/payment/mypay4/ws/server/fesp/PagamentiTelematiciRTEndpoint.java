@@ -19,11 +19,13 @@ package it.regioneveneto.mygov.payment.mypay4.ws.server.fesp;
 
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRT;
 import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRTRisposta;
-import gov.telematici.pagamenti.ws.ppthead.IntestazionePPT;
+import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT;
 import it.regioneveneto.mygov.payment.mypay4.dao.fesp.GiornaleElapsedDao;
-import it.regioneveneto.mygov.payment.mypay4.exception.WSFaultResponseWrapperException;
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
 import it.regioneveneto.mygov.payment.mypay4.service.common.SystemBlockService;
 import it.regioneveneto.mygov.payment.mypay4.service.fesp.GiornaleElapsedService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.ws.helper.OutcomeHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.PagamentiTelematiciRTImpl;
 import it.regioneveneto.mygov.payment.mypay4.ws.server.BaseEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,9 @@ public class PagamentiTelematiciRTEndpoint extends BaseEndpoint {
   private GiornaleElapsedService giornaleElapsedService;
 
 
+  @Autowired
+  GiornaleService giornaleCommonService;
+
   @PayloadRoot(namespace = NAMESPACE_URI, localPart = "paaInviaRT")
   @ResponsePayload
   public PaaInviaRTRisposta paaInviaRT(
@@ -63,12 +68,27 @@ public class PagamentiTelematiciRTEndpoint extends BaseEndpoint {
     long startTime = System.currentTimeMillis();
     IntestazionePPT intestazionePPT = null;
     PaaInviaRTRisposta response = null;
-    try{
+    try {
       intestazionePPT = unmarshallHeader(header, IntestazionePPT.class);
-      response = pagamentiTelematiciRT.paaInviaRT(request,intestazionePPT);
+      final IntestazionePPT intestazionePPTFinal = intestazionePPT;
+      response = giornaleCommonService.wrapRecordSoapServerEvent(
+        Constants.GIORNALE_MODULO.FESP,
+        intestazionePPT.getIdentificativoDominio(),
+        intestazionePPT.getIdentificativoUnivocoVersamento(),
+        intestazionePPT.getCodiceContestoPagamento(),
+        Constants.EMPTY,
+        Constants.EMPTY,
+        Constants.COMPONENTE_FESP,
+        Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
+        Constants.GIORNALE_TIPO_EVENTO_FESP.paaInviaRT.toString(),
+        Constants.NODO_DEI_PAGAMENTI_SPC,
+        intestazionePPT.getIdentificativoIntermediarioPA(),
+        intestazionePPT.getIdentificativoStazioneIntermediarioPA(),
+        Constants.EMPTY,
+        () -> pagamentiTelematiciRT.paaInviaRT(request,intestazionePPTFinal),
+        OutcomeHelper::getOutcome
+      );
       return response;
-    } catch(WSFaultResponseWrapperException wsfe){
-      return wsfe.getFaultResponse(PaaInviaRTRisposta.class);
     } finally {
       if(intestazionePPT!=null
         && intestazionePPT.getIdentificativoDominio()!=null

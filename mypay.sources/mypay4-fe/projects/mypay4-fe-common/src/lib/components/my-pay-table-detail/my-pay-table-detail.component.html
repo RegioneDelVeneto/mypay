@@ -40,8 +40,44 @@
         </div>
       </div>
     </mat-card-content>
+
+    <mat-card-content *ngIf="detailsEntePrimarioGroups != null && detailsMBGroups != null">
+      <h2>Ente Primario</h2>
+      <div *ngFor="let detailsEntePrimario of detailsEntePrimarioGroups; index as idx;">
+         <div *ngIf="detailsEntePrimarioLabel[idx]" class="mypay-table-detail-section-multiben">
+          <span class="mat-h3 break-word">{{detailsGroupsLabel[idx]}}</span>
+        </div>
+        <div gdGap="10px" gdColumns="repeat(auto-fill, minmax(300px, 1fr))">
+          <div [ngClass]="{'entire-row':detail.options?.entireRow,'preformatted':detail.options?.preformatted}"
+               *ngFor="let detail of detailsEntePrimario | detailfilter:detailFilterInclude:detailFilterExclude" tabindex="0">
+            <span class="mat-body-strong break-word">{{detail.key}}</span><br>
+            <span *ngIf="!detail.inHTML" class="break-word">{{detail.value || '&nbsp;'}}</span>
+            <div *ngIf="detail.inHTML" class="break-word" [innerHTML]="detail.value"></div>
+          </div>
+        </div> 
+      </div>
+    </mat-card-content>
+    
+    <mat-card-content *ngIf="detailsMBGroups != null">
+      <h2>Ente Secondario</h2>
+      <div *ngFor="let detailsMB of detailsMBGroups; index as idx;">
+         <div *ngIf="detailsMBGroupsLabel[idx]" class="mypay-table-detail-section-multiben">
+          <span class="mat-h3 break-word">{{detailsGroupsLabel[idx]}}</span>
+        </div>
+        <div gdGap="10px" gdColumns="repeat(auto-fill, minmax(300px, 1fr))">
+          <div [ngClass]="{'entire-row':detail.options?.entireRow,'preformatted':detail.options?.preformatted}"
+               *ngFor="let detail of detailsMB | detailfilter:detailFilterInclude:detailFilterExclude" tabindex="0">
+            <span class="mat-body-strong break-word">{{detail.key}}</span><br>
+            <span *ngIf="!detail.inHTML" class="break-word">{{detail.value || '&nbsp;'}}</span>
+            <div *ngIf="detail.inHTML" class="break-word" [innerHTML]="detail.value"></div>
+          </div>
+        </div> 
+      </div>
+    </mat-card-content>
+
   </mat-card>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button type="button" mat-flat-button color="accent"
     *ngFor="let action of actionColumn.enabledActions(tableId, parentRef, element) | slice:1"

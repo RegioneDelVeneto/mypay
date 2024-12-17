@@ -32,6 +32,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static it.regioneveneto.mygov.payment.mypay4.util.Constants.*;
+
 public interface FlussoDao extends BaseDao {
 
   @SqlUpdate(
@@ -119,6 +121,30 @@ public interface FlussoDao extends BaseDao {
   @RegisterFieldMapper(Flusso.class)
   List<Flusso> getByEnte(Long mygovEnteId, boolean spontaneo);
 
+  @SqlQuery(
+          "select " +
+                  Flusso.ALIAS + ALL_FIELDS + ", " + Ente.FIELDS +
+                  "  from mygov_flusso " + Flusso.ALIAS +
+                  "  join mygov_ente " + Ente.ALIAS +
+                  "    on " +
+                  Flusso.ALIAS + ".mygov_ente_id = " + Ente.ALIAS + ".mygov_ente_id " +
+                  " where exists (" +
+                  " select 1 from mygov_dovuto dv\n" +
+                  " where dv.gpd_status  in (" +
+                  "'" + STATO_POS_DEBT_SINCRONIZZAZIONE_PREDISP_CON_PAGOPA +
+                  "', '" + STATO_POS_DEBT_SINCRONIZZAZIONE_UPDATE_SU_PAGOPA +
+                  "', '" + STATO_POS_DEBT_SINCRONIZZAZIONE_DELETE_SU_PAGOPA +
+                  "') and " +
+                  Flusso.ALIAS + ".mygov_flusso_id=dv.mygov_flusso_id)" +
+                  " and " + Flusso.ALIAS + ".dt_creazione < now()  - :olderThanMinutes * '1 minute'::interval " +
+                    " and " + Flusso.ALIAS + ".mygov_anagrafica_stato_id =:idStatoFlusso" +
+                  " order by " + Flusso.ALIAS + ".iuf, " +
+                  Flusso.ALIAS + ".mygov_flusso_id")
+  @RegisterFieldMapper(Flusso.class)
+  @RegisterFieldMapper(value = Ente.class, prefix = Ente.ALIAS)
+  @RegisterJoinRowMapper({Flusso.class, Ente.class})
+  List<Flusso> getFlussiDaRecuperare(int olderThanMinutes, long idStatoFlusso);
+
   String SQL_SEARCH =
       "  from mygov_flusso " + Flusso.ALIAS +
           "  join mygov_ente "+Ente.ALIAS+" on "+Flusso.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
@@ -130,6 +156,7 @@ public interface FlussoDao extends BaseDao {
           "   and "+Flusso.ALIAS+".flg_spontaneo <> true " +
           "   and "+Flusso.ALIAS+".iuf not like '\\_%' " +
           "   and ("+Flusso.ALIAS+".dt_creazione >= :dateFrom::DATE and "+Flusso.ALIAS+".dt_creazione < :dateTo::DATE) " +
+          "   and (:codFedUserId is null or "+Utente.ALIAS+".cod_fed_user_id = :codFedUserId) " +
           "   and (:iuf is null or "+Flusso.ALIAS+".iuf ilike '%' || :iuf || '%')";
 
   @SqlQuery(
@@ -140,12 +167,12 @@ public interface FlussoDao extends BaseDao {
   @RegisterFieldMapper(value = Flusso.class)
   @RegisterFieldMapper(value = Utente.class, prefix = Utente.ALIAS)
   @RegisterJoinRowMapper({Flusso.class, Utente.class})
-  List<JoinRow> getByEnteIufCreateDt(Long mygovEnteId, String iuf, LocalDate dateFrom, LocalDate dateTo, @Define int queryLimit);
+  List<JoinRow> getByEnteIufCreateDt(Long mygovEnteId, String codFedUserId, String iuf, LocalDate dateFrom, LocalDate dateTo, @Define int queryLimit);
 
   @SqlQuery(
       "    select count(1)" +
           SQL_SEARCH)
-  int getByEnteIufCreateDtCount(Long mygovEnteId, String iuf, LocalDate dateFrom, LocalDate dateTo);
+  int getByEnteIufCreateDtCount(Long mygovEnteId, String codFedUserId, String iuf, LocalDate dateFrom, LocalDate dateTo);
 
   @SqlQuery(
       "    select "+Flusso.ALIAS+ALL_FIELDS +", "+AnagraficaStato.FIELDS +
@@ -176,5 +203,14 @@ public interface FlussoDao extends BaseDao {
           "select count(*) from mygov_flusso where de_nome_file = :deNomeFile"
   )
   int countDuplicateFileName(String deNomeFile);
+
+  @SqlUpdate(
+          "    update mygov_flusso set " +
+                  " mygov_anagrafica_stato_id = :mygovAnagraficaStatoId, " +
+                  " num_righe_importate_correttamente = :numRigheImportateCorrettamente, " +
+                  " dt_ultima_modifica = now() " +
+                  " where mygov_flusso_id = :mygovFlussoId"
+  )
+  void updateStatoNumDovutiImportati(Long mygovFlussoId, Long mygovAnagraficaStatoId, Long numRigheImportateCorrettamente);
 
 }

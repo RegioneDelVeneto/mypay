@@ -21,20 +21,20 @@ import gov.telematici.pagamenti.ws.nodoregionaleperspc.PaaInviaRTRisposta;
 import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediStatoRPT;
 import gov.telematici.pagamenti.ws.nodospcpernodoregionale.NodoChiediStatoRPTRisposta;
 import gov.telematici.pagamenti.ws.nodospcpernodoregionale.ObjectFactory;
-import gov.telematici.pagamenti.ws.ppthead.IntestazionePPT;
+import gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT;
 import it.gov.digitpa.schemas._2011.pagamenti.RT;
 import it.gov.digitpa.schemas._2011.pagamenti.StTipoIdentificativoUnivoco;
 import it.gov.digitpa.schemas._2011.pagamenti.StTipoIdentificativoUnivocoPersFG;
 import it.gov.digitpa.schemas._2011.pagamenti.StTipoIdentificativoUnivocoPersG;
 import it.regioneveneto.mygov.payment.mypay4.AbstractApplication;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
-import it.regioneveneto.mygov.payment.mypay4.model.Carrello;
 import it.regioneveneto.mygov.payment.mypay4.model.fesp.RptRt;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
 import it.regioneveneto.mygov.payment.mypay4.service.fesp.NodoInviaRPTService;
 import it.regioneveneto.mygov.payment.mypay4.service.fesp.RptRtService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
-import it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.PagamentiTelematiciRPTImpl;
+import it.regioneveneto.mygov.payment.mypay4.ws.client.fesp.PagamentiTelematiciRPTClient;
 import it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.PagamentiTelematiciRTImpl;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeChiediStatoRPT;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeInvioRPT;
@@ -85,7 +85,7 @@ public class ChiediStatoRPTTaskService {
   private RptRtService rptRtService;
 
   @Autowired
-  private PagamentiTelematiciRPTImpl pagamentiTelematiciRPT;
+  private PagamentiTelematiciRPTClient pagamentiTelematiciRPTClient;
 
   @Autowired
   private PagamentiTelematiciRTImpl pagamentiTelematiciRT;
@@ -116,9 +116,9 @@ public class ChiediStatoRPTTaskService {
   @Value("${task.chiediStatoRPT.skipCloseRtNegativa: false}")
   private boolean skipCloseRtNegativa;
 
-  private final static long MS_TO_MINUTES = 1000*60;
-  private final static long MS_TO_HOURS = MS_TO_MINUTES*60;
-  private final static long MS_TO_DAYS = MS_TO_HOURS*24;
+  private static final long MS_TO_MINUTES = 1000l*60;
+  private static final long MS_TO_HOURS = MS_TO_MINUTES*60;
+  private static final long MS_TO_DAYS = MS_TO_HOURS*24;
 
   private static final String[] ERROR_CODES_FORCE_RT_NEGATIVA = {
       FaultCodeInvioRPT.PPT_SINTASSI_XSD.getFaultCode(),
@@ -180,7 +180,7 @@ public class ChiediStatoRPTTaskService {
     int[] totalOkOutcomeCount = {0};
     int[] totalFilteredCount = {0};
     int[] totalCount = {0};
-    Carrello.VALID_MODELLOPAGAMENTO.forEach(modelloPagamento -> {
+    Constants.MODELLO_PAG.asList().forEach(modelloPagamento -> {
       List<RptRt> rptPendenti = rptRtService.getRPTPendentiForChiediStatoRPT(modelloPagamento);
       if(!rptPendenti.isEmpty()) {
         int[] filteredCount = {0};
@@ -342,7 +342,7 @@ public class ChiediStatoRPTTaskService {
         body.setCodiceContestoPagamento(rpt.getCodRptInviarptCodiceContestoPagamento());
         body.setIdentificativoUnivocoVersamento(rpt.getCodRptInviarptIdUnivocoVersamento());
 
-        NodoChiediStatoRPTRisposta response = pagamentiTelematiciRPT.nodoChiediStatoRPT(body);
+        NodoChiediStatoRPTRisposta response = pagamentiTelematiciRPTClient.nodoChiediStatoRPT(body);
 
         action = ACTIONS.POSSIBILE_RT_NEGATIVA;
         if(response.getFault()==null && response.getEsito()!=null && StringUtils.equals(response.getEsito().getStato(), StatiRPT.RPT_RICEVUTA_NODO.name())) {

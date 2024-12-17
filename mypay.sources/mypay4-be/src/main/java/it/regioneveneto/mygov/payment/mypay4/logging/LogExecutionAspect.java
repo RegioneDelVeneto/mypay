@@ -20,6 +20,7 @@ package it.regioneveneto.mygov.payment.mypay4.logging;
 import it.regioneveneto.mygov.payment.mypay4.util.LogHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.BaseClient;
 import it.regioneveneto.mygov.payment.mypay4.ws.server.BaseEndpoint;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -28,7 +29,6 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.slf4j.Marker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
  */
 @Aspect
 @Component
+@Slf4j
 @ConditionalOnProperty(name="method-execution-logging.enabled", havingValue="")
 public class LogExecutionAspect {
 
@@ -65,6 +66,9 @@ public class LogExecutionAspect {
 
   @Value("${mypay.logging.forcelog.methods:}")
   private List<String> forceLogMethods;
+
+  @Value("${mypay.logging.skiplog.methods:}")
+  private List<String> skipLogMethods;
 
   private Boolean methodOnly = null;
   private boolean isMethodOnly(){
@@ -119,11 +123,13 @@ public class LogExecutionAspect {
       if(ForceLogTurboFilter.isEnabled()) {
         String methodName = LogHelper.methodToFullNameString(loggedMethod);
         if (forceLogMethods.contains(methodName)) {
-          if(MDC.get(ForceLogTurboFilter.FORCE_LOG_MDC_KEY)==null) {
-            MDC.put(ForceLogTurboFilter.FORCE_LOG_MDC_KEY, ForceLogTurboFilter.FORCE_LOG_MDC_VALUE);
-            hasSetForceLog = true;
-          }
+          hasSetForceLog = ForceLogTurboFilter.setForceLog();
+          log.debug("force log set [{}]: {}", methodName, hasSetForceLog);
+        } else if (skipLogMethods.contains(methodName)) {
+          hasSetForceLog = ForceLogTurboFilter.setSkipLog();
+          log.debug("skip log set [{}]: {}", methodName, hasSetForceLog);
         }
+
       }
     }
 
@@ -133,7 +139,8 @@ public class LogExecutionAspect {
       proceed = joinPoint.proceed();
     } finally {
       if(ForceLogTurboFilter.isEnabled() && hasSetForceLog) {
-        MDC.remove(ForceLogTurboFilter.FORCE_LOG_MDC_KEY);
+        ForceLogTurboFilter.resetForceLog();
+        log.debug("reset force log");
       }
     }
 

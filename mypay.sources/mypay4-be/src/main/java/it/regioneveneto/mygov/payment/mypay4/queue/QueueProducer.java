@@ -17,12 +17,13 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.queue;
 
+import it.regioneveneto.mygov.payment.mypay4.config.JmsConfig;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.logging.LogExecution;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jms.annotation.EnableJms;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -34,7 +35,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
-@EnableJms
+@ConditionalOnBean(JmsConfig.class)
 @Slf4j
 public class QueueProducer {
   @Autowired
@@ -44,9 +45,6 @@ public class QueueProducer {
   private String importDovutiQueue;
   @Value("${queue.export-dovuti}")
   private String exportDovutiQueue;
-
-  @Value("${app.jms.verify-send:false}")
-  private String verifySend;
 
   @Transactional
   @LogExecution(params = LogExecution.ParamMode.ON)

@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import {
-    ApiInvokerService, BaseUrlService, Ente, LocalCacheService, Mappers, TipoDovuto
+  ApiInvokerService, BaseUrlService, Ente, LocalCacheService, Mappers, TipoDovuto
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Observable } from 'rxjs';
 
@@ -48,7 +48,7 @@ export class SpontaneoService {
   getEnteSpontaneoByCodIpa(codIpaEnte: string): Observable<Ente[]> {
     return this.localCacheService.manageThumbLogoEntiCache(
       this.apiInvokerService.get<Ente[]>(this.baseUrlService.getPubCittadinoUrl() + `spontaneo/ente/${codIpaEnte}?logoMode=hash`),
-      (apiInvokerServiceRef: ApiInvokerService) => apiInvokerServiceRef.get<Ente[]>(this.baseUrlService.getPubCittadinoUrl() + `spontaneo/ente/${codIpaEnte}?logoMode=hash`)
+      (apiInvokerServiceRef: ApiInvokerService) => apiInvokerServiceRef.get<Ente[]>(this.baseUrlService.getPubCittadinoUrl() + `spontaneo/ente/${codIpaEnte}?logoMode=thumb`)
     );
   }
 

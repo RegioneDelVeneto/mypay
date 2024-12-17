@@ -94,7 +94,7 @@ public class AttivaRptService {
   }
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
-  public long insert(AttivaRptE attivaRptE){
+  public AttivaRptE insert(AttivaRptE attivaRptE){
     return attivaRptDao.insertForAttivaRPT(attivaRptE);
   }
 }

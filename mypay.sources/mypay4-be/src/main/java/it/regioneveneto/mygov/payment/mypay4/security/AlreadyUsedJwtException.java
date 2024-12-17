@@ -21,6 +21,7 @@ import io.jsonwebtoken.ClaimJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 
+@SuppressWarnings("java:S110")
 public class AlreadyUsedJwtException extends ClaimJwtException {
   public AlreadyUsedJwtException(Header header, Claims claims, String message) {
     super(header, claims, message);

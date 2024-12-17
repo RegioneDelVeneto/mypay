@@ -15,7 +15,7 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnInit, TemplateRef } from '@angular/core';
+import { Component, Input, TemplateRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { faQuestionCircle, faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -24,7 +24,7 @@ import { faQuestionCircle, faTimes } from '@fortawesome/free-solid-svg-icons';
   templateUrl: './help-field.component.html',
   styleUrls: ['./help-field.component.scss']
 })
-export class HelpFieldComponent implements OnInit {
+export class HelpFieldComponent {
 
   iconTimes = faTimes;
   iconQuestionCircle = faQuestionCircle;
@@ -34,9 +34,6 @@ export class HelpFieldComponent implements OnInit {
   constructor(
     private dialog:MatDialog,
   ) {
-  }
-
-  ngOnInit(): void {
   }
 
   openHelp(templateHelpDialog: TemplateRef<any>): void {

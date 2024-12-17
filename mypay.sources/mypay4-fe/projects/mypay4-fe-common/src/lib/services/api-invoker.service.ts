@@ -17,11 +17,12 @@
  */
 import * as _ from 'lodash';
 import { ToastrService } from 'ngx-toastr';
-import { Observable } from 'rxjs';
-import { catchError, first, map } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
+import { catchError, filter, first, map } from 'rxjs/operators';
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { NavigationStart, Router } from '@angular/router';
 
 import { mapper } from '../mapper/mapper';
 import { Mappers } from '../mapper/mappers';
@@ -36,11 +37,41 @@ export class ApiInvokerService {
   private lastCountThresholdResponse: any;
   private lastCountThresholdCount: number;
 
+  private lastNavigationTime: number = Date.now();
+
   constructor(
     private httpClient: HttpClient,
     private processHTTPMsgService: ProcessHTTPMsgService,
-    private toastrService: ToastrService
-  ) { }
+    private toastrService: ToastrService,
+    private router: Router,
+  ) {
+    this.router.events.pipe(
+      filter( event => event instanceof NavigationStart)
+    ).subscribe( (event:NavigationStart) => {
+      this.lastNavigationTime = Date.now();
+      console.log('['+this.lastNavigationTime+'] navigate to url: ['+event.url+']');
+    });
+  }
+
+  private errorHandler(skipHandleError: boolean) {
+    const startTime = Date.now();
+    return (error:HttpErrorResponse) => {
+      if(skipHandleError){
+        return this.processHTTPMsgService.skipHandleError(error);
+      } else {
+        const errorTime = Date.now();
+        console.log('handling error with errorTime: '+errorTime+' - startTime: '+startTime+' - lastNavigationTime: '+this.lastNavigationTime+' - elapsed: '+(errorTime-startTime)+' - deltaLastNavig: '+(startTime - this.lastNavigationTime));
+        const skipErrorByNavigation = (startTime - this.lastNavigationTime) < 0;
+        if(skipErrorByNavigation){
+          //just log the error
+          console.error('http error, ignored because of skipErrorByNavigation', error);
+          return EMPTY;
+        } else {
+          return this.processHTTPMsgService.handleError(error);
+        }
+      }
+    }
+  }
 
   get<T>(targetUrl: string, options?:Object, mappers?:Mappers):Observable<T> {
     const finalMapper = mappers?.responseMapper || (resp => resp);
@@ -48,7 +79,7 @@ export class ApiInvokerService {
     .pipe(
       first(),
       map( resp => ApiInvokerService.mapperFunction(finalMapper(this.mapPartialResultList(resp)), mappers, 'S2C') ),
-      catchError(options?.['skipHandleError'] ? this.processHTTPMsgService.skipHandleError : this.processHTTPMsgService.handleError)
+      catchError(this.errorHandler(options?.['skipHandleError']))
     );
   }
 
@@ -58,7 +89,7 @@ export class ApiInvokerService {
     .pipe(
       first(),
       map( resp => ApiInvokerService.mapperFunction(finalMapper(this.mapPartialResultList(resp)), mappers, 'S2C') ),
-      catchError(this.processHTTPMsgService.handleError)
+      catchError(this.errorHandler(options?.['skipHandleError']))
     );
   }
 
@@ -68,7 +99,7 @@ export class ApiInvokerService {
     .pipe(
       first(),
       map( resp => ApiInvokerService.mapperFunction(finalMapper(this.mapPartialResultList(resp)), mappers, 'S2C') ),
-      catchError(this.processHTTPMsgService.handleError)
+      catchError(this.errorHandler(options?.['skipHandleError']))
     );
   }
 
@@ -78,7 +109,7 @@ export class ApiInvokerService {
     .pipe(
       first(),
       map( resp => ApiInvokerService.mapperFunction(finalMapper(this.mapPartialResultList(resp)), mappers, 'S2C') ),
-      catchError(options?.['skipHandleError'] ? this.processHTTPMsgService.skipHandleError : this.processHTTPMsgService.handleError)
+      catchError(this.errorHandler(options?.['skipHandleError']))
     );
   }
 

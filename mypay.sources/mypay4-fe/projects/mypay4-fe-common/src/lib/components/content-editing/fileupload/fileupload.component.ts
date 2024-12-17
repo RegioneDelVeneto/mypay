@@ -15,7 +15,7 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Component, OnInit, Input, ViewChild, ElementRef, EventEmitter, Output, Optional } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Optional, Output, ViewChild } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Component({
@@ -23,10 +23,7 @@ import { NgControl } from '@angular/forms';
   templateUrl: './fileupload.component.html',
   styleUrls: ['./fileupload.component.scss']
 })
-export class FileuploadComponent implements OnInit {
-
-  ngOnInit(): void {
-  }
+export class FileuploadComponent {
 
     /**
    * The file name

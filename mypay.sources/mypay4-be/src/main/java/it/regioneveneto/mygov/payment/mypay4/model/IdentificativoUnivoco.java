@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygov_identificativo_univoco_id")
 public class IdentificativoUnivoco extends BaseEntity {
 
-  public final static String ALIAS = "IdentificativoUnivoco";
-  public final static String FIELDS = ""+ALIAS+".mygov_identificativo_univoco_id as IdentificativoUnivoco_mygovIdentificativoUnivocoId"+
+  public static final String ALIAS = "IdentificativoUnivoco";
+  public static final String FIELDS = ""+ALIAS+".mygov_identificativo_univoco_id as IdentificativoUnivoco_mygovIdentificativoUnivocoId"+
       ","+ALIAS+".version as IdentificativoUnivoco_version,"+ALIAS+".mygov_ente_id as IdentificativoUnivoco_mygovEnteId"+
       ","+ALIAS+".mygov_flusso_id as IdentificativoUnivoco_mygovFlussoId"+
       ","+ALIAS+".cod_tipo_identificativo as IdentificativoUnivoco_codTipoIdentificativo"+

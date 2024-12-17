@@ -17,11 +17,10 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dao;
 
-import it.regioneveneto.mygov.payment.mypay4.model.AnagraficaStato;
-import it.regioneveneto.mygov.payment.mypay4.model.Ente;
-import it.regioneveneto.mygov.payment.mypay4.model.EnteFunzionalita;
+import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.service.common.CacheService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import org.jdbi.v3.sqlobject.SingleValue;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
@@ -34,6 +33,9 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import static it.regioneveneto.mygov.payment.mypay4.util.Constants.STATO_POS_DEBT_SINCRONIZZAZIONE_PREDISP_CON_PAGOPA;
+import static it.regioneveneto.mygov.payment.mypay4.util.Constants.STATO_POS_DEBT_SINCRONIZZAZIONE_UPDATE_SU_PAGOPA;
+import static it.regioneveneto.mygov.payment.mypay4.util.Constants.STATO_POS_DEBT_SINCRONIZZAZIONE_DELETE_SU_PAGOPA;
 
 public interface EnteDao extends BaseDao {
 
@@ -209,6 +211,8 @@ public interface EnteDao extends BaseDao {
           " where "+AnagraficaStato.ALIAS+".cod_stato = '" + AnagraficaStato.STATO_ENTE_ESERCIZIO + "' " +
           "   and "+EnteFunzionalita.ALIAS+".flg_attivo = true" +
           "   and "+EnteFunzionalita.ALIAS+"_2.flg_attivo = true" +
+          "   and exists ( select 1 from mygov_ente_tipo_dovuto "+EnteTipoDovuto.ALIAS+" where "+EnteTipoDovuto.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
+          "       and "+EnteTipoDovuto.ALIAS+".spontaneo = true  and "+EnteTipoDovuto.ALIAS+".flg_attivo = true )" +
           " order by " + Ente.ALIAS + ".de_nome_ente")
   @RegisterFieldMapper(Ente.class)
   List<Ente> getAllEntiSpontanei();
@@ -323,8 +327,46 @@ public interface EnteDao extends BaseDao {
   List<Ente> findByCodIpaEnteAndPassword(String codIpaEnte, String password);
 
   @SqlQuery(
+      "   select coalesce(" + Ente.ALIAS + ".de_password, '')" +
+          " from mygov_ente " + Ente.ALIAS +
+          " where "+Ente.ALIAS+".cod_ipa_ente = :codIpaEnte ")
+  @SingleValue()
+  Optional<String> getPasswordByCodIpaEnte(String codIpaEnte);
+
+  @SqlQuery(
       "select get_ente_tipo_progressivo(:codIpaEnte, :tipoGeneratore, cast(:data as date))"
   )
   Long callGetEnteTipoProgressivoFunction(String codIpaEnte, String tipoGeneratore, Date data);
+
+  //SANP25-IMPORTFLUSSO
+  @SqlQuery(
+          "    select " + Ente.ALIAS + ALL_FIELDS +
+                  "  from mygov_ente " + Ente.ALIAS +
+                  "  join mygov_anagrafica_stato " + AnagraficaStato.ALIAS +
+                  "    on "+Ente.ALIAS+".cd_stato_ente = "+AnagraficaStato.ALIAS+".mygov_anagrafica_stato_id " +
+                  " where "+AnagraficaStato.ALIAS+".cod_stato != '" + Constants.STATO_ENTE_INSERITO + "' ")
+  @RegisterFieldMapper(Ente.class)
+  List<Ente> getAllEntiImportFlusso();
+
+
+  // IMPORT MASSIVO FLUSSI GPD
+  @SqlQuery(
+          "select " +
+                  " distinct " + Ente.ALIAS + ALL_FIELDS +
+                  " from mygov_ente " + Ente.ALIAS +
+                  " join mygov_dovuto_preload " + DovutoPreload.ALIAS +
+                  " on " +
+                  Ente.ALIAS + ".mygov_ente_id = " + DovutoPreload.ALIAS + ".mygov_ente_id " +
+
+                  " where " +
+                  DovutoPreload.ALIAS + ".nuovo_gpd_status in (" +
+                  "'" + STATO_POS_DEBT_SINCRONIZZAZIONE_PREDISP_CON_PAGOPA +
+                  "', '" + STATO_POS_DEBT_SINCRONIZZAZIONE_UPDATE_SU_PAGOPA +
+                  "', '" + STATO_POS_DEBT_SINCRONIZZAZIONE_DELETE_SU_PAGOPA +
+                  "')"
+
+  )
+  @RegisterFieldMapper(Ente.class)
+  List<Ente> getEntiConDovutiDaSyncConPagoPA();
 
 }

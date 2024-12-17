@@ -58,10 +58,10 @@ import static it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants.C
 @Slf4j
 public class ChiediPosizioniAperteService {
 
-  @Value("${app.be.absolute-path}")
-  private String appBeAbsolutePath;
   @Value("${pa.deRpVersioneOggetto}")
   private String deRpVersioneOggetto;
+  @Value("${pa.codIpaEntePredefinito}")
+  private String adminEnteCodIpa;
 
   @Autowired
   EnteService enteService;
@@ -77,6 +77,15 @@ public class ChiediPosizioniAperteService {
   public PaaSILChiediPosizioniAperteRisposta paaSILChiediPosizioniAperte(PaaSILChiediPosizioniAperte bodyRequest) {
     log.info("Executing operation paaSILChiediPosizioniAperte");
     PaaSILChiediPosizioniAperteRisposta response = new PaaSILChiediPosizioniAperteRisposta();
+
+    boolean passwordValidaPerEnte = enteService.verificaPassword(adminEnteCodIpa, bodyRequest.getPassword());
+    if (!passwordValidaPerEnte) {
+      log.error("paaSILChiediPosizioniAperte: Password non valida per ente: {} ", adminEnteCodIpa);
+      String msg = String.format("Password non valida per ente [%s]", adminEnteCodIpa);
+      response.setFault(VerificationUtils.getFaultBean(adminEnteCodIpa, CODE_PAA_ENTE_NON_VALIDO, msg, null));
+      return response;
+    }
+
     String codIpaEnte = bodyRequest.getCodIpaEnte();
     CtIdentificativoUnivocoPersonaFG identificativoUnivocoPersonaFG = bodyRequest.getIdentificativoUnivocoPersonaFG();
     Ente ente;
@@ -84,7 +93,7 @@ public class ChiediPosizioniAperteService {
       ente = enteService.getEnteByCodIpa(codIpaEnte);
       if (ente == null) {
         String msg = String.format("codice IPA Ente [%s] non valido", codIpaEnte);
-        log.error("paaSILChiediPosizioniAperte: %s", msg);
+        log.error("paaSILChiediPosizioniAperte: {}", msg);
         response.setFault(VerificationUtils.getFaultBean(codIpaEnte, CODE_PAA_ENTE_NON_VALIDO, msg, null));
         return response;
       }
@@ -98,7 +107,9 @@ public class ChiediPosizioniAperteService {
     try {
       Function<Dovuto, PaaSILPosizioniAperte> mapDovutiToPosizioniAperte = dovuto -> {
         if(StringUtils.isBlank(dovuto.getIdSession())) {
-          dovutoService.addIdSession(dovuto.getMygovDovutoId(), Utilities.getRandomicUUID());
+          String idSession = Utilities.getRandomUUIDWithTimestamp();
+          dovutoService.addIdSession(dovuto.getMygovDovutoId(), idSession);
+          dovuto.setIdSession(idSession);
         }
         PaaSILPosizioniAperte posizioniAperte = new PaaSILPosizioniAperte();
         posizioniAperte.setCodIpaEnte(dovuto.getNestedEnte().getCodIpaEnte().trim());
@@ -120,7 +131,7 @@ public class ChiediPosizioniAperteService {
       return response;
     } catch (Exception e) {
       log.error("paaSILChiediPosizioniAperte error: [{}]", e.getMessage());
-      throw new RuntimeException(String.format("paaSILChiediPosizioniAperte error: [{}]", e.getMessage()));
+      throw new RuntimeException(String.format("paaSILChiediPosizioniAperte error: [%s]", e.getMessage()));
     }
   }
 
@@ -173,7 +184,7 @@ public class ChiediPosizioniAperteService {
       dataScadenzaCal.setTime(dovuto.getDtRpDatiVersDataEsecuzionePagamento());
       SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy");
       fmt.setCalendar(dataScadenzaCal);
-      String dateFormatted = fmt.format(dataScadenzaCal.getTime());
+      //String dateFormatted = fmt.format(dataScadenzaCal.getTime());
       //datiSingoloVersamento.setDataScadenza(dateFormatted); //TODO Field "dataScadenza" not found.
     }
 

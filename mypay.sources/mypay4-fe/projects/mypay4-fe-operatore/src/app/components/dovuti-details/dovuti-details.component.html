@@ -17,6 +17,15 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 -->
+<ng-template #helpDatiSpecificiRiscossioneSec>
+  <div>
+    <p>Inserire il codice tassonomico per la componente dell'importo relativo all'Ente Beneficiario Secondario, facendolo precedere da
+      "9/" e terminandolo con "/" (esempio: 9/0101101IM/), a cui possono seguire altri 128 caratteri relativi ad altre informazioni
+      testuali e che rispettino le regole relative ai dati specifici riscossione come da Manuale Operatore e Manuale Integrazione Enti.
+    </p>
+  </div>
+</ng-template>
+
 <form fxFlex novalidate #sForm="ngForm" [formGroup]="form" (ngSubmit)="onSubmit()">
 
   <div class="container"
@@ -196,21 +205,133 @@
         <input matInput readonly formControlName="iuv">
       </mat-form-field>
       <button fxFlex *ngIf="mode=='view' && this.form.get('stato').value != 'SCADUTO' && existIuv" type="button"
-          mat-icon-button (click)="downloadAvviso()" matTooltip="Scarica avviso di pagamento">
+          mat-icon-button (click)="downloadAvviso()" matTooltip="Scarica avviso di pagamento" aria-label="Scarica avviso di pagamento">
         <fa-icon [icon]="iconReceipt" size="2x"></fa-icon>
       </button>
       <div fxFlex="auto"></div>
     </div>
 
-    <mat-checkbox *ngIf="mode=='insert' || (mode=='edit' && !existIuv)" fxFlex="100%" formControlName="flgGenerateIuv" name="flgGenerateIuv">
-      Genera avviso
-    </mat-checkbox>
+    <div class="row">
+      <mat-checkbox *ngIf="mode=='insert' || (mode=='edit' && !existIuv)" fxFlex="100%" formControlName="flgGenerateIuv" name="flgGenerateIuv" [checked] = "expandedAccordion">
+        Genera avviso
+      </mat-checkbox>
+      <mat-checkbox *ngIf="mode=='insert' || mode=='edit' " class="checkDovutoMultibenficiario" formControlName="flgMultibeneficiario" name="flgMultibeneficiario" (click)="expandAccordion()">
+        Dovuto Multibeneficiario
+     </mat-checkbox>
+    </div>
+
+
+    <!--Start Dovuto Multibeneficiario-->
+    <form class="dovuto-sec" fxFlex novalidate #sForm="ngForm" [formGroup]="formDovutoMultiBen" (ngSubmit)="onSubmit()" [hidden]="!expandedAccordion">
+      <p class="mat-h3 bold ml-1">Dati dovuto secondario</p>
+      <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" *ngIf=" enteOptions?.length > 0">
+        <mat-form-field *ngIf="mode!='view'" fxFlex="100%" fxFlex.gt-sm="100%" appearance="{{'appearance'|global}}">
+          <mat-label>Recupera Ente tra gli Enti di MyPay</mat-label>
+          <input matInput [readonly]="mode=='view'" formControlName="enteMultibeneficiario"
+            placeholder="Inserire un testo" [matAutocomplete]="autoEnteMulti" (keyup)=" mode !='view' ? resetFormDovutoMB($event, false) : '' ">
+          <mat-autocomplete #autoEnteMulti="matAutocomplete" [displayWith]="enteExtendedDisplayFn"  (optionSelected)="enteSelected($event.option.value)">
+            <mat-option *ngFor="let option of enteExtendedFilteredOptions | async" [value]="option">
+              {{option.deNomeEnte}}
+            </mat-option>
+          </mat-autocomplete>
+          <!-- <mat-error *ngIf="formErrors['enteMultibeneficiario']">{{ formErrors.enteMultibeneficiario }}</mat-error> -->
+        </mat-form-field>
+      </div>
+      <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+        <mat-form-field fxFlex="50%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}">
+          <mat-label>Denominazione</mat-label>
+          <input matInput [readonly]="mode=='view' || (formDovutoMultiBen.controls.enteMultibeneficiario.value != '' && formDovutoMultiBen.controls.enteMultibeneficiario.value != null)" required formControlName="denominazioneBeneficiario"
+            placeholder="Inserire un testo" value="" >
+          <mat-error *ngIf="formErrors['denominazioneBeneficiario']">{{ formErrors.denominazioneBeneficiario }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="20%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+          <mat-label>Codice Fiscale</mat-label>
+          <input matInput [readonly]="mode=='view' || (formDovutoMultiBen.controls.enteMultibeneficiario.value != '' && formDovutoMultiBen.controls.enteMultibeneficiario.value != null)" required formControlName="codiceIdentificativoUnivoco"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['codiceIdentificativoUnivoco']">{{ formErrors.codiceIdentificativoUnivoco }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="30%" fxFlex.gt-sm="30%" appearance="{{'appearance'|global}}">
+          <mat-label>IBAN addebito</mat-label>
+          <input matInput [readonly]="mode=='view'" required formControlName="ibanAddebito"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['ibanAddebito']">{{ formErrors.ibanAddebito }}</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+        <mat-form-field fxFlex="60%" fxFlex.gt-sm="60%" appearance="{{'appearance'|global}}">
+          <mat-label>Indirizzo</mat-label>
+          <input matInput [readonly]="mode=='view' || (formDovutoMultiBen.controls.enteMultibeneficiario.value != '' && formDovutoMultiBen.controls.enteMultibeneficiario.value != null)" formControlName="indirizzoBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['indirizzoBeneficiario']">{{ formErrors.indirizzoBeneficiario }}</mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="20%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+          <mat-label>Civico</mat-label>
+          <input matInput [readonly]="mode=='view' || (formDovutoMultiBen.controls.enteMultibeneficiario.value != '' && formDovutoMultiBen.controls.enteMultibeneficiario.value != null)" formControlName="civicoBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['civicoBeneficiario']">{{ formErrors.civicoBeneficiario }}</mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="20%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
+          <mat-label>Cap</mat-label>
+          <input matInput [readonly]="mode=='view' || (formDovutoMultiBen.controls.enteMultibeneficiario.value != '' && formDovutoMultiBen.controls.enteMultibeneficiario.value != null)" formControlName="capBeneficiario" placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['capBeneficiario']">{{ formErrors.capBeneficiario }}</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="white" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+        <mat-form-field fxFlex="33%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+          <mat-label>Nazione</mat-label>
+          <mat-select [formControlName]="'nazioneBeneficiario'">
+            <mat-option *ngFor="let nazione of nazioniMB" [value]="nazione.codiceIsoAlpha2" name="nazioneBeneficiario" [compareWith]="compareNazione">
+              {{nazione.nomeNazione}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formErrors['nazioneBeneficiario']">{{ formErrors.nazioneBeneficiario }}</mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="33%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+          <mat-label>Provincia</mat-label>
+          <mat-select [formControlName]="'provinciaBeneficiario'" >
+            <mat-option *ngFor="let provincia of provincieMB" [value]="provincia.sigla" name="provinciaBeneficiario" [compareWith]="compareProvincia">
+              {{provincia.provincia}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="formErrors['provinciaBeneficiario']">{{ formErrors.provinciaBeneficiario }}</mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="33%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+          <mat-label>Località</mat-label>
+            <input matInput [readonly]="mode=='view' || (formDovutoMultiBen.controls.enteMultibeneficiario.value != '' && formDovutoMultiBen.controls.enteMultibeneficiario.value != null)" formControlName="localitaBeneficiario"
+            placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['localitaBeneficiario']">{{ formErrors.localitaBeneficiario }}</mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" appearance="{{'appearance'|global}}">
+          <mat-label>Importo</mat-label>
+          <input matInput #importoView type="text" [readonly]="mode=='view'" required formControlName="importoSecondario" placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['importoSecondario']">{{ formErrors.importoSecondario }}</mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex="calc(100% - 60px)" fxFlex.gt-sm="calc(50% - 60px)" appearance="{{'appearance'|global}}">
+          <mat-label>Dati specifici riscossione</mat-label>
+          <input matInput #importoView type="text" [readonly]="mode=='view'" required formControlName="datiSpecificiRiscossione" placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['datiSpecificiRiscossione']">{{ formErrors.datiSpecificiRiscossione }}</mat-error>
+        </mat-form-field>
+        <my-pay-help-field [template]="helpDatiSpecificiRiscossioneSec"></my-pay-help-field>
+        <mat-form-field fxFlex="100%" appearance="{{'appearance'|global}}">
+          <mat-label>Causale</mat-label>
+          <input matInput [readonly]="mode=='view'" formControlName="causaleMB" placeholder="Inserire un testo">
+          <mat-error *ngIf="formErrors['causaleMB']">{{ formErrors.causaleMB }}</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="white mb-1 mr-2" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+        <span class="flex-spacer"></span>
+        <button type="reset" *ngIf=" mode !='view' " mat-flat-button (click)="resetFormDovutoMB($event,true)" color="primary">Reset</button>
+      </div>
+    </form>
+    <!--END Dovuto Multibeneficiario-->
 
     <div class="container" fxFlex fxLayout="row" fxLayoutGap="10px" class="mt-3">
       <button type="button" mat-flat-button (click)="goBack()" color="primary">Torna indietro</button>
       <span class="flex-spacer"></span>
       <button type="button" *ngIf="mode!=='view'" mat-flat-button
-          [disabled]="form.invalid" (click)="onSubmit()" color="accent">Salva</button>
+          [disabled]="expandedAccordion? (form.invalid || formDovutoMultiBen.invalid) : form.invalid" (click)="onSubmit()" color="accent">Salva</button>
     </div>
 
   </div>

@@ -42,8 +42,8 @@ import java.util.Optional;
 @ConditionalOnWebApplication
 public class BackofficeGiornaleController {
 
-  private final static String AUTHENTICATED_PATH ="admin/giornale";
-  private final static String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
+  private static final String AUTHENTICATED_PATH ="admin/giornale";
+  private static final String OPERATORE_PATH= MyPay4AbstractSecurityConfig.PATH_OPERATORE+"/"+ AUTHENTICATED_PATH;
 
   @Autowired
   private it.regioneveneto.mygov.payment.mypay4.service.fesp.GiornaleService giornaleServiceFesp;

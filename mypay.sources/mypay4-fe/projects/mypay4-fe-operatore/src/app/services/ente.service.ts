@@ -16,13 +16,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import {
-    ApiInvokerService, BaseUrlService, Ente, LocalCacheService, TipoDovuto, UserService
+  ApiInvokerService, BaseUrlService, Ente, LocalCacheService, TipoDovuto, UserService
 } from 'projects/mypay4-fe-common/src/public-api';
 import { BehaviorSubject, Observable, of, Subject, Subscription } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 
+import { HttpParams } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
 import { Router, RoutesRecognized } from '@angular/router';
+import { EnteExtended } from '../model/ente-extended';
 
 @Injectable({
   providedIn: 'root'
@@ -118,8 +120,11 @@ export class EnteService implements OnDestroy{
     return this.apiInvokerService.get<TipoDovuto[]>(this.baseUrlService.getBaseUrlApi() + 'enti/' + ente.mygovEnteId + '/tipiDovuto');
   }
 
-  getListTipoDovutoByEnteAsOperatore(ente: Ente): Observable<TipoDovuto[]> {
-    return this.apiInvokerService.get<TipoDovuto[]>(this.baseUrlService.getOperatoreUrl() + 'enti/' + ente.mygovEnteId + '/tipiDovutoOperatore');
+  getListTipoDovutoByEnteAsOperatore(ente: Ente, withEnteSecondario: boolean = false): Observable<TipoDovuto[]> {
+    let params = new HttpParams();
+    if(withEnteSecondario)
+      params = params.append('enteSecondario', 'true');
+    return this.apiInvokerService.get<TipoDovuto[]>(this.baseUrlService.getOperatoreUrl() + 'enti/' + ente.mygovEnteId + '/tipiDovutoOperatore', {params:params});
   }
 
   getEnte(idEnte: number, thumbnail:boolean = true): Observable<Ente> {
@@ -132,6 +137,10 @@ export class EnteService implements OnDestroy{
             return ente;
           })
         );
+  }
+
+  getEnteExtendedUserId() : Observable<EnteExtended[]> {
+    return this.apiInvokerService.get<EnteExtended[]>(this.baseUrlService.getOperatoreUrl() + 'enti/extended');
   }
 
 }

@@ -15,7 +15,7 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Breadcrumb } from '../../model/breadcrumb';
@@ -26,7 +26,7 @@ import { MyPayBreadcrumbsService } from '../../services/my-pay-breadcrumbs.servi
   templateUrl: './my-pay-breadcrumbs.component.html',
   styleUrls: ['./my-pay-breadcrumbs.component.scss']
 })
-export class MyPayBreadcrumbsComponent implements OnInit {
+export class MyPayBreadcrumbsComponent {
 
   breadcrumbs: Breadcrumb[] = null;
 
@@ -34,10 +34,7 @@ export class MyPayBreadcrumbsComponent implements OnInit {
     private myPayBreadcrumbsService: MyPayBreadcrumbsService,
     private router: Router,
   ) {
-    myPayBreadcrumbsService.getBreadcrumbs().subscribe(breadcrumbs => this.breadcrumbs = breadcrumbs);
-  }
-
-  ngOnInit(): void {
+    myPayBreadcrumbsService.getBreadcrumbsObs().subscribe(breadcrumbs => this.breadcrumbs = breadcrumbs);
   }
 
   onClickBreadcrumb(breadcrumb: Breadcrumb, goBackFor: number){

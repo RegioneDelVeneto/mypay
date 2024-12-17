@@ -23,10 +23,12 @@ export class AppInfo {
   public static readonly MAPPER_S2C_DEF = [
     new MapperDef(MapperType.DateTime,'buildTime','unix-ms'),
     new MapperDef(MapperType.DateTime,'startTime','unix-ms'),
+    new MapperDef(MapperType.Number, 'commitDistance'),
   ];
 
   gitHash: string;
   lastTag: string;
+  commitDistance: number;
   branchName: string;
   version: string;
   buildTime: DateTime;

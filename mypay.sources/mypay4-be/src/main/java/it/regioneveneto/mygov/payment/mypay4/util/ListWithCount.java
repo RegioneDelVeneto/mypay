@@ -17,10 +17,13 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.util;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
-class ListWithCount<T> extends ArrayList<T> {
+@Getter
+public class ListWithCount<T> extends ArrayList<T> {
 
   private final int count, limit;
   private final boolean incomplete;
@@ -43,15 +46,4 @@ class ListWithCount<T> extends ArrayList<T> {
     this.incomplete = false;
   }
 
-  public int getCount() {
-    return count;
-  }
-
-  public int getLimit() {
-    return limit;
-  }
-
-  public boolean isIncomplete() {
-    return incomplete;
-  }
 }

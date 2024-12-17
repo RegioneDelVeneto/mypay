@@ -19,11 +19,11 @@ import { DateTime } from 'luxon';
 import { FileSaverService } from 'ngx-filesaver';
 import { ToastrService } from 'ngx-toastr';
 import {
-    MyPayBaseTableComponent
+  MyPayBaseTableComponent
 } from 'projects/mypay4-fe-common/src/lib/components/my-pay-table/my-pay-table.component';
 import {
-    ApiInvokerService, DateValidators, FileSizePipe, manageError, OverlaySpinnerService,
-    PaginatorData, TableAction, TableColumn, validateFormFun, WithTitle
+  ApiInvokerService, DateValidators, FileSizePipe, manageError, OverlaySpinnerService,
+  PaginatorData, TableAction, TableColumn, validateFormFun, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Subscription } from 'rxjs';
 
@@ -37,7 +37,7 @@ import { FlussoFile } from '../../model/flussi-gestione';
 import { EnteService } from '../../services/ente.service';
 import { FlussoService } from '../../services/flusso.service';
 import {
-    FlussiExportDialogComponent
+  FlussiExportDialogComponent
 } from '../flussi-export-dialog/flussi-export-dialog.component';
 
 @Component({
@@ -97,6 +97,7 @@ export class FlussiExportComponent implements OnInit, OnDestroy, WithTitle {
   tableColumns = [
     new TableColumn('name', 'Nome File'),
     new TableColumn('dataCreazione', 'Data Prenotazione', { sortable: (item: FlussoFile) => item.dataCreazione?.valueOf(), pipe: DatePipe, pipeArgs: ['dd/MM/yyyy HH:mm:ss'] } ),
+    new TableColumn('operatore', 'Operatore'),
     new TableColumn('dimensione', 'Dimensione File', { sortable: (item: FlussoFile) => item.dimensione?.valueOf(), pipe: FileSizePipe} ),
     new TableColumn('rowActions', 'Azioni', { sortable: false, tooltip: 'Azioni', actions: [
       new TableAction(this.iconReceipt, this.downloadFromMybox, this.downloadFromMyboxEnabled, 'Scarica')
@@ -146,7 +147,7 @@ export class FlussiExportComponent implements OnInit, OnDestroy, WithTitle {
   }
 
   downloadFromMyboxEnabled(elementRef: FlussoFile, thisRef: FlussiExportComponent) {
-    return elementRef.path ? true : false;
+    return elementRef.showDownload;
   }
 
 }

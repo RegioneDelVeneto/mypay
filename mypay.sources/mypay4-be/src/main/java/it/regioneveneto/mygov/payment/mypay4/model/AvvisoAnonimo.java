@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovAvvisoAnonimoId")
 public class AvvisoAnonimo extends BaseEntity {
 
-  public final static String ALIAS = "AvvisoAnonimo";
-  public final static String FIELDS = ""+ALIAS+".mygov_avviso_anonimo_id as AvvisoAnonimo_mygovAvvisoAnonimoId"+
+  public static final String ALIAS = "AvvisoAnonimo";
+  public static final String FIELDS = ""+ALIAS+".mygov_avviso_anonimo_id as AvvisoAnonimo_mygovAvvisoAnonimoId"+
       ","+ALIAS+".cod_ipa_ente as AvvisoAnonimo_codIpaEnte,"+ALIAS+".cod_iuv as AvvisoAnonimo_codIuv"+
       ","+ALIAS+".id_session as AvvisoAnonimo_idSession,"+ALIAS+".de_email_address as AvvisoAnonimo_deEmailAddress"+
       ","+ALIAS+".email_verificata as AvvisoAnonimo_emailVerificata"+

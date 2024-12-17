@@ -25,6 +25,7 @@ import it.regioneveneto.mygov.payment.mypay4.service.CarrelloService;
 import it.regioneveneto.mygov.payment.mypay4.service.EsitoService;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
 import it.regioneveneto.mygov.payment.mypay4.service.fesp.RptRtService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciRP;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.FaultBean;
@@ -86,9 +87,9 @@ public class ChiediCopiaEsitoTaskService {
 
 //  private Instant lastFullExecutionEnd = Instant.EPOCH;
 
-  private final static long MS_TO_MINUTES = 1000*60;
-  private final static long MS_TO_HOURS = MS_TO_MINUTES*60;
-  private final static long MS_TO_DAYS = MS_TO_HOURS*24;
+  private static final long MS_TO_MINUTES = 1000l*60;
+  private static final long MS_TO_HOURS = MS_TO_MINUTES*60;
+  private static final long MS_TO_DAYS = MS_TO_HOURS*24;
 
   @Transactional(propagation = Propagation.NEVER)
   public void chiediCopiaEsito(){
@@ -112,7 +113,7 @@ public class ChiediCopiaEsitoTaskService {
       List<Integer> toProcessByType = new ArrayList<>();
       List<Integer> toProcessFilteredByType = new ArrayList<>();
       if (idCarrello == 0) {
-        carrelloList = Carrello.VALID_MODELLOPAGAMENTO.stream()
+        carrelloList = Constants.MODELLO_PAG.asList().stream()
           .map(modelloPagamento -> carrelloService.getByStatePagamentoInCorso(modelloPagamento))
           .peek(list -> toProcessByType.add(list.size()))
           .map(listByModello -> listByModello.stream().filter(mygovCarrelloId -> this.isCarrelloToProcess(mygovCarrelloId).getLeft()).collect(Collectors.toList()))
@@ -128,10 +129,10 @@ public class ChiediCopiaEsitoTaskService {
       carrelloListCount = toProcessByType.stream().reduce(Integer::sum).orElse(0);
       carrelloListFilteredCount = carrelloList.size();
       String toProcessByTypeString = Streams
-          .zip(Carrello.VALID_MODELLOPAGAMENTO.stream(), toProcessByType.stream(), (type, size) -> type + ": " + size)
+          .zip(Constants.MODELLO_PAG.asList().stream(), toProcessByType.stream(), (type, size) -> type + ": " + size)
           .collect(Collectors.joining(" - "));
       String toProcessFilteredByTypeString = Streams
-        .zip(Carrello.VALID_MODELLOPAGAMENTO.stream(), toProcessFilteredByType.stream(), (type, size) -> type + ": " + size)
+        .zip(Constants.MODELLO_PAG.asList().stream(), toProcessFilteredByType.stream(), (type, size) -> type + ": " + size)
         .collect(Collectors.joining(" - "));
       log.info("number of carrello to process: {} [{}]", carrelloListCount, toProcessByTypeString);
       log.info("number of filtered carrello to process: {} [{}]",carrelloListFilteredCount , toProcessFilteredByTypeString);

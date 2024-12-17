@@ -56,4 +56,11 @@ export class AdminFlussiService {
       .append('securityToken', securityToken);
     return this.apiInvokerService.get<any>(this.baseUrlService.getBaseUrlApi() + 'mybox/download/0', {params: params, observe: 'response', responseType: 'blob'});
   }
+
+  performUpdate(lastUpload: string): Observable<string> {
+    let params = new HttpParams();
+    if (lastUpload)
+      params = params.append('lastUpload', lastUpload);
+    return this.apiInvokerService.post<string>(this.baseUrlService.getOperatoreUrl() + 'admin/taxonomy/update', {params: params} , {responseType: 'text'});
+  }
 }

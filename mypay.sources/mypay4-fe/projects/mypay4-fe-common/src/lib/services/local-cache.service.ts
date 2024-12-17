@@ -36,7 +36,7 @@ export class LocalCacheService {
     private dbService: DexieService,
     private apiInvokerService: ApiInvokerService,
   ) {
-    dbService.table(DexieService.THUMB_LOGO_TABLE).get('test').then(value => {
+    dbService.table(DexieService.THUMB_LOGO_TABLE).get('test').then(_value => {
       this.localDbWorking = true;
       console.log('localDB working: '+this.localDbWorking);
     }).catch(error => {
@@ -49,15 +49,12 @@ export class LocalCacheService {
       mergeMap( enti => {
         const entiWithLogo = enti.filter(ente=>ente.hashThumbLogoEnte);
         if(!this.localDbWorking || entiWithLogo.length === 0){
-          //console.log("no ente with logo");
           return of(enti);
         }
-        //console.log("before bulkGet keys:", entiWithLogo.map(ente => ente.hashThumbLogoEnte));
         return from(this.dbService.table(DexieService.THUMB_LOGO_TABLE).bulkGet(entiWithLogo.map(ente => ente.hashThumbLogoEnte)))
           .pipe(
             map( (result: any[]) => {
               const resultFound = result.filter(x => x !== undefined);
-              //console.log('bulkGet', entiWithLogo.length, result.length, resultFound.length);
               if(resultFound.length === entiWithLogo.length){
                 _.zipWith(entiWithLogo, resultFound, (ente: Ente, logo: string) => {
                     ente.thumbLogoEnte = logo;
@@ -73,17 +70,15 @@ export class LocalCacheService {
           if(enti === null) {
             //console.log('loading allEnti with Thumb')
             return entiWithThumbFun(this.apiInvokerService)
-              .pipe( map( enti => {
-              const entiWithLogo = enti.filter(ente=>ente.hashThumbLogoEnte);
-              if(!this.localDbWorking || entiWithLogo.length === 0){
-                //console.log("no ente with logo");
-                return enti;
+              .pipe( map( newEnti => {
+              const entiWithLogo = newEnti.filter(ente=>ente.hashThumbLogoEnte);
+              if(this.localDbWorking && entiWithLogo.length > 0){
+                from(this.dbService.table(DexieService.THUMB_LOGO_TABLE).bulkPut(
+                  entiWithLogo.map(ente => ente.thumbLogoEnte),
+                  entiWithLogo.map(ente => ente.hashThumbLogoEnte)))
+                  .subscribe(() => console.log('added to logo cache: ',entiWithLogo.length),error => console.log('error bulkPut', error));
               }
-              from(this.dbService.table(DexieService.THUMB_LOGO_TABLE).bulkPut(
-                entiWithLogo.map(ente => ente.thumbLogoEnte),
-                entiWithLogo.map(ente => ente.hashThumbLogoEnte)))
-                .subscribe(() => console.log('added to logo cache: ',entiWithLogo.length),error => console.log('error bulkPut', error));
-              return enti;
+              return newEnti;
             }));
           } else
             return of(enti);

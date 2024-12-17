@@ -34,8 +34,8 @@ import java.sql.Timestamp;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deEmailAddress")
 public class ValidazioneEmail extends BaseEntity {
 
-  public final static String ALIAS = "ValidazioneEmail";
-  public final static String FIELDS = ""+ALIAS+".mygov_utente_id as ValidazioneEmail_mygovUtenteId,"+ALIAS+".codice as ValidazioneEmail_codice,"+
+  public static final String ALIAS = "ValidazioneEmail";
+  public static final String FIELDS = ""+ALIAS+".mygov_utente_id as ValidazioneEmail_mygovUtenteId,"+ALIAS+".codice as ValidazioneEmail_codice,"+
       ","+ALIAS+".dt_primo_invio as ValidazioneEmail_dtPrimoInvio,"+ALIAS+".dt_ultimo_invio as ValidazioneEmail_dtUltimoInvio"+
       ","+ALIAS+".num_invii as ValidazioneEmail_numInvii,"+ALIAS+".num_tentativi as ValidazioneEmail_numTentativi"+
       ","+ALIAS+".dt_ultimo_tentativo as ValidazioneEmail_dtUltimoTentativo";

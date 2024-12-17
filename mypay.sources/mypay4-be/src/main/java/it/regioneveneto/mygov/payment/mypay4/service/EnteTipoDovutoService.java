@@ -22,12 +22,17 @@ import it.regioneveneto.mygov.payment.mypay4.dao.DovutoElaboratoDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.EnteTipoDovutoDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.OperatoreEnteTipoDovutoDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaTipoDovutoTo;
+import it.regioneveneto.mygov.payment.mypay4.dto.CodeDescriptionTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.EnteTipoDovutoTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.BadRequestException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotAuthorizedException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
-import it.regioneveneto.mygov.payment.mypay4.model.*;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
+import it.regioneveneto.mygov.payment.mypay4.model.EnteSil;
+import it.regioneveneto.mygov.payment.mypay4.model.EnteTipoDovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.OperatoreEnteTipoDovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.RegistroOperazione;
 import it.regioneveneto.mygov.payment.mypay4.security.UserWithAdditionalInfo;
 import it.regioneveneto.mygov.payment.mypay4.service.common.CacheService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
@@ -46,7 +51,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -64,9 +75,6 @@ public class EnteTipoDovutoService {
 
   @Autowired
   private EnteSilService enteSilService;
-
-  @Autowired
-  private EnteFunzionalitaService enteFunzionalitaService;
 
   @Autowired
   private OperatoreEnteTipoDovutoDao operatoreEnteTipoDovutoDao;
@@ -181,7 +189,8 @@ public class EnteTipoDovutoService {
 
   @Transactional(propagation = Propagation.REQUIRED)
   public AnagraficaTipoDovutoTo insertTipoDovuto(UserWithAdditionalInfo user, AnagraficaTipoDovutoTo anagraficaTipoDovutoTo) {
-    Optional.ofNullable(enteService.getEnteByCodIpa(anagraficaTipoDovutoTo.getCodIpaEnte())).orElseThrow(NotFoundException::new);
+    if(enteService.getEnteByCodIpa(anagraficaTipoDovutoTo.getCodIpaEnte())==null)
+      throw new NotFoundException();
     validateEnteTipoDovuto(anagraficaTipoDovutoTo);
     EnteTipoDovuto enteTipoDovuto = this.dtoToModel(anagraficaTipoDovutoTo, null, user);
 
@@ -217,37 +226,42 @@ public class EnteTipoDovutoService {
     EnteTipoDovuto enteTipoDovuto = this.dtoToModel(anagraficaTipoDovutoTo, etdFromDb, user);
 
     Optional.ofNullable(enteTipoDovuto.getIbanAccreditoPi())
-        .ifPresent(s -> {
+        .ifPresentOrElse(s -> {
           enteTipoDovuto.setIbanAccreditoPi(s.toUpperCase());
           enteTipoDovuto.setCodContoCorrentePostale(s.toUpperCase().substring(15));
           enteTipoDovuto.setBicAccreditoPi(Constants.IDENTIFICATIVO_PSP_POSTE);
+        }, () -> {
+          enteTipoDovuto.setCodContoCorrentePostale(null);
+          enteTipoDovuto.setBicAccreditoPi(null);
         });
-    var optionalEnteSil = Optional.ofNullable(enteTipoDovuto.getMygovEnteSilId());
-    EnteSil.EnteSilBuilder builder = optionalEnteSil
-        .map(enteSilService::getById)
-        .map(EnteSil::toBuilder)
-        .orElse(EnteSil.builder());
+    if (enteTipoDovuto.isFlgNotificaEsitoPush()) {
+      var optionalEnteSil = Optional.ofNullable(enteTipoDovuto.getMygovEnteSilId());
+      EnteSil.EnteSilBuilder builder = optionalEnteSil
+          .map(enteSilService::getById)
+          .map(EnteSil::toBuilder)
+          .orElse(EnteSil.builder());
 
-    if (optionalEnteSil.isEmpty()) {
-      builder.mygovEnteId(enteTipoDovuto.getMygovEnteId()).mygovEnteTipoDovutoId(enteTipoDovuto);
+
+        builder.mygovEnteId(enteTipoDovuto.getMygovEnteId()).mygovEnteTipoDovutoId(enteTipoDovuto);
+
+      EnteSil enteSil = builder
+          .nomeApplicativo(anagraficaTipoDovutoTo.getNomeApplicativo())
+          .deUrlInoltroEsitoPagamentoPush(anagraficaTipoDovutoTo.getDeUrlInoltroEsitoPagamentoPush())
+          .flgJwtAttivo(anagraficaTipoDovutoTo.isFlgJwtAttivo())
+          .codServiceAccountJwtUscitaClientId(anagraficaTipoDovutoTo.getCodServiceAccountJwtUscitaClientId())
+          .deServiceAccountJwtUscitaClientMail(anagraficaTipoDovutoTo.getDeServiceAccountJwtUscitaClientMail())
+          .codServiceAccountJwtUscitaSecretKeyId(anagraficaTipoDovutoTo.getCodServiceAccountJwtUscitaSecretKeyId())
+          .codServiceAccountJwtUscitaSecretKey(anagraficaTipoDovutoTo.getCodServiceAccountJwtUscitaSecretKey())
+          .build();
+      enteSilService.validate(enteSil, enteTipoDovuto.isFlgNotificaEsitoPush());
+      long mygovEnteSilId = enteSilService.upsert(enteSil).getMygovEnteSilId();
+      enteTipoDovuto.setMygovEnteSilId(mygovEnteSilId);
     }
-    EnteSil enteSil = builder
-        .nomeApplicativo(anagraficaTipoDovutoTo.getNomeApplicativo())
-        .deUrlInoltroEsitoPagamentoPush(anagraficaTipoDovutoTo.getDeUrlInoltroEsitoPagamentoPush())
-        .flgJwtAttivo(anagraficaTipoDovutoTo.isFlgJwtAttivo())
-        .codServiceAccountJwtUscitaClientId(anagraficaTipoDovutoTo.getCodServiceAccountJwtUscitaClientId())
-        .deServiceAccountJwtUscitaClientMail(anagraficaTipoDovutoTo.getDeServiceAccountJwtUscitaClientMail())
-        .codServiceAccountJwtUscitaSecretKeyId(anagraficaTipoDovutoTo.getCodServiceAccountJwtUscitaSecretKeyId())
-        .codServiceAccountJwtUscitaSecretKey(anagraficaTipoDovutoTo.getCodServiceAccountJwtUscitaSecretKey())
-        .build();
-    enteSilService.validate(enteSil, enteTipoDovuto.isFlgNotificaEsitoPush());
-    long mygovEnteSilId = enteSilService.upsert(enteSil).getMygovEnteSilId();
-    enteTipoDovuto.setMygovEnteSilId(mygovEnteSilId);
 
     enteTipoDovutoDao.update(enteTipoDovuto);
     self.clearCache();
     EnteTipoDovuto updatedEnteTipoDovuto = self.getById(enteTipoDovuto.getMygovEnteTipoDovutoId());
-    backOfficeService.sendReportToSystemMaintainer(user, enteById.getDeNomeEnte(), "Tipo Dovuto", self.getAnagrafica(etdFromDb), anagraficaTipoDovutoTo);
+    backOfficeService.sendReportToSystemMaintainer(user, enteById.getDeNomeEnte(), "Tipo Dovuto per " + updatedEnteTipoDovuto.getDeTipo(), self.getAnagrafica(etdFromDb), anagraficaTipoDovutoTo);
     return self.getAnagrafica(updatedEnteTipoDovuto);
   }
 
@@ -274,9 +288,31 @@ public class EnteTipoDovutoService {
     return enteTipoDovutoDao.getByMygovEnteIdAndOperatoreUsername(mygovEnteId, operatoreUsername);
   }
 
+  public List<EnteTipoDovuto> addTipoDovutoExportEnteSecondario(Long mygovEnteId, List<EnteTipoDovuto> list) {
+    String codIpaEnte = null;
+    if(list.size()>0) {
+      EnteTipoDovuto anETD = list.get(0);
+      if(anETD.getMygovEnteId()!=null)
+        codIpaEnte = anETD.getMygovEnteId().getCodIpaEnte();
+    }
+    EnteTipoDovuto exportEnteSecondario = EnteTipoDovuto.builder()
+      .mygovEnteTipoDovutoId(-1l)
+      .codTipo(Constants.COD_TIPO_DOVUTO_EXPORT_ENTE_SECONDARIO)
+      .deTipo(Constants.DE_TIPO_DOVUTO_EXPORT_ENTE_SECONDARIO)
+      .mygovEnteId(Ente.builder().mygovEnteId(mygovEnteId).codIpaEnte(codIpaEnte).build())
+      .build();
+    list.add(exportEnteSecondario);
+    return list;
+  }
+
   @Cacheable(value=CacheService.CACHE_NAME_ENTE_TIPO_DOVUTO, key = "{'mygovEnteId+flags',#mygovEnteId, #spontaneo, #flgScadenzaObbligtoria}", unless="#result==null")
   public List<EnteTipoDovuto> getAttiviByMygovEnteIdAndFlags(Long mygovEnteId, Boolean spontaneo, Boolean flgScadenzaObbligatoria) {
     return  enteTipoDovutoDao.getAttiviByMygovEnteIdAndFlags(mygovEnteId, spontaneo, flgScadenzaObbligatoria);
+  }
+
+  @Cacheable(value=CacheService.CACHE_NAME_ENTE_TIPO_DOVUTO, key = "{'spontaneo',#codIpaEnte, #codTipoDovuto}", unless="#result==null")
+  public Optional<EnteTipoDovuto> getSpontaneo(String codIpaEnte, String codTipoDovuto) {
+    return  enteTipoDovutoDao.getSpontaneo(codIpaEnte, codTipoDovuto);
   }
 
   @Cacheable(value=CacheService.CACHE_NAME_ENTE_TIPO_DOVUTO, key="{'id',#id}", unless="#result==null")
@@ -290,23 +326,20 @@ public class EnteTipoDovutoService {
   }
 
   public AnagraficaTipoDovutoTo getAnagrafica(EnteTipoDovuto enteTipoDovuto) {
-
-    boolean flgScadenzaObbligatoriaEnable = enteTipoDovutoDao.dataScadenzaObbligatoriaEnable(enteTipoDovuto.getMygovEnteId().getCodIpaEnte(), enteTipoDovuto.getCodTipo());
-
-    AnagraficaTipoDovutoTo anagrafica = new AnagraficaTipoDovutoTo(enteTipoDovuto).toBuilder()
-        .flgScadenzaObbligatoriaEnable(flgScadenzaObbligatoriaEnable).build();
+    AnagraficaTipoDovutoTo.AnagraficaTipoDovutoToBuilder builder = new AnagraficaTipoDovutoTo(enteTipoDovuto).toBuilder();
 
     if (enteTipoDovuto.getMygovEnteSilId() != null) {
       EnteSil enteSil = enteSilService.getById(enteTipoDovuto.getMygovEnteSilId());
-      anagrafica.setNomeApplicativo(enteSil.getNomeApplicativo());
-      anagrafica.setDeUrlInoltroEsitoPagamentoPush(enteSil.getDeUrlInoltroEsitoPagamentoPush());
-      anagrafica.setFlgJwtAttivo(enteSil.isFlgJwtAttivo());
-      anagrafica.setCodServiceAccountJwtUscitaClientId(enteSil.getCodServiceAccountJwtUscitaClientId());
-      anagrafica.setDeServiceAccountJwtUscitaClientMail(enteSil.getDeServiceAccountJwtUscitaClientMail());
-      anagrafica.setCodServiceAccountJwtUscitaSecretKeyId(enteSil.getCodServiceAccountJwtUscitaSecretKeyId());
-      anagrafica.setCodServiceAccountJwtUscitaSecretKey(enteSil.getCodServiceAccountJwtUscitaSecretKey());
+      builder
+        .nomeApplicativo(enteSil.getNomeApplicativo())
+        .deUrlInoltroEsitoPagamentoPush(enteSil.getDeUrlInoltroEsitoPagamentoPush())
+        .flgJwtAttivo(enteSil.isFlgJwtAttivo())
+        .codServiceAccountJwtUscitaClientId(enteSil.getCodServiceAccountJwtUscitaClientId())
+        .deServiceAccountJwtUscitaClientMail(enteSil.getDeServiceAccountJwtUscitaClientMail())
+        .codServiceAccountJwtUscitaSecretKeyId(enteSil.getCodServiceAccountJwtUscitaSecretKeyId())
+        .codServiceAccountJwtUscitaSecretKey(enteSil.getCodServiceAccountJwtUscitaSecretKey());
     }
-    return anagrafica;
+    return builder.build();
   }
 
   @Cacheable(value=CacheService.CACHE_NAME_ENTE_TIPO_DOVUTO, key="{'codTipoIdEnte',#codTipo,#mygovEnteId}", unless="#result==null")
@@ -328,8 +361,16 @@ public class EnteTipoDovutoService {
     return enteTipoDovutoDao.getAllByEnte(mygovEnteId);
   }
 
+  public List<EnteTipoDovuto> getAll() {
+  	return enteTipoDovutoDao.getAll();
+  }
+
   public Optional<FaultBean> verificaTipoDovuto(String codIpaEnte, String identificativoTipoDovuto) {
-    if (StringUtils.isNotBlank(identificativoTipoDovuto)) {
+    //EXPORT_ENTE_SECONDARIO is a "special marker" to select only the multi-beneficiary (SANP 2.5) payments where the ente is the "secondary ente"
+    // since this tipo dovuto does not exist on DB as a regular tipo-dovuto, the check on DB must be skipped
+    if (StringUtils.isNotBlank(identificativoTipoDovuto) &&
+      !StringUtils.equals(Constants.COD_TIPO_DOVUTO_EXPORT_ENTE_SECONDARIO, identificativoTipoDovuto)
+    ) {
       if(self.getOptionalByCodTipo(identificativoTipoDovuto, codIpaEnte, false).isEmpty()) {
         log.error("Identificativo dovuto non valido: " + identificativoTipoDovuto);
         return Optional.of(VerificationUtils.getFaultBean(codIpaEnte, Constants.CODE_PAA_IDENTIFICATIVO_TIPO_DOVUTO_NON_VALIDO,  "identificativoTipoDovuto [" + identificativoTipoDovuto + "] non valido", null));
@@ -392,7 +433,11 @@ public class EnteTipoDovutoService {
         .motivoRiscossione(anagrafica.getMotivoRiscossione())
         .flgCfAnonimo(anagrafica.isFlgCfAnonimo())
         .flgDisabilitaStampaAvviso(anagrafica.isFlgDisabilitaStampaAvviso())
-        .codTassonomico(anagrafica.getCodTassonomico());
+        .codTassonomico(anagrafica.getCodTassonomico())
+              .urlNotificaPnd(anagrafica.getUrlNotificaPnd())
+              .userPnd(anagrafica.getUserPnd())
+              .pswPnd(anagrafica.getPswPnd())
+              .urlNotificaAttualizzazionePnd(anagrafica.getUrlNotificaAttualizzazionePnd());
     }
     return builder
         .ibanAccreditoPi(anagrafica.getIbanAccreditoPi())
@@ -403,6 +448,13 @@ public class EnteTipoDovutoService {
         .flgStampaDataScadenza(anagrafica.isFlgStampaDataScadenza())
         .deBilancioDefault(anagrafica.getDeBilancioDefault())
         .flgNotificaIo(anagrafica.isFlgNotificaIo())
+        .build();
+  }
+
+  public CodeDescriptionTo mapEnteTipoDovutoToCodeDescriptionDto(EnteTipoDovuto enteTipoDovuto) {
+    return enteTipoDovuto == null ? null : CodeDescriptionTo.builder()
+        .code(enteTipoDovuto.getCodTipo())
+        .descr(enteTipoDovuto.getDeTipo())
         .build();
   }
 
@@ -420,7 +472,7 @@ public class EnteTipoDovutoService {
         .build();
   }
 
-  @Transactional(propagation = Propagation.SUPPORTS)
+  @Transactional(propagation = Propagation.REQUIRED)
   public void insertDefaultSet(Ente ente, boolean flagInsertDefaultSet) {
     EnteTipoDovuto marcaBolloDigitale = EnteTipoDovuto.builder()
         .mygovEnteId(ente)
@@ -439,4 +491,8 @@ public class EnteTipoDovutoService {
     }
     setToInsert.forEach(item -> self.insert(item));
   }
+
+  @Cacheable(value=CacheService.CACHE_NAME_ENTE_TIPO_DOVUTO, key = "{'flagSpontaneo', #mygovEnteId}", unless="#result==null")
+  public boolean existsAnyFlagSpontaneo(Long mygovEnteId) { return  enteTipoDovutoDao.existsAnyFlagSpontaneo(mygovEnteId);  }
+
 }

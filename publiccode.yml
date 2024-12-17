@@ -121,7 +121,7 @@ description:
 
       Il progetto si basa sulle Specifiche Attuative del Nodo dei Pagamenti –
 
-      SPC Versione 2.4.3
+      SPC Versione 3.6
 
 
 
@@ -353,6 +353,6 @@ name: MyPay
 platforms:
   - web
   - linux
-releaseDate: '2022-06-25'
+releaseDate: '2024-12-16'
 softwareType: standalone/backend
 url: 'https://github.com/RegioneDelVeneto/mypay.git'

@@ -42,6 +42,11 @@ public interface UtenteDao extends BaseDao {
   @RegisterFieldMapper(Utente.class)
   Optional<Utente> getByCodFedUserId(String codFedUserId);
 
+  @SqlQuery(
+          "select "+Utente.ALIAS + ALL_FIELDS +" from mygov_utente "+ Utente.ALIAS )
+  @RegisterFieldMapper(Utente.class)
+  List<Utente> getAll();
+
   @SqlUpdate(" insert into mygov_utente ( "+
       " mygov_utente_id "+
       //",version "+  //when insert, default(=0) will be used
@@ -180,4 +185,32 @@ public interface UtenteDao extends BaseDao {
   )
   @RegisterFieldMapper(Utente.class)
   List<Utente> searchUtentiForEnteTipoDovuto(Long mygovEnteTipoDovutoId, String codFedUserId, String cognome, String nome);
+
+  @SqlQuery(
+          "SELECT "+ Utente.ALIAS +".mygov_utente_id,"
+                  + Utente.ALIAS +".version ,"
+                  + Utente.ALIAS +".cod_fed_user_id,"
+                  +" split_part("+ Utente.ALIAS +".cod_fed_user_id, '-', 2) = 'WS_USER' OR "+ Utente.ALIAS +".cod_codice_fiscale_utente = 'USER_JAVA' as is_ws,"
+                  + Utente.ALIAS +".cod_codice_fiscale_utente,"
+                  + Utente.ALIAS +".flg_fed_authorized,"
+                  +" coalesce("+ Operatore.ALIAS +".de_email_address, "+ Utente.ALIAS +".de_email_address) as de_email_address,"
+                  + Utente.ALIAS +".de_firstname,"
+                  + Utente.ALIAS +".de_lastname,"
+                  + Utente.ALIAS +".de_fed_legal_entity,"
+                  + Utente.ALIAS +".dt_ultimo_login,"
+                  + Utente.ALIAS +".indirizzo,"
+                  + Utente.ALIAS +".civico,"
+                  + Utente.ALIAS +".cap,"
+                  + Utente.ALIAS +".comune_id,"
+                  + Utente.ALIAS +".provincia_id,"
+                  + Utente.ALIAS +".nazione_id"
+                  +" FROM mygov_utente "+ Utente.ALIAS
+                  +" join mygov_ente "+ Ente.ALIAS +" on "+Ente.ALIAS+".mygov_ente_id= :mygov_ente_id"
+                  +" left join mygov_operatore "+ Operatore.ALIAS +" on "+ Utente.ALIAS +".cod_fed_user_id="+ Operatore.ALIAS +".cod_fed_user_id"
+                  +" and "+ Ente.ALIAS +".cod_ipa_ente="+ Operatore.ALIAS +".cod_ipa_ente"
+                  +" WHERE "+ Utente.ALIAS +".mygov_utente_id = :mygov_utente_id"
+  )
+  @RegisterFieldMapper(Utente.class)
+  Utente serachUtenteOperatoreByIdAndIdEnte(Long mygov_utente_id, Long mygov_ente_id);
+
 }

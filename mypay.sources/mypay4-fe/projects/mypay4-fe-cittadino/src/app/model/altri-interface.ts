@@ -153,3 +153,8 @@
       name: string;
       value: any;
   }
+
+  export interface Attualizzazione {
+    bilancio: string;
+    importoPosizione: number;
+  }

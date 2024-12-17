@@ -17,22 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp;
 
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPC;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPCPage;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPCPageRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediFlussoSPCRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediListaFlussiSPC;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.ChiediListaFlussiSPCRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediCopiaEsito;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediCopiaEsitoRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediIUV;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILChiediIUVRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaCarrelloRP;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaCarrelloRPRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaRP;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILInviaRPRisposta;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILRichiediRT;
-import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.NodoSILRichiediRTRisposta;
+import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.*;
 import it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT;
 
 public interface PagamentiTelematiciRP {
@@ -42,6 +27,9 @@ public interface PagamentiTelematiciRP {
   NodoSILChiediCopiaEsitoRisposta nodoSILChiediCopiaEsito(NodoSILChiediCopiaEsito request);
   NodoSILInviaRPRisposta nodoSILInviaRP(NodoSILInviaRP request, IntestazionePPT header);
   NodoSILChiediIUVRisposta nodoSILChiediIUV(NodoSILChiediIUV request);
+  NodoSILChiediCCPRisposta nodoSILChiediCCP(NodoSILChiediCCP request);
   NodoSILInviaCarrelloRPRisposta nodoSILInviaCarrelloRP(NodoSILInviaCarrelloRP request);
   NodoSILRichiediRTRisposta nodoSILRichiediRT(NodoSILRichiediRT request);
+
+
 }

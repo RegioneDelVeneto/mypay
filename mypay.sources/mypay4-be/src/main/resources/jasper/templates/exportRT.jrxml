@@ -18,8 +18,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 -->
-<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2019-05-21T17:45:08 -->
+<!-- Created with Jaspersoft Studio version 6.9.0.final utlizzo versione della libreria JasperReports6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4" pageWidth="595" pageHeight="842" columnWidth="539" leftMargin="28" rightMargin="28" topMargin="28" bottomMargin="16" uuid="708f0fd7-6c1f-42e1-86d2-f87e76d7f7d2">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
@@ -93,6 +92,7 @@
 	<parameter name="collaudo_img" class="java.lang.String"/>
 	<parameter name="ente_img" class="java.lang.String"/>
 	<parameter name="prodEnvironment" class="java.lang.String"/>
+	<parameter name="dataOraPagamentoPSP" class="java.lang.String"/>
 	<field name="IUD" class="java.lang.String"/>
 	<field name="CAUSALE_VERSAMENTO" class="java.lang.String"/>
 	<field name="IMPORTO_PAGATO" class="java.lang.String"/>
@@ -105,6 +105,9 @@
 	<field name="BIC_APPOGGIO" class="java.lang.String"/>
 	<field name="COMMISSIONI_APPLICATE_PSP" class="java.lang.String"/>
 	<field name="TIPO_DOVUTO" class="java.lang.String"/>
+	<field name="LABEL_TIPO_DOVUTO" class="java.lang.String"/>
+	<field name="LABEL_COMMISSIONI" class="java.lang.String"/>
+	<field name="IS_ENTE_SECONDARIO" class="java.lang.String"/>
 	<background>
 		<band height="798" splitType="Stretch">
 			<printWhenExpression><![CDATA[$P{prodEnvironment}.equals("false")]]></printWhenExpression>
@@ -153,7 +156,7 @@
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["€ "+$P{importoTotalePagato}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{importoTotalePagato}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="87" width="96" height="12" forecolor="#006699" uuid="91b8df20-8064-4635-9d49-61d3780b1886">
@@ -1239,14 +1242,14 @@
 				</graphicElement>
 			</line>
 			<textField isBlankWhenNull="true">
-				<reportElement x="389" y="123" width="149" height="12" uuid="5805108b-5638-4a86-936f-9f89a8e18b69">
+				<reportElement key="" x="389" y="123" width="149" height="12" uuid="5805108b-5638-4a86-936f-9f89a8e18b69">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<printWhenExpression><![CDATA[$P{stazioneRichiedente}!=null]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$P{dataOraPagamentoPSP}!=null]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans Mono" size="7"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{stazioneRichiedente}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{dataOraPagamentoPSP}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="389" y="111" width="149" height="12" uuid="44c98432-c63d-434c-ba29-1d2474d6bed2">
@@ -1282,46 +1285,22 @@
 			</staticText>
 			<staticText>
 				<reportElement x="287" y="123" width="99" height="12" forecolor="#006699" uuid="21577f17-72c9-4729-92bc-29e99eab0a96">
-					<printWhenExpression><![CDATA[$P{stazioneRichiedente}!=null]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$P{dataOraPagamentoPSP}!=null]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans Mono" size="6" isBold="true"/>
 				</textElement>
-				<text><![CDATA[STAZIONE RICHIEDENTE:]]></text>
+				<text><![CDATA[DATA APPLICATIVA:]]></text>
 			</staticText>
 		</band>
 	</title>
 	<detail>
-		<band height="64" splitType="Stretch">
+		<band height="100" splitType="Stretch">
 			<property name="local_mesure_unitheight" value="mm"/>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="460" y="36" width="79" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="c9d996d3-ad78-4603-bf6b-582a1d96a22d"/>
-				<box leftPadding="2">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
-					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{COMMISSIONI_APPLICATE_PSP}]]></textFieldExpression>
-			</textField>
 			<staticText>
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="460" y="24" width="79" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="bdf11ad5-93e3-44da-be98-0e9f65c201a0"/>
-				<box leftPadding="2">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
-					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
-				</textElement>
-				<text><![CDATA[Commissioni]]></text>
-			</staticText>
-			<staticText>
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="356" y="0" width="183" height="12" backcolor="#D5E7EF" uuid="bba87d95-856e-4a23-9f9a-f4b8aadde521"/>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="278" y="0" width="103" height="12" isRemoveLineWhenBlank="true" backcolor="#D5E7EF" uuid="bba87d95-856e-4a23-9f9a-f4b8aadde521">
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="2">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1334,8 +1313,9 @@
 				<text><![CDATA[Id Univoco Riscossione]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="262" y="0" width="94" height="12" backcolor="#D5E7EF" uuid="364f2275-47d5-495e-ba49-d5d6afe458de">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="278" y="12" width="103" height="12" isRemoveLineWhenBlank="true" backcolor="#D5E7EF" uuid="364f2275-47d5-495e-ba49-d5d6afe458de">
 					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="2">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1349,9 +1329,10 @@
 				<text><![CDATA[Data pagamento]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="161" y="0" width="101" height="12" backcolor="#D5E7EF" uuid="0da6560a-0214-4f46-a39c-e5814e63bacc">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="0" y="12" width="113" height="12" isRemoveLineWhenBlank="true" backcolor="#D5E7EF" uuid="0da6560a-0214-4f46-a39c-e5814e63bacc">
 					<property name="local_mesure_unitwidth" value="mm"/>
 					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1365,7 +1346,9 @@
 				<text><![CDATA[Importo pagato]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="356" y="12" width="183" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="85004ce1-9f3e-4f43-8b03-1cbe25b2b1e5"/>
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="381" y="0" width="158" height="12" isRemoveLineWhenBlank="true" forecolor="#000000" backcolor="#FFFFFF" uuid="85004ce1-9f3e-4f43-8b03-1cbe25b2b1e5">
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="2">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1378,9 +1361,10 @@
 				<textFieldExpression><![CDATA[$F{IDENTIFICATIVO_UNIV_RISCOSSIONE}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="161" y="12" width="101" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="b78c4b9f-456f-4cc2-af6c-8cdf721084a4">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="113" y="12" width="165" height="12" isRemoveLineWhenBlank="true" forecolor="#000000" backcolor="#FFFFFF" uuid="b78c4b9f-456f-4cc2-af6c-8cdf721084a4">
 					<property name="local_mesure_unitwidth" value="mm"/>
 					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1391,12 +1375,13 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
 					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA["€ "+$F{IMPORTO_PAGATO}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{IMPORTO_PAGATO}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="0" y="12" width="161" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="33bb0940-a932-43fb-ba77-f78ef66b89ed">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="113" y="0" width="165" height="12" isRemoveLineWhenBlank="true" forecolor="#000000" backcolor="#FFFFFF" uuid="33bb0940-a932-43fb-ba77-f78ef66b89ed">
 					<property name="local_mesure_unitheight" value="mm"/>
 					<property name="local_mesure_unitwidth" value="mm"/>
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1410,11 +1395,12 @@
 				<textFieldExpression><![CDATA[$F{IUD}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="0" y="0" width="161" height="12" backcolor="#D5E7EF" uuid="aea68349-cab3-46f9-99a6-915d037ad631">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="0" y="0" width="113" height="12" isRemoveLineWhenBlank="true" backcolor="#D5E7EF" uuid="aea68349-cab3-46f9-99a6-915d037ad631">
 					<property name="local_mesure_unitx" value="mm"/>
 					<property name="com.jaspersoft.studio.unit.x" value="mm"/>
 					<property name="local_mesure_unitwidth" value="mm"/>
 					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1428,35 +1414,10 @@
 				<text><![CDATA[Id Univoco Dovuto]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="328" y="36" width="132" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="421a9510-4a84-43d0-9860-fa028f721580"/>
-				<box leftPadding="2">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
-					<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{DATI_SPECIFICI_RISCOSSIONE}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="328" y="24" width="132" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="37cbc3b4-d559-49c5-87ce-054baaf7338e"/>
-				<box leftPadding="2">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
-					<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
-				</textElement>
-				<text><![CDATA[Dati Specifici Riscossione]]></text>
-			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="262" y="12" width="94" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="81a32c79-0053-48c1-81e3-878051d36ed7">
+				<reportElement style="alternateStyle" positionType="Float" mode="Opaque" x="381" y="12" width="158" height="12" isRemoveLineWhenBlank="true" forecolor="#000000" backcolor="#FFFFFF" uuid="81a32c79-0053-48c1-81e3-878051d36ed7">
 					<property name="local_mesure_unitwidth" value="mm"/>
 					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					<printWhenExpression><![CDATA[$F{IS_ENTE_SECONDARIO}==null]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
@@ -1469,66 +1430,130 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$F{DATA_PAGAMENTO}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="36" width="90" height="12" backcolor="#D5E7EF" uuid="5fc0eca5-cce8-42b7-b2b8-ecc416837010">
-					<property name="local_mesure_unitwidth" value="mm"/>
-					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
-				</reportElement>
-				<box leftPadding="0">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Causale versamento]]></text>
-			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="90" y="36" width="238" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="d21a19dd-2608-4e12-bb64-0409f5679f2d">
-					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
-				</reportElement>
-				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans Mono" size="7"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{CAUSALE_VERSAMENTO}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="24" width="60" height="12" backcolor="#D5E7EF" uuid="29f5d125-99c9-4ae6-8c2b-dfa4408dad32">
-					<property name="local_mesure_unitwidth" value="mm"/>
-					<property name="com.jaspersoft.studio.unit.width" value="mm"/>
-				</reportElement>
-				<box leftPadding="0">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Tipo Dovuto]]></text>
-			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="60" y="24" width="268" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="aadcc0a6-38e1-49dc-b6ea-5c4ac9f62fca"/>
-				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
-					<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans Mono" size="7"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{TIPO_DOVUTO}]]></textFieldExpression>
-			</textField>
+			<frame>
+				<reportElement x="0" y="24" width="539" height="12" uuid="6cbfd1dd-ba97-47f0-bb0e-0fd95fbcc91f"/>
+				<textField>
+					<reportElement positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="0" y="0" width="113" height="12" backcolor="#D5E7EF" uuid="29f5d125-99c9-4ae6-8c2b-dfa4408dad32">
+						<property name="local_mesure_unitwidth" value="mm"/>
+						<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					</reportElement>
+					<box leftPadding="0">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{LABEL_TIPO_DOVUTO}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="113" y="0" width="166" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="aadcc0a6-38e1-49dc-b6ea-5c4ac9f62fca"/>
+					<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans Mono" size="7"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TIPO_DOVUTO}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="alternateStyle" positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="278" y="0" width="103" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="bdf11ad5-93e3-44da-be98-0e9f65c201a0"/>
+					<box leftPadding="2">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{LABEL_COMMISSIONI}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement style="alternateStyle" positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="381" y="0" width="158" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="c9d996d3-ad78-4603-bf6b-582a1d96a22d"/>
+					<box leftPadding="2">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{COMMISSIONI_APPLICATE_PSP}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="36" width="539" height="12" uuid="bd4050af-83ca-4383-abb8-389f11ab3402"/>
+				<staticText>
+					<reportElement style="alternateStyle" positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="0" y="0" width="113" height="12" forecolor="#000000" backcolor="#D5E7EF" uuid="37cbc3b4-d559-49c5-87ce-054baaf7338e">
+						<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					</reportElement>
+					<box leftPadding="2">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="DejaVu Sans Mono" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					</textElement>
+					<text><![CDATA[Dati Specifici Riscossione]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement style="alternateStyle" positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="113" y="0" width="426" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="421a9510-4a84-43d0-9860-fa028f721580"/>
+					<box leftPadding="2">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="DejaVu Sans Mono" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{DATI_SPECIFICI_RISCOSSIONE}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement positionType="Float" x="0" y="48" width="539" height="12" uuid="43353651-888d-4021-850b-d93b51e652b6"/>
+				<staticText>
+					<reportElement positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="0" y="0" width="113" height="12" backcolor="#D5E7EF" uuid="5fc0eca5-cce8-42b7-b2b8-ecc416837010">
+						<property name="local_mesure_unitwidth" value="mm"/>
+						<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+						<property name="com.jaspersoft.studio.unit.y" value="mm"/>
+					</reportElement>
+					<box leftPadding="0">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans Mono" size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Causale versamento]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement style="alternateStyle" positionType="Float" stretchType="ElementGroupHeight" mode="Opaque" x="113" y="0" width="426" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="d21a19dd-2608-4e12-bb64-0409f5679f2d">
+						<property name="com.jaspersoft.studio.unit.width" value="mm"/>
+					</reportElement>
+					<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+						<topPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.2" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans Mono" size="7"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CAUSALE_VERSAMENTO}]]></textFieldExpression>
+				</textField>
+			</frame>
 		</band>
 	</detail>
 	<pageFooter>

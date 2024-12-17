@@ -19,23 +19,16 @@ package it.regioneveneto.mygov.payment.mypay4.model.fesp;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import it.regioneveneto.mygov.payment.mypay4.model.BaseEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-import java.util.Date;
-
-@Data
-@Builder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder(toBuilder=true)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovGiornaleId")
-public class Giornale extends BaseEntity {
+public class Giornale extends it.regioneveneto.mygov.payment.mypay4.model.common.Giornale {
 
-  public final static String ALIAS = "FESP_Giornale";
-  public final static String FIELDS = ""+ALIAS+".mygov_giornale_id as FESP_Giornale_mygovGiornaleId,"+ALIAS+".version as FESP_Giornale_version"+
+  public static final String ALIAS = "FESP_Giornale";
+  public static final String FIELDS = ""+ALIAS+".mygov_giornale_id as FESP_Giornale_mygovGiornaleId,"+ALIAS+".version as FESP_Giornale_version"+
       ","+ALIAS+".data_ora_evento as FESP_Giornale_dataOraEvento"+
       ","+ALIAS+".identificativo_dominio as FESP_Giornale_identificativoDominio"+
       ","+ALIAS+".identificativo_univoco_versamento as FESP_Giornale_identificativoUnivocoVersamento"+
@@ -51,22 +44,5 @@ public class Giornale extends BaseEntity {
       ","+ALIAS+".parametri_specifici_interfaccia as FESP_Giornale_parametriSpecificiInterfaccia"+
       ","+ALIAS+".esito as FESP_Giornale_esito";
 
-  private Long mygovGiornaleId;
-  private int version;
-  private Date dataOraEvento;
-  private String identificativoDominio;
-  private String identificativoUnivocoVersamento;
-  private String codiceContestoPagamento;
-  private String identificativoPrestatoreServiziPagamento;
-  private String tipoVersamento;
-  private String componente;
-  private String categoriaEvento;
-  private String tipoEvento;
-  private String sottoTipoEvento;
-  private String identificativoFruitore;
-  private String identificativoErogatore;
-  private String identificativoStazioneIntermediarioPa;
-  private String canalePagamento;
-  private String parametriSpecificiInterfaccia;
-  private String esito;
+
 }

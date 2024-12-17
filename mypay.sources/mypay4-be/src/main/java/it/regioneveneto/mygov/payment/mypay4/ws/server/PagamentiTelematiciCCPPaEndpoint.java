@@ -17,13 +17,13 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.ws.server;
 
-import it.regioneveneto.mygov.payment.mypay4.exception.WSFaultResponseWrapperException;
 import it.regioneveneto.mygov.payment.mypay4.logging.LogExecution;
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
+import it.regioneveneto.mygov.payment.mypay4.ws.helper.OutcomeHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.impl.PagamentiTelematiciCCPPaImpl;
-import it.veneto.regione.pagamenti.pa.PaaSILAttivaRP;
-import it.veneto.regione.pagamenti.pa.PaaSILAttivaRPRisposta;
-import it.veneto.regione.pagamenti.pa.PaaSILVerificaRP;
-import it.veneto.regione.pagamenti.pa.PaaSILVerificaRPRisposta;
+import it.veneto.regione.pagamenti.pa.*;
 import it.veneto.regione.pagamenti.pa.ppthead.IntestazionePPT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,37 +40,62 @@ import org.springframework.ws.soap.server.endpoint.annotation.SoapHeader;
 @ConditionalOnProperty(prefix = "fesp", name = "mode", havingValue = "remote")
 @ConditionalOnWebApplication
 public class PagamentiTelematiciCCPPaEndpoint extends BaseEndpoint {
-  public static final String NAMESPACE_URI = "http://www.regione.veneto.it/pagamenti/pa/";
-  public static final String NAME = "PagamentiTelematiciCCPPa";
+	public static final String NAMESPACE_URI = "http://www.regione.veneto.it/pagamenti/pa/";
+	public static final String NAME = "PagamentiTelematiciCCPPa";
 
-  @Autowired
-  @Qualifier("PagamentiTelematiciCCPPaImpl")
-  private PagamentiTelematiciCCPPaImpl pagamentiTelematiciCCPPa;
+	@Autowired
+	@Qualifier("PagamentiTelematiciCCPPaImpl")
+	private PagamentiTelematiciCCPPaImpl pagamentiTelematiciCCPPa;
 
-  @LogExecution
-  @PayloadRoot(namespace = NAMESPACE_URI, localPart = "paaSILAttivaRP")
-  @ResponsePayload
-  public PaaSILAttivaRPRisposta paaSILAttivaRP(
-          @RequestPayload PaaSILAttivaRP request,
-          @SoapHeader("{http://www.regione.veneto.it/pagamenti/pa/ppthead}intestazionePPT") SoapHeaderElement header){
-    try {
-      return pagamentiTelematiciCCPPa.paaSILAttivaRP(request, unmarshallHeader(header, IntestazionePPT.class));
-    } catch(WSFaultResponseWrapperException wsfe){
-      return wsfe.getFaultResponse(PaaSILAttivaRPRisposta.class);
-    }
-  }
+	@Autowired
+	private GiornaleService giornaleCommonService;
 
-  @LogExecution
-  @PayloadRoot(namespace = NAMESPACE_URI, localPart = "paaSILVerificaRP")
-  @ResponsePayload
-  public PaaSILVerificaRPRisposta paaSILVerificaRP(
-      @RequestPayload PaaSILVerificaRP request,
-      @SoapHeader("{http://www.regione.veneto.it/pagamenti/pa/ppthead}intestazionePPT") SoapHeaderElement header){
-    try {
-      return pagamentiTelematiciCCPPa.paaSILVerificaRP(request, unmarshallHeader(header, IntestazionePPT.class));
-    } catch(WSFaultResponseWrapperException wsfe){
-      return wsfe.getFaultResponse(PaaSILVerificaRPRisposta.class);
-    }
-  }
+	@LogExecution
+	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "paVerifyPaymentNotice")
+	@ResponsePayload
+	public PaVerifyPaymentNoticeRisposta paVerifyPaymentNotice(
+		@RequestPayload PaVerifyPaymentNotice request){
+		return giornaleCommonService.wrapRecordSoapServerEvent(
+			Constants.GIORNALE_MODULO.PA,
+			request.getQrCodeFiscalCode(),
+			Utilities.numeroAvvisoToIuvValidator(request.getNoticeNumber()),
+			null,
+			null,
+			Constants.PAY_PRESSO_PSP,
+			Constants.COMPONENTE_PA,
+			Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString(),
+			Constants.GIORNALE_TIPO_EVENTO_FESP.paVerifyPaymentNotice.toString(),
+			request.getIdBrokerPA(),
+			request.getIdPA(),
+			request.getIdStation(),
+			null,
+			() -> pagamentiTelematiciCCPPa.paVerifyPaymentNotice(request),
+			OutcomeHelper::getOutcome
+		);
+	}
+
+	@LogExecution
+	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "paGetPayment")
+	@ResponsePayload
+	public PaGetPaymentRisposta paGetPayment(
+		@RequestPayload PaGetPayment request){
+		return giornaleCommonService.wrapRecordSoapServerEvent(
+			Constants.GIORNALE_MODULO.PA,
+			request.getQrCodeFiscalCode(),
+			Utilities.numeroAvvisoToIuvValidator(request.getNoticeNumber()),
+			null,
+			null,
+			Constants.PAY_PRESSO_PSP,
+			Constants.COMPONENTE_PA,
+			Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString(),
+			Constants.GIORNALE_TIPO_EVENTO_FESP.paGetPayment.toString(),
+			request.getIdBrokerPA(),
+			request.getIdPA(),
+			request.getIdStation(),
+			null,
+			() -> pagamentiTelematiciCCPPa.paGetPayment(request),
+			OutcomeHelper::getOutcome
+		);
+	}
 
 }

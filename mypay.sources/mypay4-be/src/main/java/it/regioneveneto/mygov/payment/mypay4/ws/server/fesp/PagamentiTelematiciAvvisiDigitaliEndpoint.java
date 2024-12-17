@@ -18,13 +18,19 @@
 package it.regioneveneto.mygov.payment.mypay4.ws.server.fesp;
 
 import it.regioneveneto.mygov.payment.mypay4.logging.LogExecution;
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
+import it.regioneveneto.mygov.payment.mypay4.ws.helper.OutcomeHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.PagamentiTelematiciAvvisiDigitaliImpl;
 import it.regioneveneto.mygov.payment.mypay4.ws.server.BaseEndpoint;
+import it.veneto.regione.pagamenti.nodoregionalefesp.CtAvvisoDigitale;
 import it.veneto.regione.pagamenti.nodoregionalefesp.IntestazionePPT;
 import it.veneto.regione.pagamenti.nodoregionalefesp.NodoSILInviaAvvisoDigitale;
 import it.veneto.regione.pagamenti.nodoregionalefesp.NodoSILInviaAvvisoDigitaleRisposta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
@@ -42,9 +48,18 @@ public class PagamentiTelematiciAvvisiDigitaliEndpoint extends BaseEndpoint {
   public static final String NAMESPACE_URI = "http://www.regione.veneto.it/pagamenti/nodoregionalefesp/";
   public static final String NAME = "PagamentiTelematiciAvvisiDigitali";
 
+  @Value("${nodoRegionaleFesp.identificativoIntermediarioPA}")
+  private String identificativoIntermediarioPA;
+
+  @Value("${nodoRegionaleFesp.identificativoStazioneIntermediarioPA}")
+  private String identificativoStazioneIntermediarioPA;
+
   @Autowired
   @Qualifier("PagamentiTelematiciAvvisiDigitaliImpl")
   private PagamentiTelematiciAvvisiDigitaliImpl pagamentiTelematiciAvvisiDigitali;
+
+  @Autowired
+  GiornaleService giornaleCommonService;
 
   @LogExecution
   @PayloadRoot(namespace = NAMESPACE_URI, localPart = "nodoSILInviaAvvisoDigitale")
@@ -52,7 +67,24 @@ public class PagamentiTelematiciAvvisiDigitaliEndpoint extends BaseEndpoint {
   public NodoSILInviaAvvisoDigitaleRisposta nodoSILInviaAvvisoDigitale(
       @RequestPayload NodoSILInviaAvvisoDigitale request,
       @SoapHeader("{http://www.regione.veneto.it/pagamenti/nodoregionalefesp/ppthead}intestazionePPT") SoapHeaderElement header){
-    return pagamentiTelematiciAvvisiDigitali.nodoSILInviaAvvisoDigitale(request, unmarshallHeader(header, IntestazionePPT.class));
+    IntestazionePPT intestazionePPT = unmarshallHeader(header, IntestazionePPT.class);
+    return giornaleCommonService.wrapRecordSoapServerEvent(
+      Constants.GIORNALE_MODULO.FESP,
+      intestazionePPT.getIdentificativoDominio(),
+      Utilities.ifNotNull(request.getAvvisoDigitaleWS(), CtAvvisoDigitale::getCodiceAvviso),
+      null,
+      null,
+      null,
+      Constants.COMPONENTE_FESP,
+      Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString(),
+      Constants.GIORNALE_TIPO_EVENTO_FESP.nodoSILInviaAvvisoDigitale.toString(),
+      intestazionePPT.getIdentificativoDominio(),
+      identificativoIntermediarioPA,
+      identificativoStazioneIntermediarioPA,
+      null,
+      () -> pagamentiTelematiciAvvisiDigitali.nodoSILInviaAvvisoDigitale(request, intestazionePPT),
+      OutcomeHelper::getOutcome
+    );
   }
 
 }

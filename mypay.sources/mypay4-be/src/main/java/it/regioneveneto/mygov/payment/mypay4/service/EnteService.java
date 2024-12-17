@@ -20,6 +20,7 @@ package it.regioneveneto.mygov.payment.mypay4.service;
 import it.regioneveneto.mygov.payment.mypay4.dao.EnteDao;
 import it.regioneveneto.mygov.payment.mypay4.dao.EnteTipoDovutoDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaEnteTo;
+import it.regioneveneto.mygov.payment.mypay4.dto.EnteExtedendTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.EnteTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
@@ -47,7 +48,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +57,14 @@ import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -66,6 +73,9 @@ import static java.util.stream.Collectors.toSet;
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class EnteService {
+
+  @Value("${pa.passwordEnteRegex:}")
+  private String passwordEnteRegex;
 
   @Resource
   private EnteService self;
@@ -204,20 +214,22 @@ public class EnteService {
   }
 
   @LogExecution(enabled = LogExecution.ParamMode.OFF)
-  @Cacheable(value=CacheService.CACHE_NAME_ENTE, key="{'all'}")
+  @Cacheable(value=CacheService.CACHE_NAME_ENTE, key=CacheService.CACHE_KEY_ENTE_ALL)
   public List<Ente> getAllEnti() {
     return enteDao.getAllEnti();
   }
 
-  @Cacheable(value=CacheService.CACHE_NAME_ENTE, key="{'all-spontanei'}")
+  @Cacheable(value=CacheService.CACHE_NAME_ENTE, key=CacheService.CACHE_KEY_ENTE_ALL_SPONTANEI)
   public List<Ente> getAllEntiSpontanei() {
     return enteDao.getAllEntiSpontanei();
   }
 
   @Caching(
       evict = {
-          @CacheEvict(value=CacheService.CACHE_NAME_ENTE,key="{'all'}"),
-          @CacheEvict(value=CacheService.CACHE_NAME_ENTE,key="{'all-spontanei'}")
+        @CacheEvict(value=CacheService.CACHE_NAME_ENTE,key=CacheService.CACHE_KEY_ENTE_ALL),
+        @CacheEvict(value=CacheService.CACHE_NAME_ENTE,key=CacheService.CACHE_KEY_ENTE_ALL_SPONTANEI),
+        @CacheEvict(value=CacheService.CACHE_NAME_ENTE,key=CacheService.CACHE_KEY_ENTE_ALL_IMPORT)
+
       }
   )
   public void clearCacheAllEnti(){}
@@ -254,6 +266,10 @@ public class EnteService {
     }
     return anagrafica;
   }
+
+  public Optional<Ente> getOptionalEnteByCodFiscale(String codFiscale) { return Optional.ofNullable(self.getEnteByCodFiscale(codFiscale)); }
+
+  public Optional<Ente> getOptionalEnteByCodIpa(String codIpa) { return Optional.ofNullable(self.getEnteByCodIpa(codIpa)); }
 
   @Cacheable(value=CacheService.CACHE_NAME_ENTE, key="{'codIpa',#codIpa}", unless="#result==null")
   public Ente getEnteByCodIpa(String codIpa) {
@@ -396,26 +412,24 @@ public class EnteService {
 
 
   public boolean verificaPassword(final String codIpaEnte, final String password) {
-    List<Ente> entes = enteDao.findByCodIpaEnteAndNullPassword(codIpaEnte);
-    if (entes.size() > 1) {
-      throw new DataIntegrityViolationException("mypivot.ente.enteDuplicato");
+    if(passwordStrengthEnabled() && StringUtils.isBlank(password))
+      return false;
+    Optional<String> entePasswordOptional = enteDao.getPasswordByCodIpaEnte(codIpaEnte);
+    String entePassword = null;
+    if(entePasswordOptional==null){
+      log.warn("ente [{}] not found", codIpaEnte);
+      return false;
+    } else {
+      entePassword = entePasswordOptional.orElse(null);
     }
-
-    //se la password in database e' NULL autorizzo
-    if (entes.size() == 1)
-      return true;
-
-    if (password == null) {
+    boolean equals = StringUtils.equals(StringUtils.stripToNull(password), StringUtils.stripToNull(entePassword));
+    if(!equals)
+      return false;
+    if(!checkPasswordStrength(StringUtils.stripToNull(password))) {
+      log.warn("password for ente [{}] is valid but not strong: rejected", codIpaEnte);
       return false;
     }
-
-    //altrimenti controllo che password in input corrisponda con password sul database
-    entes = enteDao.findByCodIpaEnteAndPassword(codIpaEnte, password);
-
-    if (entes.size() > 1) {
-      throw new DataIntegrityViolationException("mypivot.ente.enteDuplicato");
-    }
-    return !entes.isEmpty();
+    return true;
   }
 
   public Long callGetEnteTipoProgressivoFunction(String codIpaEnte, String tipoGeneratore, Date data) {
@@ -536,4 +550,49 @@ public class EnteService {
         throw new ValidatorException("CodTipoEnte è invalido");
     }
   }
+
+  //Mapper for EnteExtendeTo
+  public EnteExtedendTo mapEnteExtendeToByEnte(Ente ente) {
+	  return ente == null ? null : EnteExtedendTo.builder()
+			  .codiceFiscaleEnte(ente.getCodiceFiscaleEnte())
+		      .deNomeEnte(ente.getDeNomeEnte())
+		      .ibanAccrerdito(ente.getCodRpDatiVersDatiSingVersIbanAccredito())
+		      .indirizzoBeneficiario(ente.getDeRpEnteBenefIndirizzoBeneficiario())
+		      .civicoBeneficiario(ente.getDeRpEnteBenefCivicoBeneficiario())
+		      .capBeneficiario(ente.getCodRpEnteBenefCapBeneficiario())
+		      .nazioneBeneficiario(ente.getCodRpEnteBenefNazioneBeneficiario())
+		      .provicniaBeneficiario(ente.getDeRpEnteBenefProvinciaBeneficiario())
+		      .localitaBeneficiario(ente.getDeRpEnteBenefLocalitaBeneficiario())
+		      .build();
+  }
+
+  //SANP25-IMPORTFLUSSO
+  @LogExecution(enabled = LogExecution.ParamMode.OFF)
+  @Cacheable(value=CacheService.CACHE_NAME_ENTE, key=CacheService.CACHE_KEY_ENTE_ALL_IMPORT)
+  public List<Ente> getAllEntiImportFlusso() {
+    return enteDao.getAllEntiImportFlusso();
+  }
+
+  public boolean passwordStrengthEnabled(){
+    return StringUtils.isNotBlank(passwordEnteRegex);
+  }
+
+  private Pattern patternPasswordStrength = null;
+  public boolean checkPasswordStrength(String password){
+    if(!passwordStrengthEnabled())
+      return true;
+
+    if(patternPasswordStrength==null)
+      patternPasswordStrength = Pattern.compile(passwordEnteRegex);
+
+    return StringUtils.isNotBlank(password) && patternPasswordStrength.matcher(password).matches();
+  }
+
+  // IMPORT FLUSSI MASSIVI
+
+  public List<Ente> getEntiConDovutiDaSyncConPagoPA() {
+    return enteDao.getEntiConDovutiDaSyncConPagoPA();
+  }
+
+
 }

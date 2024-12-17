@@ -37,6 +37,13 @@ public interface OperatoreDao extends BaseDao {
   List<Operatore> getAllOperatoriByCodIpaEnte(String codIpaEnte);
 
   @SqlQuery(
+          "select "+ Operatore.ALIAS+ALL_FIELDS +
+                  " from mygov_operatore "+Operatore.ALIAS
+  )
+  @RegisterFieldMapper(Operatore.class)
+  List<Operatore> getAll();
+
+  @SqlQuery(
       "select "+ Operatore.ALIAS+ALL_FIELDS +
           " from mygov_operatore "+Operatore.ALIAS +
           " where "+Operatore.ALIAS+".cod_ipa_ente = :codIpaEnte" +

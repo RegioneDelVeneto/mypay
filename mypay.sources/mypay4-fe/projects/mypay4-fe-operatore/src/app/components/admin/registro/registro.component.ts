@@ -16,12 +16,12 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import {
-    MyPayBaseTableComponent
+  MyPayBaseTableComponent
 } from 'projects/mypay4-fe-common/src/lib/components/my-pay-table/my-pay-table.component';
 import { MapPipe, PaginatorData, TableColumn } from 'projects/mypay4-fe-common/src/public-api';
 
 import { DatePipe } from '@angular/common';
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -32,7 +32,7 @@ import { RegistroOperazione } from '../../../model/registro-operazione';
   templateUrl: './registro.component.html',
   styleUrls: ['./registro.component.scss']
 })
-export class RegistroComponent implements OnInit {
+export class RegistroComponent {
 
   iconTimes = faTimes;
   title: string;
@@ -58,9 +58,6 @@ export class RegistroComponent implements OnInit {
       new TableColumn('statoDa', 'Stato da', { pipe: MapPipe, pipeArgs: [mapValue]}) ,
       new TableColumn('statoA', 'Stato a', { pipe: MapPipe, pipeArgs: [mapValue]}) ,
     ];
-  }
-
-  ngOnInit(): void {
   }
 
 }

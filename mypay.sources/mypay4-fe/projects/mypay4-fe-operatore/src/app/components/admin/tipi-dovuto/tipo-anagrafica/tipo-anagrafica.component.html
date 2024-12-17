@@ -76,7 +76,7 @@
           <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="10px">
             <mat-form-field fxFlex="100%" fxFlex.gt-sm="20%" appearance="{{'appearance'|global}}">
               <mat-label>Codice IPA</mat-label>
-              <input matInput readonly required value="{{ ente?.codIpaEnte }}">
+              <input matInput disabled required value="{{ ente?.codIpaEnte }}">
             </mat-form-field>
           </div>
 
@@ -200,16 +200,16 @@
               <div fxFlex.gt-sm="10%"></div>
 
               <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
-                <mat-checkbox [class.mat-checkbox-disabled]="!flgScadenzaObbligatoriaEnable || modeAnag=='view' || formAnag.get('spontaneo').value"
-                    formControlName="flgScadenzaObbligatoria" name="flgScadenzaObbligatoria" (change)="flgScadenzaObbligatoriaOnChange($event.checked, alertTemplateRef)">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view' || flagHasDovutoNoScadenza || formAnag.get('spontaneo').value"
+                    formControlName="flgScadenzaObbligatoria" name="flgScadenzaObbligatoria" (change)="flgScadenzaObbligatoriaOnChange($event.checked)" (click)="checkIfFlagHasDovutoNoScadenza(alertTemplateRef)">
                   Flag Data Scadenza Obbligatoria
                 </mat-checkbox>
                 <my-pay-help-field [template]="helpFlagScadenzaObbligatoria"></my-pay-help-field>
               </div>
 
               <div fxFlex="100%" fxFlex.gt-sm="25%" class="mat-checkbox-flg">
-                <mat-checkbox [class.mat-checkbox-disabled]="!flgScadenzaObbligatoriaEnable || modeAnag=='view' || formAnag.get('spontaneo').value || formAnag.get('flgScadenzaObbligatoria').value"
-                    formControlName="flgStampaDataScadenza" name="flgStampaDataScadenza">
+                <mat-checkbox [class.mat-checkbox-disabled]="modeAnag=='view' || flagHasDovutoNoScadenza || formAnag.get('spontaneo').value || formAnag.get('flgScadenzaObbligatoria').value"
+                    formControlName="flgStampaDataScadenza" name="flgStampaDataScadenza" (click)="checkIfFlagHasDovutoNoScadenza(alertTemplateRef)">
                   Flag Visualizza Data Scadenza
                 </mat-checkbox>
               </div>
@@ -326,6 +326,43 @@
                     <mat-label>Secret key</mat-label>
                     <input matInput [readonly]="modeAnag=='view'" [required]="formAnag.get('flgJwtAttivo').value" formControlName="codServiceAccountJwtUscitaSecretKey" placeholder="Inserire un testo">
                     <mat-error *ngIf="formAnagErrors['codServiceAccountJwtUscitaSecretKey']">{{ formAnagErrors.codServiceAccountJwtUscitaSecretKey }}</mat-error>
+                  </mat-form-field>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+
+            <mat-accordion>
+              <mat-expansion-panel class="mb-3">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>Configurazione attualizzazione importo</mat-panel-title>
+                  <mat-panel-description>Clicca per modificare la configurazione</mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="20px">
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}">
+                    <mat-label>User attualizzazione importo</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" formControlName="userPnd" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['userPnd']">{{ formAnagErrors.userPnd }}</mat-error>
+                  </mat-form-field>
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="40%" appearance="{{'appearance'|global}}">
+                    <mat-label>Password attualizzazione importo</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" formControlName="pswPnd" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['pswPnd']">{{ formAnagErrors.pswPnd }}</mat-error>
+                  </mat-form-field>
+                </div>
+    
+                <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}">
+                    <mat-label>Url Notifica Autenticazione</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" formControlName="urlNotificaPnd" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['urlNotificaPnd']">{{ formAnagErrors.urlNotificaPnd }}</mat-error>
+                  </mat-form-field>
+                </div>
+                <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+                  <mat-form-field fxFlex="100%" fxFlex.gt-sm="70%" appearance="{{'appearance'|global}}">
+                    <mat-label>Url Notifica Attualizzazione</mat-label>
+                    <input matInput [readonly]="modeAnag=='view'" formControlName="urlNotificaAttualizzazionePnd" placeholder="Inserire un testo">
+                    <mat-error *ngIf="formAnagErrors['urlNotificaAttualizzazionePnd']">{{ formAnagErrors.urlNotificaAttualizzazionePnd }}</mat-error>
                   </mat-form-field>
                 </div>
               </mat-expansion-panel>

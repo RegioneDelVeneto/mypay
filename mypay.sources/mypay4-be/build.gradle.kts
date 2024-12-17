@@ -15,17 +15,23 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import com.google.common.base.MoreObjects
+
 plugins {
   java
   id("org.springframework.boot") version "2.6.6"
-  id("io.freefair.lombok") version "6.3.0"
+  id("io.freefair.lombok") version "8.4"
   // https://github.com/ben-manes/gradle-versions-plugin
   // plugin that provides a task to determine which dependencies have updates
-  id("com.github.ben-manes.versions") version "0.41.0"
+  id("com.github.ben-manes.versions") version "0.44.0"
   //code generation for soap webservices classes (via jaxb)
-  id("com.intershop.gradle.jaxb") version "5.1.0"
+  id("com.intershop.gradle.jaxb") version "5.2.1"
   //version file
-  id("com.palantir.git-version") version "0.12.3"
+  id("com.palantir.git-version") version "0.15.0"
+  //semantic versioning
+  id("com.glovoapp.semantic-versioning") version "1.1.10"
+  //SonarQube
+  id("org.sonarqube") version "4.0.0.2929"
 }
 
 val xmlAdapterJarName = "${project.name}-XmlAdapter.jar"
@@ -38,8 +44,21 @@ task("xmlAdapterJar", type = Jar::class) {
   destinationDirectory.set(file("libs"))
 }
 
+task("dependencyList") {
+  doLast{
+    configurations.forEach { configuration ->
+      if(configuration.isCanBeResolved && (configuration.name.contains("runtime") || configuration.name.contains("compile")) ){
+        val artifacts = configuration.resolvedConfiguration.resolvedArtifacts
+        println("\n\n================Configuration "+configuration.name+" (total files: "+artifacts.size+")================\n")
+        artifacts.map{ f -> f.id.componentIdentifier.toString() + " ["+f.file.name+"]" }
+          .sorted().forEach { f -> println(f) }
+      }
+    }
+  }
+}
+
 //lombok configuration
-lombok.version.set("1.18.22")
+//lombok.version.set("1.18.22")
 
 //check if we are using a "local developer" profile
 val isLocalDevProfile = System.getenv().containsKey("spring.profiles.active")
@@ -60,6 +79,16 @@ tasks {
     dependsOn( "jaxbSchemaGenMyPay")
   }
   bootJar {
+    val appendix = archiveAppendix.orNull
+    val version = archiveVersion.orNull
+    // remove version from archive JAR filename in order to keep it constant and ease CI/CD pipeline
+    val jarFilename = archiveBaseName.get() +
+       (if (appendix.isNullOrBlank()) "" else "-$appendix") +
+//       (if (version.isNullOrBlank()) "" else "-$version") +
+       "."+archiveExtension.get()
+    println("jar filename: $jarFilename")
+    println("jar version: $version")
+    archiveFileName.set(jarFilename)
     launchScript()
   }
   bootRun {
@@ -75,7 +104,6 @@ tasks {
 apply(plugin = "io.spring.dependency-management")
 
 group = "it.regioneveneto.mypay4"
-version = "1.0-SNAPSHOT"
 
 repositories {
   mavenCentral()
@@ -106,6 +134,7 @@ dependencies {
   //spring boot version: see plugin section above
   //lombok: see plugin section above
   val commonsCodecVersion = "1.15"
+  val commonsCompressVersion = "1.23.0"
   val commonsLang3Version = "3.12.0"
   val commonsTextVersion = "1.9"
   val gsonVersion="2.8.9"
@@ -117,6 +146,7 @@ dependencies {
   val jjwtVersion = "0.11.2"
   val jodaVersion = "2.10.13"
   val jsoupVersion = "1.14.3"
+  val openCsvVersion = "5.7.1"
   val postgresJdbcVersion = "42.3.1"
   val rhinoScriptVersion="1.7.14"
   val springdocVersion = "1.6.4"
@@ -161,8 +191,10 @@ dependencies {
   implementation("joda-time:joda-time:$jodaVersion")
 
   //apache commons
+  implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
   implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
   implementation("org.apache.commons:commons-text:$commonsTextVersion")
+  implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
 
   //apache xmlbeans
   implementation("org.apache.xmlbeans:xmlbeans:$xmlbeansVersion")
@@ -181,6 +213,9 @@ dependencies {
 
   //h2 database (just demo)
   implementation("com.h2database:h2")
+
+  //openCsv
+  implementation("com.opencsv:opencsv:$openCsvVersion")
 
   //postgres jdbc
   implementation("org.postgresql:postgresql:$postgresJdbcVersion")
@@ -229,6 +264,8 @@ dependencies {
   jaxb("javax.activation:activation:$activationVersion")
   // see remarks on source file TrimStringXmlAdapter.java
   jaxbext(files("libs/$xmlAdapterJarName"))
+  jaxbext("org.jvnet.jaxb2_commons:jaxb2-basics-annotate:1.1.0")
+  jaxbext("org.slf4j:slf4j-simple:1.7.9") // see https://github.com/IntershopCommunicationsAG/jaxb-gradle-plugin/issues/37
 //  implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 //  implementation("jakarta.activation:jakarta.activation-api:$activationVersion")
 //  implementation("org.glassfish.jaxb:jaxb-runtime:$jaxbVersion")
@@ -261,7 +298,7 @@ springBoot {
       additional = mapOf<String, Any>(
         "gitHash" to details.gitHash,
         "gitHashFull" to details.gitHashFull,
-        "branchName" to details.branchName,
+        "branchName" to MoreObjects.firstNonNull(details.branchName, ""),
         "lastTag" to details.lastTag,
         "commitDistance" to details.commitDistance,
         "isCleanTag" to details.isCleanTag
@@ -281,18 +318,6 @@ jaxb {
       outputDir = file(project.buildDir.name+"/generated/jaxb/java")
       schema = file("src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc.wsdl")
       bindings = layout.files("src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc.xjb")
-    }
-    register("fespSpcPsp") {
-      args = listOf("-wsdl")
-      outputDir = file(project.buildDir.name+"/generated/jaxb/java")
-      schema = file("src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc-pagamento-presso-psp.wsdl")
-      bindings = layout.files("src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc-pagamento-presso-psp.xjb")
-    }
-    register("fespSpcAvvisi") {
-      args = listOf("-wsdl")
-      outputDir = file(project.buildDir.name+"/generated/jaxb/java")
-      schema = file("src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc-richiesta-avvisi.wsdl")
-      bindings = layout.files("src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc-richiesta-avvisi.xjb")
     }
     register("fespPa") {
       args = listOf("-wsdl")
@@ -358,10 +383,18 @@ jaxb {
 
     // WSDL of PagoPA for SANP 2.5.x
     register("fespSpcPspSanp25") {
-      args = listOf("-wsdl")
+      extension = true
+      args = listOf("-wsdl","-Xannotate")
       outputDir = file(project.buildDir.name+"/generated/jaxb/java")
       schema = file("src/main/resources/wsdl/fesp/paForNode.wsdl")
       bindings = layout.files("src/main/resources/wsdl/fesp/paForNode.xjb")
+    }
+
+    register("paMycs") {
+      args = listOf("-wsdl")
+      outputDir = file(project.buildDir.name+"/generated/jaxb/java")
+      schema = file("src/main/resources/wsdl/pa/pa-per-mycs.wsdl")
+      bindings = layout.files("src/main/resources/wsdl/pa/pa-per-mycs.xjb")
     }
   }
 
@@ -389,14 +422,13 @@ jaxb {
     dependsOn("jaxbJavaGenFespPa")
     dependsOn("jaxbJavaGenFespPaAvvisiDigitali")
     dependsOn("jaxbJavaGenFespSpc")
-    dependsOn("jaxbJavaGenFespSpcAvvisi")
     dependsOn("jaxbJavaGenFespSpcAvvisiDigitali")
-    dependsOn("jaxbJavaGenFespSpcPsp")
     dependsOn("jaxbJavaGenFespSpcPspSanp25")
     dependsOn("jaxbJavaGenPaEnte")
     dependsOn("jaxbJavaGenPaFesp")
     dependsOn("jaxbJavaGenPaFespPsp")
     dependsOn("jaxbJavaGenPaPivot")
     dependsOn("jaxbJavaGenSpcFesp")
+    dependsOn("jaxbJavaGenPaMycs")
   }
 }

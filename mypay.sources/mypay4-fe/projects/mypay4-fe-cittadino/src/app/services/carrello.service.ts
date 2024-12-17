@@ -18,19 +18,22 @@
 
 
 import {
-    LocalStorageService
+  LocalStorageService
 } from 'projects/mypay4-fe-common/src/lib/services/local-storage.service';
 import {
-    ApiInvokerService, BaseUrlService, ConfigurationService, WithActions
+  ApiInvokerService, BaseUrlService, ConfigurationService, WithActions
 } from 'projects/mypay4-fe-common/src/public-api';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+import { Attualizzazione } from '../model/altri-interface';
 import { Carrello } from '../model/carrello';
 import { Esito } from '../model/esito';
 import { ItemCarrello } from '../model/item-carrello';
+import { Person } from '../model/person';
+import { Spontaneo } from '../model/spontaneo';
 import { EnteService } from './ente.service';
 
 @Injectable({
@@ -38,8 +41,16 @@ import { EnteService } from './ente.service';
 })
 export class CarrelloService {
 
+  private modelloUnico: boolean;
   private content: ItemCarrello[];
   private contentObs: Subject<ItemCarrello[]>;
+  private _preloaded: {
+    versante?:Person,
+    idSession?:string,
+    backUrl?:string,
+    tipoCarrello?:string,
+    dovutiEntiSecondari?:any
+  } = {};
 
   constructor(
     private apiInvokerService: ApiInvokerService,
@@ -50,10 +61,15 @@ export class CarrelloService {
   ) {
     if(this.conf.getProperty<boolean>('localPersistCarrello'))
       this.content = this.localStorageService.get('carrello');
+    this.modelloUnico = conf.getBackendProperty<boolean>('modelloUnico', false);
     this.content = this.content || [];
     this.content.forEach(item => this.updateLogoEnte(item));
     this.content.forEach(element => WithActions.reset(element));
     this.contentObs = new BehaviorSubject<ItemCarrello[]>(this.content);
+  }
+
+  public get preloaded(){
+    return this._preloaded;
   }
 
   public canAdd(itemCarrello: ItemCarrello):boolean {
@@ -62,6 +78,14 @@ export class CarrelloService {
 
   public contains(itemCarrello: ItemCarrello):boolean {
     return itemCarrello.id && this.content.findIndex(elem => elem.id === itemCarrello.id)>=0;
+  }
+
+  public containsMB(): boolean {
+    return this.content.some(el => el.multibeneficiario === true);
+  }
+
+  public cantAddMB(itemCarrello: ItemCarrello):boolean {
+    return this.content.length >= 1 && itemCarrello.multibeneficiario;
   }
 
   public updateState(itemCarrello: ItemCarrello):void {
@@ -94,16 +118,25 @@ export class CarrelloService {
     this.contentObs.next(this.content);
   }
 
+  public static isEsternoAnonimo(tipoCarrello: string): boolean {
+    return ["ESTERNO_ANONIMO", "ESTERNO_ANONIMO_MULTIENTE"].includes(tipoCarrello);
+  }
 
-  private checkAddError(itemCarrello: ItemCarrello){
-    let error:string;
-    if(ItemCarrello.isDebito(itemCarrello) && (!itemCarrello?.id || itemCarrello['codStato'] !== 'INSERIMENTO_DOVUTO') )
+
+  private checkAddError(itemCarrello: ItemCarrello) {
+    let error: string;
+    if(CarrelloService.isEsternoAnonimo(this._preloaded?.tipoCarrello))
+      error = 'Non è possibile aggiungere altri dovuti a questa tipologia di carrello, si prega di procedere al pagamento';
+    else if(ItemCarrello.isDebito(itemCarrello) && (!itemCarrello?.id || itemCarrello['codStato'] !== 'INSERIMENTO_DOVUTO') )
       error = 'Elemento non valido';
-    else if (this.content.length>=5)
-      error = 'Non è possibile aggiungere più di 5 elementi al carello';
-    else if(this.contains(itemCarrello))
-      error ='Elemento già presente nel carello';
-
+    else if (this.content.length >= 5)
+      error = 'Non è possibile aggiungere più di 5 elementi al carello.';
+    else if (!this.modelloUnico && this.containsMB())
+      error = 'Non è possibile aggiungere più di un elemento al carrello, è già presente un dovuto multibeneficiario.'
+    else if (!this.modelloUnico && this.cantAddMB(itemCarrello))
+      error = 'Non è possibile aggiungere il dovuto multibeneficiario al carrello.'
+    else if (this.contains(itemCarrello))
+      error = 'Elemento già presente nel carello.';
     return error;
   }
 
@@ -142,6 +175,7 @@ export class CarrelloService {
   }
 
   public empty(){
+    this._preloaded = {};
     this.content.length = 0;
     this.contentObs.next(this.content);
     if(this.conf.getProperty<boolean>('localPersistCarrello'))
@@ -165,5 +199,28 @@ export class CarrelloService {
     if(overrideReplicaPaymentCheck)
       params = params.append('overrideCheckReplicaPayments','ok');
     return this.apiInvokerService.post<Esito>(targetUrl, basket, {params:params});
+  }
+  processSpontaneoExternalAppAnonymous(spontaneo: Spontaneo, extAppToken: string, overrideReplicaPaymentCheck: boolean = false, recaptchaResponse?: any): Observable<Esito> {
+    const targetUrl = this.baseUrlService.getPubCittadinoUrl() +  'carrello/checkoutExtApp/' + extAppToken;
+    let params = new HttpParams().append('recaptcha', recaptchaResponse);
+    if(overrideReplicaPaymentCheck)
+      params = params.append('overrideCheckReplicaPayments','ok');
+    return this.apiInvokerService.post<Esito>(targetUrl, spontaneo, {params:params});
+  }
+
+  updateBasketPnd(codIpaEnte: string, codTipoDovuto: string, codIuv: string): Observable<Attualizzazione> {
+    let params = new HttpParams();
+    params = params.append('codIpaEnte', codIpaEnte);
+    params = params.append('codTipoDovuto', codTipoDovuto);
+    params = params.append('codIuv', codIuv);
+    return this.apiInvokerService.get<Attualizzazione>(this.baseUrlService.getCittadinoUrl() + 'carrello/update', { params: params });
+  }
+  updateBasketPndAnonymous(codIpaEnte: string, codTipoDovuto: string, codIuv: string, recaptchaResponse?: any): Observable<Attualizzazione> {
+    let params = new HttpParams();
+    params = params.append('codIpaEnte', codIpaEnte);
+    params = params.append('codTipoDovuto', codTipoDovuto);
+    params = params.append('codIuv', codIuv);
+    params = params.append('recaptcha', recaptchaResponse);
+    return this.apiInvokerService.get<Attualizzazione>(this.baseUrlService.getPubCittadinoUrl() + 'carrello/update', { params: params });
   }
 }

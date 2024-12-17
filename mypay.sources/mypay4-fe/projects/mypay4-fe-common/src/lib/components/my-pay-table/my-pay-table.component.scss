@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 .mat-table {
-  table-layout:fixed;
+  table-layout: fixed;
   width:100%;
   word-break:break-word;
 }
@@ -66,11 +66,6 @@ tr.mypay4-element-row:not(.mypay4-expanded-row):active {
 
 .button-row{
   position: relative;
-}
-
-.floating-buttons{
-  padding-left: 15px;
-  padding: 5px 10px;
 }
 
 .float-button-container{
@@ -140,7 +135,7 @@ $responsiveTableTreshold: 768px;
 
     .mat-row {
       height: auto;
-
+      
       td.mat-cell:not(.mat-column-actions) {
         display: grid;
         grid-template-columns: 50% 50%;
@@ -332,4 +327,8 @@ tr.mat-footer-row {
 
 .mat-table-sticky {
   border-top: 1px solid #e0e0e0;
+}
+
+.multibeneficiario-icon{
+  text-align: center;
 }

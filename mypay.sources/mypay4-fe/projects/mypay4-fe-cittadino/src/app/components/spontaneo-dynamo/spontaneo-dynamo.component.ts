@@ -19,22 +19,29 @@ import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import { ToastrService } from 'ngx-toastr';
 import {
-    ContentEditingPropertyComponent, controlToUppercase, DynamicFunctionUtils, Ente, FieldBean,
-    formettedAmountToNumberString, manageError, numberToFormattedAmount, OverlaySpinnerService,
-    PATTERNS, TipoDovuto, UserService, validateFormFun
+  ContentEditingPropertyComponent, controlToUppercase, DynamicFunctionUtils, Ente, FieldBean,
+  formettedAmountToNumberString, manageError, numberToFormattedAmount, OverlaySpinnerService,
+  PATTERNS, ProcessHTTPMsgService, TipoDovuto, UserService, validateFormFun
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Subscription } from 'rxjs';
-import { flatMap } from 'rxjs/operators';
 
 import {
-    Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, SimpleChange
+  Component, ElementRef, EventEmitter, Input, OnDestroy,
+  OnInit,
+  Output, SimpleChange
 } from '@angular/core';
 import {
-    AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators
+  AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators
 } from '@angular/forms';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
 import { Router } from '@angular/router';
 
+import { CurrencyPipe } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
+import { first } from 'rxjs/operators';
+import { Esito } from '../../model/esito';
+import { ExtAppSpontaneousPayment } from '../../model/ext-app';
 import { Person } from '../../model/person';
 import { Spontaneo } from '../../model/spontaneo';
 import { DefinitionDovuto, SpontaneoForm } from '../../model/spontaneo-form';
@@ -61,9 +68,13 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
     private elementRef: ElementRef,
     private router: Router,
     private formBuilder: FormBuilder,
+    private dialog: MatDialog,
+    private currencyPipe: CurrencyPipe,
   ) { }
 
   ngOnInit(): void {
+    this.extAppFlow = !_.isNil(this.extAppSpontaneousPayment);
+    this.disablePayButton = false;
   }
 
   ngOnDestroy(){
@@ -73,7 +84,9 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
     this.formChangesSub?.unsubscribe();
   }
 
+  extAppFlow: boolean = false;
   addedToCart: boolean = false;
+  disablePayButton: boolean = false;
 
   cfAnonimoSelected = false;
   cfAnonimoDisabled = false;
@@ -114,6 +127,9 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
 
   @Input()
   public fieldBeans: Array<FieldBean>;
+
+  @Input()
+  private extAppSpontaneousPayment: ExtAppSpontaneousPayment;
 
   private codiceIdentificativoUnivocoDetails: {[key:string]:{'label':string, 'validators':ValidatorFn[]}};
 
@@ -215,7 +231,17 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
   }
 
   onReload(): void {
-    this.reloadEmitter.emit();
+    if(this.extAppFlow){
+      // navigate to callback url
+      const redirectUrl = new URL(this.extAppSpontaneousPayment.callbackUrl);
+      redirectUrl.searchParams.append('esito', 'ANN');
+      setTimeout(() => {
+        console.log('redirecting to url: '+redirectUrl);
+        window.location.href = redirectUrl.toString();
+      }, 100);
+    } else {
+      this.reloadEmitter.emit();
+    }
   }
 
   onReset(): void {
@@ -276,10 +302,13 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
       let group: {[key: string]:FormControl} = {};
       this.buildFormGroup(this.contentTypeSchemaItems, group);
       if (!this.totalIncluded) {
-        group['totalImporto'] = new FormControl(numberToFormattedAmount(this.importoPrefissato), [Validators.required, Validators.pattern(PATTERNS.importoNonZero)]);
+        const validatorsImporto = [Validators.required];
+        if(this.importoPrefissato == null)
+          validatorsImporto.push(Validators.pattern(PATTERNS.importoNonZero));
+        group['totalImporto'] = new FormControl(numberToFormattedAmount(this.importoPrefissato), validatorsImporto);
       }
 
-      group['sys_intestatario_anagrafica']=new FormControl(this.userService.getLoggedUserString(), [Validators.required,,Validators.maxLength(70)]);
+      group['sys_intestatario_anagrafica']=new FormControl(this.userService.getLoggedUserString(), [Validators.required,Validators.maxLength(70)]);
       group['sys_intestatario_tipoSoggetto']=new FormControl('F', [Validators.required, Validators.pattern(PATTERNS.tipoSoggetto)]);
       group['sys_intestatario_codiceIdentificativoUnivoco']=new FormControl(
         this.userService.getLoggedUser()?.codiceFiscale,
@@ -439,7 +468,8 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
       (<FormArray>this.form.controls[item.name]).removeAt(index);
   }
 
-  addToCarrello() {
+  addToCarrello(overrideReplicaPaymentCheck: boolean = false) {
+    this.disablePayButton = true;
     const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
     const spontaneoForm = new SpontaneoForm();
     spontaneoForm.fieldBeans = this.fieldBeans;
@@ -461,31 +491,81 @@ export class SpontaneoDynamoComponent implements OnInit, OnDestroy {
       spontaneoForm.intestatario.civico = loggedUser.civico;
     }
 
-    let validateFormFun;
-    if(this.userService.isLogged())
-      validateFormFun = this.spontaneoService.validateForm(this.currentEnte, this.currentTipoDovuto, spontaneoForm);
-    else
-    validateFormFun = this.recaptchaService.submitToken('validateForm').pipe(
-        flatMap(token => this.spontaneoService.validateFormAnonymous(this.currentEnte, this.currentTipoDovuto, spontaneoForm, token))
-      );
-
-    this.validateFormSub = validateFormFun.subscribe( (spontaneo:Spontaneo) => {
-      let addError = spontaneo.errorMsg;
-      if (addError) {
-        this.toastrService.error(addError, 'Errore aggiungendo al carrello',{disableTimeOut: true});
+    const errorTitle = this.extAppFlow ? 'Errore validazione dovuto' : 'Errore aggiungendo al carrello';
+    this.recaptchaService.submitWithRecaptchaHandling<Spontaneo>('validateForm', 
+      recaptchaToken => this.spontaneoService.validateFormAnonymous(this.currentEnte, this.currentTipoDovuto, spontaneoForm, recaptchaToken),
+      () => this.spontaneoService.validateForm(this.currentEnte, this.currentTipoDovuto, spontaneoForm)
+    ).subscribe( spontaneo => {
+      if (spontaneo.errorMsg) {
+        this.toastrService.error(spontaneo.errorMsg, errorTitle, {disableTimeOut: true});
       } else {
-        //Case: No error in validateForm;
-        Spontaneo.setDetails(spontaneo);
-        const addError = this.carrelloService.add(spontaneo);
-        if (addError)
-          this.toastrService.error(addError, 'Errore aggiungendo al carrello',{disableTimeOut: true});
-        else {
-          this.toastrService.info('Elemento aggiunto al carrello');
-          this.addedToCart = true;
+        //start payment (bypass carrello)
+        if(this.extAppFlow){
+          const msg = "Confermi di voler procedere con il pagamento di "+this.currencyPipe.transform(spontaneo.importo,'EUR')+" ?"
+          this.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
+          .afterClosed().pipe(first()).subscribe(result => {
+            if(result==="true")
+              this.payExternalApp(spontaneo);
+            else
+              this.disablePayButton = false;
+          });
+        } else {
+          //Case: No error in validateForm;
+          Spontaneo.setDetails(spontaneo);
+          const addError = this.carrelloService.add(spontaneo);
+          if (addError)
+            this.toastrService.error(addError, errorTitle, {disableTimeOut: true});
+          else {
+            this.toastrService.info('Elemento aggiunto al carrello');
+            this.addedToCart = true;
+          }
         }
       }
       this.overlaySpinnerService.detach(spinner);
-    }, manageError('Errore aggiungendo al carrello', this.toastrService, () => {this.overlaySpinnerService.detach(spinner)}));
+      this.disablePayButton = false;
+    }, manageError(errorTitle, this.toastrService, () => {this.overlaySpinnerService.detach(spinner); this.disablePayButton = false;}));
+  }
+
+  private payExternalApp(spontaneo: Spontaneo, overrideReplicaPaymentCheck: boolean = false){
+    this.disablePayButton = true;
+    const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
+    this.recaptchaService.submitWithRecaptchaHandling<Esito>('checkoutExtApp', 
+    recaptchaToken => this.carrelloService.processSpontaneoExternalAppAnonymous(spontaneo, this.extAppSpontaneousPayment.token, overrideReplicaPaymentCheck, recaptchaToken)).subscribe( data => {
+      if(data.esito === 'OK'){
+        this.overlaySpinnerService.detach(spinner);
+        console.log('redirecting to pagopa url:', data.url);
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 1000);
+      } else if(data.esito === 'KO_REPLICA'){
+        this.overlaySpinnerService.detach(spinner);
+        let msg:string;
+        if(data.returnMsg === 'REPLICA_DOVUTO')
+          msg = 'ATTENZIONE: hai un altro pagamento con la stessa causale in attesa dell\'esito.';
+        else
+          msg = 'ATTENZIONE: hai già eseguito un pagamento con la stessa causale nelle ultime 24 ore.';
+        msg += '\nConfermi di voler procedere con il pagamento?';
+        this.dialog.open(ConfirmDialogComponent,{autoFocus:false, data: {message: msg}})
+        .afterClosed().pipe(first()).subscribe(result => {
+          if(result==="true")
+            this.payExternalApp(spontaneo, true);
+          else
+            this.disablePayButton = false;
+        });
+      } else if(data.esito === 'KO_MANAGED'){
+        manageError("Errore nell'invio della richiesta di pagamento",
+          this.toastrService, () => {this.overlaySpinnerService.detach(spinner)})
+        (ProcessHTTPMsgService.trimMessage(data.returnMsg));
+        this.disablePayButton = false;
+      } else {
+        manageError("Errore nell'invio della richiesta di pagamento",
+          this.toastrService, () => {this.overlaySpinnerService.detach(spinner)})
+        (ProcessHTTPMsgService.trimMessage("Errore di sistema: ", data.returnMsg, data.errorUid));
+        this.disablePayButton = false;
+      }
+
+    }, manageError("Errore nell'invio della richiesta di pagamento", this.toastrService, () => {this.overlaySpinnerService.detach(spinner); this.disablePayButton=false;}) );
+    return;
   }
 
   private _getDefinzioniDovuto(obj: any, def: Array<DefinitionDovuto> = new Array()): Array<DefinitionDovuto> {

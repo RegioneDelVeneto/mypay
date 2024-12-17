@@ -48,7 +48,10 @@ testem.log
 .DS_Store
 Thumbs.db
 
-changelist.md
+/changelist.md
+
+/sonar-project.properties
+/.scannerwork
 
 #managed with: git update-index --skip-worktree <filename>
 #/projects/mypay4-fe-operatore/src/assets/conf/environment.json

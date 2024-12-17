@@ -15,17 +15,19 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { ElementRef, Injectable } from '@angular/core';
-import { ComponentPortal, ComponentType } from '@angular/cdk/portal';
-import { timer, Subscription } from 'rxjs';
-import { OverlaySpinnerContainerComponent } from './overlay-spinner-container.component';
-import { DynamicOverlay } from './dynamic-overlay.service';
 import { OverlayRef } from '@angular/cdk/overlay';
+import { ComponentPortal, ComponentType } from '@angular/cdk/portal';
+import { ElementRef, Injectable } from '@angular/core';
+import { Subscription, timer } from 'rxjs';
+import { DynamicOverlay } from './dynamic-overlay.service';
+import { OverlaySpinnerContainerComponent } from './overlay-spinner-container.component';
 
 @Injectable()
 export class OverlaySpinnerService {
 
-  constructor(private dynamicOverlay: DynamicOverlay) { }
+  constructor(private dynamicOverlay: DynamicOverlay) {
+    //This is intentionally empty
+   }
 
   public showProgress<T>(elRef: ElementRef, component: ComponentType<T> = null) {
     if (elRef) {

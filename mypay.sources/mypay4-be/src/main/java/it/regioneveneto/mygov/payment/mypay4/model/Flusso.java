@@ -34,8 +34,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovFlussoId")
 public class Flusso extends BaseEntity {
 
-  public final static String ALIAS = "Flusso";
-  public final static String FIELDS = ""+ALIAS+".mygov_flusso_id as Flusso_mygovFlussoId,"+ALIAS+".version as Flusso_version"+
+  public static final String ALIAS = "Flusso";
+  public static final String FIELDS = ""+ALIAS+".mygov_flusso_id as Flusso_mygovFlussoId,"+ALIAS+".version as Flusso_version"+
       ","+ALIAS+".mygov_ente_id as Flusso_mygovEnteId,"+ALIAS+".mygov_anagrafica_stato_id as Flusso_mygovAnagraficaStatoId"+
       ","+ALIAS+".iuf as Flusso_iuf,"+ALIAS+".num_righe_totali as Flusso_numRigheTotali"+
       ","+ALIAS+".num_righe_importate_correttamente as Flusso_numRigheImportateCorrettamente"+

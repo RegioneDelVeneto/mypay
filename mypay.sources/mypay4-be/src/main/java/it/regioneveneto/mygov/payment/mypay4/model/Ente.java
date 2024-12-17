@@ -36,9 +36,9 @@ import java.time.LocalDate;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovEnteId")
 public class Ente extends BaseEntity {
 
-  public final static String TABLE = "pa.mygov_ente";
-  public final static String ALIAS = "Ente";
-  public final static String FIELDS_WITHOUT_LOGO = ""+ALIAS+".mygov_ente_id as Ente_mygovEnteId,"+ALIAS+".cod_ipa_ente as Ente_codIpaEnte"+
+  public static final String TABLE = "pa.mygov_ente";
+  public static final String ALIAS = "Ente";
+  public static final String FIELDS_WITHOUT_LOGO = ""+ALIAS+".mygov_ente_id as Ente_mygovEnteId,"+ALIAS+".cod_ipa_ente as Ente_codIpaEnte"+
     ","+ALIAS+".codice_fiscale_ente as Ente_codiceFiscaleEnte,"+ALIAS+".de_nome_ente as Ente_deNomeEnte"+
     ","+ALIAS+".email_amministratore as Ente_emailAmministratore,"+ALIAS+".dt_creazione as Ente_dtCreazione"+
     ","+ALIAS+".dt_ultima_modifica as Ente_dtUltimaModifica"+
@@ -69,7 +69,7 @@ public class Ente extends BaseEntity {
     ","+ALIAS+".de_url_esterni_attiva as Ente_deUrlEsterniAttiva,"+ALIAS+".lingua_aggiuntiva as Ente_linguaAggiuntiva"+
     ","+ALIAS+".cod_tipo_ente as Ente_codTipoEnte"+
     ","+ALIAS+".dt_avvio as Ente_dtAvvio";
-  public final static String FIELDS = FIELDS_WITHOUT_LOGO+
+  public static final String FIELDS = FIELDS_WITHOUT_LOGO+
     ","+ALIAS+".de_logo_ente as Ente_deLogoEnte";
 
   private Long mygovEnteId;

@@ -603,7 +603,7 @@ public class AsynchAvvisiDigitaliService {
                          */
                         if(avvisoDigitaleEsistente.getMygovAnagraficaStatoId().getCodStato().equals(Constants.AVVISO_DIGITALE_WS_STATO_RICEVUTO_ESITO)
                             && avvisoDigitaleEsistente.getMygovAnagraficaStatoId().getDeTipoStato().equals(Constants.AVVISO_DIGITALE_WS_TIPO_STATO)
-                            && !avvisoDigitaleEsistente.getTipoOperazione().equalsIgnoreCase(StTipoOperazione.D.value())){
+                            && avvisoDigitaleEsistente.getTipoOperazione().equalsIgnoreCase(StTipoOperazione.D.value())){
 
                           avvisoDigitaleService.updateAnagraficaStatoDiUnAvvisoDigitaleEsistente(avvisoDigitaleEsistente.getMygovAvvisoDigitaleId(), Constants.AVVISO_DIGITALE_WS_STATO_ANNULLATO, Constants.AVVISO_DIGITALE_WS_TIPO_STATO);
 
@@ -866,7 +866,7 @@ public class AsynchAvvisiDigitaliService {
    * @author Marianna Memoli
    */
   @Transactional(propagation = Propagation.REQUIRED)
-  private void sendAvvisoDigitale(final Long idAvviso, String idDominio) {
+  public void sendAvvisoDigitale(final Long idAvviso, String idDominio) {
     log.info("Call async service 'sendAvvisoDigitale'  ... START");
 
     AvvisoDigitale avvisoDigitale = avvisoDigitaleService.getById(idAvviso);

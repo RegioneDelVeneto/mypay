@@ -20,12 +20,15 @@ package it.regioneveneto.mygov.payment.mypay4.service;
 import it.regioneveneto.mygov.payment.mypay4.dto.AnagraficaPagatore;
 import it.regioneveneto.mygov.payment.mypay4.exception.NotFoundException;
 import it.regioneveneto.mygov.payment.mypay4.exception.PaymentOrderException;
+import it.regioneveneto.mygov.payment.mypay4.exception.RollbackException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
 import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
+import it.regioneveneto.mygov.payment.mypay4.service.fesp.NodoPagamentiTelematiciRPTService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciRP;
+import it.regioneveneto.mygov.payment.mypay4.ws.util.EnumUtils;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.*;
 import it.veneto.regione.pagamenti.pa.PaaTipoDatiPagamentoPA;
@@ -34,7 +37,6 @@ import it.veneto.regione.schemas._2012.pagamenti.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -42,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static it.regioneveneto.mygov.payment.mypay4.ws.util.FaultCodeConstants.PAA_SYSTEM_ERROR;
@@ -59,8 +60,6 @@ public class PaymentService {
   @Autowired
   JAXBTransformService jaxbTransformService;
   @Autowired
-  GiornaleService giornaleService;
-  @Autowired
   AnagraficaSoggettoService anagraficaSoggettoService;
   @Autowired
   CarrelloService carrelloService;
@@ -74,17 +73,6 @@ public class PaymentService {
   MessageSource messageSource;
   @Autowired
   PagamentiTelematiciRP pagamentiTelematiciRPClient;
-
-  @Value("${pa.codIpaEntePredefinito}")
-  private String codIpaEnteDefault;
-  @Value("${pa.pspDefaultIdentificativoCanale}")
-  private String identificativoCanale;
-  @Value("${pa.pspDefaultIdentificativoPsp}")
-  private String identificativoPsp;
-  @Value("${pa.identificativoIntermediarioPA}")
-  private String identificativoErogatore;
-  @Value("${pa.identificativoStazioneIntermediarioPA}")
-  private String identificativoStazioneIntermediarioPa;
 
   public RP createCtRichiestaPagamento(Carrello cart, Ente ente, XMLGregorianCalendar currentTime, AnagraficaPagatore anagraficaPagatore, AnagraficaPagatore anagraficaVersante, PaaTipoDatiPagamentoPA paaTipoDatiPagamentoPA) {
     log.debug("rp for Ente [" + ente.getCodiceFiscaleEnte() + "] and IUV ["
@@ -110,6 +98,12 @@ public class PaymentService {
 
     List<Dovuto> tuttiDovutiInCarrello = dovutoService.getDovutiInCarrello(cart.getMygovCarrelloId());
     List<CtDatiSingoloVersamentoRP> ctDatiSingoloVersamentoRPList = new ArrayList<>();
+
+    DovutoMultibeneficiario dovutoSecondario = null;
+    if(tuttiDovutiInCarrello.size()==1){
+      Dovuto dovutoPrimario = tuttiDovutiInCarrello.get(0);
+      dovutoSecondario = dovutoService.getDovMultibenefByIdDovuto(dovutoPrimario.getMygovDovutoId());
+    }
 
     BigDecimal total = BigDecimal.ZERO;
     for (Dovuto dovuto : tuttiDovutiInCarrello) {
@@ -163,14 +157,60 @@ public class PaymentService {
       String causaleVersamento = carrelloService.generateCausaleAgIDFormat(cart.getCodRpDatiVersIdUnivocoVersamento(),
           ctDatiSingoloVersamentoRP.getImportoSingoloVersamento(), causaleInseritaNellaRP);
       ctDatiSingoloVersamentoRP.setCausaleVersamento(causaleVersamento);
-      //TODO: tossonomia TEST IT
-      String datiSpecificiRiscossioneTemp = Optional.ofNullable(dovuto.getCodIuv())
-          .filter(StringUtils::isNotBlank).orElse(dovuto.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione());
-      final String datiSpecificiRiscossione = tassonomiaService.getRightTaxonomicCode(datiSpecificiRiscossioneTemp,
-          Optional.ofNullable(enteTipoDovuto.getCodTassonomico())
-              .orElseThrow(()->new NotFoundException("codiceTassonomico")));
+      String datiSpecificiRiscossione = tassonomiaService.getMyPayTransferCategoryPatternFormat(dovuto,
+          Optional.ofNullable(enteTipoDovuto.getCodTassonomico()).orElseThrow(()->new NotFoundException("codiceTassonomico")));
+      if (StringUtils.isNotBlank(dovuto.getCodIuv()) && datiSpecificiRiscossione.matches("^(9/\\d{2}\\d{2}\\d{3}\\w{2}/)$"))
+        datiSpecificiRiscossione += dovuto.getCodIuv();
       ctDatiSingoloVersamentoRP.setDatiSpecificiRiscossione(datiSpecificiRiscossione);
       ctDatiSingoloVersamentoRPList.add(ctDatiSingoloVersamentoRP);
+
+
+      if(dovutoSecondario!=null) {
+        RP rpSecondario = new RP();
+        rpSecondario.setDominio(new CtDominio());
+        rpSecondario.getDominio().setIdentificativoDominio(dovutoSecondario.getCodiceFiscaleEnte());
+        rpSecondario.setVersioneOggetto(rp.getVersioneOggetto());
+        rpSecondario.setIdentificativoMessaggioRichiesta(rp.getIdentificativoMessaggioRichiesta());
+        rpSecondario.setDataOraMessaggioRichiesta(rp.getDataOraMessaggioRichiesta());
+        rpSecondario.setAutenticazioneSoggetto(rp.getAutenticazioneSoggetto());
+        rpSecondario.setSoggettoPagatore(rp.getSoggettoPagatore());
+        rpSecondario.setSoggettoVersante(rp.getSoggettoVersante());
+
+        rpSecondario.setDatiVersamento(new CtDatiVersamentoRP());
+        rpSecondario.getDatiVersamento().setCodiceContestoPagamento(cart.getCodRpSilinviarpCodiceContestoPagamento());
+        rpSecondario.getDatiVersamento().setDataEsecuzionePagamento(currentTime);
+        rpSecondario.getDatiVersamento().setIdentificativoUnivocoVersamento(cart.getCodRpDatiVersIdUnivocoVersamento());
+        rpSecondario.getDatiVersamento().setTipoVersamento(StTipoVersamento.fromValue(
+          cart.getCodRpDatiVersTipoVersamento().equals(Constants.ALL_PAGAMENTI)?
+            Constants.PAY_BONIFICO_BANCARIO_TESORERIA : cart.getCodRpDatiVersTipoVersamento()));
+        rpSecondario.getDatiVersamento().setImportoTotaleDaVersare(dovutoSecondario.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+        CtDatiSingoloVersamentoRP ctDatiSingoloVersamentoRPSecondario = new CtDatiSingoloVersamentoRP();
+        ctDatiSingoloVersamentoRPSecondario.setImportoSingoloVersamento(dovutoSecondario.getNumRpDatiVersDatiSingVersImportoSingoloVersamento());
+        ctDatiSingoloVersamentoRPSecondario.setIbanAccredito(dovutoSecondario.getCodRpDatiVersDatiSingVersIbanAccredito());
+        //ctDatiSingoloVersamentoRPSecondario.setCredenzialiPagatore(Constants.CODICE_AUTENTICAZIONE_SOGGETTO_NA);
+        String causaleToUse = StringUtils.firstNonBlank(dovutoSecondario.getDeRpDatiVersDatiSingVersCausaleVersamento(), causaleInseritaNellaRP);
+        causaleVersamento = carrelloService.generateCausaleAgIDFormat(cart.getCodRpDatiVersIdUnivocoVersamento(), dovutoSecondario.getNumRpDatiVersDatiSingVersImportoSingoloVersamento(), causaleToUse);
+        ctDatiSingoloVersamentoRPSecondario.setCausaleVersamento(causaleVersamento);
+        String datiSpecificiRiscossioneEnteSecondario = StringUtils.firstNonBlank(dovutoSecondario.getDeRpDatiVersDatiSingVersDatiSpecificiRiscossione(), datiSpecificiRiscossione);
+        ctDatiSingoloVersamentoRPSecondario.setDatiSpecificiRiscossione(datiSpecificiRiscossioneEnteSecondario);
+        rpSecondario.getDatiVersamento().getDatiSingoloVersamentos().add(ctDatiSingoloVersamentoRPSecondario);
+        rp.setRpEnteSecondario(rpSecondario);
+
+        it.regioneveneto.mygov.payment.mypay4.model.fesp.Ente enteSecondarioProp = new it.regioneveneto.mygov.payment.mypay4.model.fesp.Ente();
+        enteSecondarioProp.setCodiceFiscaleEnte(dovutoSecondario.getCodiceFiscaleEnte());
+        enteSecondarioProp.setCodRpEnteBenefIdUnivBenefTipoIdUnivoco(it.gov.digitpa.schemas._2011.pagamenti.StTipoIdentificativoUnivocoPersG.G.value());
+        enteSecondarioProp.setCodRpEnteBenefIdUnivBenefCodiceIdUnivoco(dovutoSecondario.getCodiceFiscaleEnte());
+        enteSecondarioProp.setDeRpEnteBenefDenominazioneBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getDeRpEnteBenefDenominazioneBeneficiario(), null));
+        enteSecondarioProp.setDeRpEnteBenefLocalitaBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getDeRpEnteBenefLocalitaBeneficiario(), null));
+        enteSecondarioProp.setDeRpEnteBenefProvinciaBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getDeRpEnteBenefProvinciaBeneficiario(), null));
+        enteSecondarioProp.setDeRpEnteBenefIndirizzoBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getDeRpEnteBenefIndirizzoBeneficiario(), null));
+        enteSecondarioProp.setDeRpEnteBenefCivicoBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getDeRpEnteBenefCivicoBeneficiario(), null));
+        enteSecondarioProp.setCodRpEnteBenefCapBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getCodRpEnteBenefCapBeneficiario(), null));
+        enteSecondarioProp.setCodRpEnteBenefNazioneBeneficiario(StringUtils.defaultIfBlank(dovutoSecondario.getCodRpEnteBenefNazioneBeneficiario(), null));
+        enteSecondarioProp.setCodRpDatiVersFirmaRicevuta(EnumUtils.StFirmaRicevuta.X_0.toString());
+        byte[] enteSecondarioBytes = jaxbTransformService.marshallingAsBytes(enteSecondarioProp, it.regioneveneto.mygov.payment.mypay4.model.fesp.Ente.class);
+        rp.setDatiEnteSecondario(enteSecondarioBytes);
+      }
     }
     CtDatiVersamentoRP ctDatiVersamentoRP = new CtDatiVersamentoRP();
     ctDatiVersamentoRP.setDataEsecuzionePagamento(currentTime);
@@ -182,34 +222,16 @@ public class PaymentService {
     ctDatiVersamentoRP.setImportoTotaleDaVersare(total);
     ctDatiVersamentoRP.getDatiSingoloVersamentos().addAll(ctDatiSingoloVersamentoRPList);
     rp.setDatiVersamento(ctDatiVersamentoRP);
-    log.debug("rp for Ente [" + ente.getCodiceFiscaleEnte() + "] and IUV ["
-        + cart.getCodRpDatiVersIdUnivocoVersamento() + "] process END");
+
+    log.debug("rp for Ente [{}] and IUV [{}] process END", ente.getCodiceFiscaleEnte(), cart.getCodRpDatiVersIdUnivocoVersamento());
     return rp;
   }
 
   public NodoSILInviaRPRisposta inviaRP(Long idCarrello, Map<String, Object> returnHashMap) {
-    RP ctRichiestaPagamento = (RP) returnHashMap.get("ctRichiestaPagamento");
     NodoSILInviaRP nodoSILInviaRP = (NodoSILInviaRP) returnHashMap.get("nodoSILInviaRP");
     var intestazionePPT = (it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT) returnHashMap.get("intestazionePPT");
     NodoSILInviaRPRisposta nodoSILInviaRPRisposta = new NodoSILInviaRPRisposta();
     try {
-      String xmlRequest = jaxbTransformService.marshalling(ctRichiestaPagamento, RP.class);
-      giornaleService.registraEvento(new Date(), ctRichiestaPagamento.getDominio().getIdentificativoDominio(),
-          ctRichiestaPagamento.getDatiVersamento().getIdentificativoUnivocoVersamento(),
-          ctRichiestaPagamento.getDatiVersamento().getCodiceContestoPagamento(),
-          nodoSILInviaRP.getIdentificativoPSP(),
-          ctRichiestaPagamento.getDatiVersamento().getTipoVersamento().toString(),
-          Constants.COMPONENTE_FESP,
-          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-          Constants.GIORNALE_TIPO_EVENTO_PA.nodoSILInviaRP.toString(),
-          Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString(),
-          ctRichiestaPagamento.getDominio().getIdentificativoDominio(),
-          identificativoErogatore,
-          identificativoStazioneIntermediarioPa,
-          nodoSILInviaRP.getIdentificativoCanale(),
-          xmlRequest,
-          Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-
       log.debug("Chiamata nodo per nodoSILInviaRP start");
       nodoSILInviaRPRisposta = pagamentiTelematiciRPClient.nodoSILInviaRP(nodoSILInviaRP, intestazionePPT);
       log.debug("Chiamata nodo per nodoSILInviaRP end");
@@ -227,23 +249,6 @@ public class PaymentService {
       faultBean.setDescription(e.getMessage());
       faultBean.setFaultString(messageSource.getMessage("pa.errore.invioRPT", null, Locale.ITALY));
       nodoSILInviaRPRisposta.setFault(faultBean);
-    } finally {
-      String xmlEsito = jaxbTransformService.marshalling(nodoSILInviaRPRisposta, NodoSILInviaRPRisposta.class);
-      giornaleService.registraEvento(new Date(), ctRichiestaPagamento.getDominio().getIdentificativoDominio(),
-          ctRichiestaPagamento.getDatiVersamento().getIdentificativoUnivocoVersamento(),
-          ctRichiestaPagamento.getDatiVersamento().getCodiceContestoPagamento(),
-          nodoSILInviaRP.getIdentificativoPSP(),
-          ctRichiestaPagamento.getDatiVersamento().getTipoVersamento().toString(),
-          Constants.COMPONENTE_FESP,
-          Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(),
-          Constants.GIORNALE_TIPO_EVENTO_PA.nodoSILInviaRP.toString(),
-          Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
-          ctRichiestaPagamento.getDominio().getIdentificativoDominio(),
-          identificativoErogatore,
-          identificativoStazioneIntermediarioPa,
-          nodoSILInviaRP.getIdentificativoCanale(),
-          xmlEsito,
-          nodoSILInviaRPRisposta.getEsito());
     }
     return nodoSILInviaRPRisposta;
   }
@@ -267,26 +272,15 @@ public class PaymentService {
     return optionalIUV.get();
   }
 
-  protected String generateCCP(Carrello cart) {
-    return StringUtils.defaultIfBlank(cart.getCodRpDatiVersCodiceContestoPagamento(),
-        cart.getCodRpDatiVersIdUnivocoVersamento().length() == 25 ? "n/a" : Utilities.getRandomicUUID());
+  protected String generateCCP(Carrello cart, Ente ente) {
+    return Optional.ofNullable(cart.getCodRpDatiVersCodiceContestoPagamento())
+      .map(StringUtils::stripToNull)
+      .orElseGet(() -> dovutoService.generateCCP(ente.getCodiceFiscaleEnte(), cart.getCodRpDatiVersIdUnivocoVersamento()) );
   }
 
   public NodoSILInviaCarrelloRPRisposta inviaCarrelloRP(Long idCarrelloMultiBeneficiario, NodoSILInviaCarrelloRP nc) throws PaymentOrderException{
     NodoSILInviaCarrelloRPRisposta ncr = new NodoSILInviaCarrelloRPRisposta();
-    List<ElementoRP> rpList = nc.getListaRP().getElementoRPs();
     try {
-      for (ElementoRP elementoRP: rpList) {
-        giornaleService.registraEvento(new Date(), elementoRP.getIdentificativoDominio(),
-            elementoRP.getIdentificativoUnivocoVersamento(), elementoRP.getCodiceContestoPagamento(),
-            identificativoPsp, Constants.ALL_PAGAMENTI, Constants.COMPONENTE.FESP.toString(),
-            Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(), Constants.GIORNALE_TIPO_EVENTO_PA.nodoSILInviaCarrelloRP.toString(),
-            Constants.GIORNALE_SOTTOTIPO_EVENTO.REQ.toString(),
-            codIpaEnteDefault, identificativoErogatore,
-            identificativoStazioneIntermediarioPa, identificativoCanale,
-            new String(elementoRP.getRp(), StandardCharsets.UTF_8), Constants.GIORNALE_ESITO_EVENTO.OK.toString());
-      }
-
       log.debug("Chiamata nodo per inviaCarrelloRP start");
       ncr = pagamentiTelematiciRPClient.nodoSILInviaCarrelloRP(nc);
       log.debug("Chiamata nodo per inviaCarrelloRP end");
@@ -295,6 +289,12 @@ public class PaymentService {
       carrelloMultiBeneficiarioService.updateResultCarrelloRp(carrelloMultiBeneficiario, ncr);
       if (!"OK".equals(ncr.getEsito()))
         log.error("Ricevuto esito risposta RP: {} - fault: {}", ncr.getEsito(), Optional.ofNullable(ncr.getFault()).map(FaultBean::getFaultCode).orElse(null));
+    } catch (RollbackException re){
+      //just rethrow it: we want rollback to occur
+      if(StringUtils.equals(re.getMessage(), NodoPagamentiTelematiciRPTService.ERROR_INVIA_CARRELLO_RPT_PPT_PAGAMENTO_DUPLICATO))
+        throw new PaymentOrderException(messageSource.getMessage("pa.errore.pagamentoInCorso", null, Locale.ITALY));
+      else
+        throw re;
     } catch (Exception e) {
       log.error("Error due processing nodoSILInviaCarrelloRP", e);
       ncr.setEsito(FaultCodeConstants.ESITO_KO);
@@ -304,18 +304,6 @@ public class PaymentService {
       faultBean.setDescription(e.getMessage());
       faultBean.setFaultString(messageSource.getMessage("pa.errore.invioRPT", null, Locale.ITALY));
       ncr.setFault(faultBean);
-    } finally {
-      String xmlEsito = jaxbTransformService.marshalling(ncr, NodoSILInviaCarrelloRPRisposta.class);
-      for (ElementoRP elementoRP: rpList) {
-        giornaleService.registraEvento(new Date(), elementoRP.getIdentificativoDominio(),
-            elementoRP.getIdentificativoUnivocoVersamento(), elementoRP.getCodiceContestoPagamento(),
-            identificativoPsp, Constants.ALL_PAGAMENTI, Constants.COMPONENTE.PA.toString(),
-            Constants.GIORNALE_CATEGORIA_EVENTO.INTERFACCIA.toString(), Constants.GIORNALE_TIPO_EVENTO_PA.nodoSILInviaCarrelloRP.toString(),
-            Constants.GIORNALE_SOTTOTIPO_EVENTO.RES.toString(),
-            codIpaEnteDefault, identificativoErogatore,
-            identificativoStazioneIntermediarioPa, identificativoCanale,
-            xmlEsito, ncr.getEsito());
-      }
     }
     return ncr;
   }

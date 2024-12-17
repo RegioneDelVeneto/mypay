@@ -27,19 +27,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 
 @Component
 @Slf4j
 @ConditionalOnWebApplication
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
 
-  public final static String TOKEN_ERROR_CODE_ATTRIB = "_TOKEN_ERROR_CODE";
-  public final static String TOKEN_ERROR_CODE_EXPIRED = "TOKEN_EXPIRED";
-  public final static String TOKEN_ERROR_CODE_USED = "TOKEN_ALREADY_USED";
-  public final static String TOKEN_ERROR_CODE_INVALID = "TOKEN_INVALID";
-  public final static String TOKEN_ERROR_CODE_INSUFFICIENT = "TOKEN_LEVEL_INSUFFICIENT";
-  public final static String TOKEN_ERROR_CODE_MISSING = "TOKEN_MISSING";
-  public final static String TOKEN_LOGGED_OUT = "_TOKEN_LOGGED_OUT";
+  public static final String TOKEN_ERROR_CODE_ATTRIB = "_TOKEN_ERROR_CODE";
+  public static final String TOKEN_ERROR_CODE_EXPIRED = "TOKEN_EXPIRED";
+  public static final String TOKEN_ERROR_CODE_USED = "TOKEN_ALREADY_USED";
+  public static final String TOKEN_ERROR_CODE_INVALID = "TOKEN_INVALID";
+  public static final String TOKEN_ERROR_CODE_INSUFFICIENT = "TOKEN_LEVEL_INSUFFICIENT";
+  public static final String TOKEN_ERROR_CODE_MISSING = "TOKEN_MISSING";
+  public static final String TOKEN_LOGGED_OUT = "_TOKEN_LOGGED_OUT";
+
+  public static final List<String> NOT_REMOVE_AUTH = List.of(TOKEN_ERROR_CODE_MISSING, TOKEN_ERROR_CODE_USED);
 
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response,

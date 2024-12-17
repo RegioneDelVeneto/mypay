@@ -37,6 +37,8 @@ import java.util.Map;
 @Slf4j
 public class ErrorAttributes extends DefaultErrorAttributes {
 
+  public static final String ERROR_MESSAGE = "message";
+
   @Override
   public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
     // customize behaviour (message shown to users) based on exception type
@@ -65,10 +67,10 @@ public class ErrorAttributes extends DefaultErrorAttributes {
 
     String tokenError = (String) webRequest.getAttribute(JwtAuthenticationEntryPoint.TOKEN_ERROR_CODE_ATTRIB, WebRequest.SCOPE_REQUEST);
     if(tokenError!=null) {
-      errorAttributes.put("message", tokenError);
+      errorAttributes.put(ERROR_MESSAGE, tokenError);
     }
     if(customMessage!=null) {
-      errorAttributes.put("message", customMessage);
+      errorAttributes.put(ERROR_MESSAGE, customMessage);
     }
 
     return errorAttributes;

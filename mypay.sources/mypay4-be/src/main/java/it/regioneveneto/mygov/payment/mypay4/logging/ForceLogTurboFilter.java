@@ -29,15 +29,38 @@ import java.util.function.Predicate;
 
 public class ForceLogTurboFilter extends TurboFilter {
 
-  public final static String FORCE_LOG_MDC_KEY = "_forceLog";
-  public final static String FORCE_LOG_MDC_VALUE = "true";
+  private static final String FORCE_LOG_MDC_KEY = "_forceLog";
+  private static final String FORCE_LOG_MDC_VALUE = "force";
+  private static final String SKIP_LOG_MDC_VALUE = "skip";
 
-  private Predicate<String> forceLogPredicate;
+  private final Predicate<String> forceLogPredicate;
 
   private static boolean isEnabled = false;
 
-  public final static boolean isEnabled(){
+  public static boolean isEnabled(){
     return isEnabled;
+  }
+
+  public static void resetForceLog(){
+    MDC.remove(SKIP_LOG_MDC_VALUE);
+  }
+
+  public static boolean setForceLog(){
+    return setForceOrSkipLog(FORCE_LOG_MDC_VALUE);
+  }
+
+  public static boolean setSkipLog(){
+    return setForceOrSkipLog(SKIP_LOG_MDC_VALUE);
+  }
+
+  private static boolean setForceOrSkipLog(String targetValue){
+    String currentValue = MDC.get(FORCE_LOG_MDC_KEY);
+    if(currentValue == null){
+      MDC.put(FORCE_LOG_MDC_KEY, targetValue);
+      return true;
+    } else {
+      return currentValue.equals(targetValue);
+    }
   }
 
   public ForceLogTurboFilter(Predicate<String> forceLogPredicate){
@@ -47,12 +70,17 @@ public class ForceLogTurboFilter extends TurboFilter {
 
   @Override
   public FilterReply decide(Marker marker, Logger logger, Level level, String format, Object[] params, Throwable t) {
-    boolean forceLog = StringUtils.equalsIgnoreCase(MDC.get(FORCE_LOG_MDC_KEY), FORCE_LOG_MDC_VALUE);
-    if(forceLog
+    String mdcValue = MDC.get(FORCE_LOG_MDC_KEY);
+    if(StringUtils.equals(mdcValue, FORCE_LOG_MDC_VALUE)
       && level.isGreaterOrEqual(Level.DEBUG)
       && forceLogPredicate.test(logger.getName())
     )
       return FilterReply.ACCEPT;
+    else if(StringUtils.equals(mdcValue, SKIP_LOG_MDC_VALUE)
+      && !level.isGreaterOrEqual(Level.WARN)
+      && forceLogPredicate.test(logger.getName())
+    )
+      return FilterReply.DENY;
     else
       return FilterReply.NEUTRAL;
   }

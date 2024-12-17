@@ -53,7 +53,7 @@ public interface GiornaleDao extends BaseDao {
           ") values ("+
           "   nextval('mygov_giornale_mygov_giornale_id_seq')"+
           " , :g.version"+
-          " , :g.dataOraEvento"+
+          " , coalesce(:g.dataOraEvento, now())"+
           " , :g.identificativoDominio"+
           " , :g.identificativoUnivocoVersamento"+
           " , :g.codiceContestoPagamento"+

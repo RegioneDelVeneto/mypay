@@ -18,9 +18,9 @@
 import { UserService, WithTitle } from 'projects/mypay4-fe-common/src/public-api';
 import { Subscription } from 'rxjs';
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
-    faAngleRight, faArchive, faClone, faHome, faRandom, faTools
+  faAngleRight, faArchive, faClone, faHome, faRandom, faTools
 } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -28,7 +28,7 @@ import {
   templateUrl: './cards.component.html',
   styleUrls: ['./cards.component.scss']
 })
-export class CardsComponent implements OnInit, OnDestroy, WithTitle {
+export class CardsComponent implements OnDestroy, WithTitle {
 
   get titleLabel(){ return "Home" }
   get titleIcon(){ return faHome }
@@ -49,8 +49,6 @@ export class CardsComponent implements OnInit, OnDestroy, WithTitle {
                          userService.isRoleAuthorized(UserService.BACK_OFFICE_ADMIN_ENTE_ROLE);
     });
   }
-
-  ngOnInit(): void {}
 
   ngOnDestroy(): void {
     this.userSub?.unsubscribe();

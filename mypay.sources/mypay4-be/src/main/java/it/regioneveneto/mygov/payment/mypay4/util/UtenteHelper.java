@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 
 public class UtenteHelper {
 
-  private final static Logger log = LoggerFactory.getLogger(UtenteHelper.class);
-  private final static Set<String> validRoles = Arrays.asList(Operatore.Role.values()).stream()
+  private static final Logger log = LoggerFactory.getLogger(UtenteHelper.class);
+  private static final Set<String> validRoles = Arrays.asList(Operatore.Role.values()).stream()
       .filter(role -> role!= Operatore.Role.ANY)
       .map(Operatore.Role::name)
       .collect(Collectors.toSet());

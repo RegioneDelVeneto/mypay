@@ -147,7 +147,7 @@ public class CarrelloService {
     return items.get(0);
   }
 
-  public List<Carrello> getByMultiBeneficarioId (Long mygovCarrelloMultiBeneficiarioId) {
+  public Optional<Carrello> getByMultiBeneficarioId (Long mygovCarrelloMultiBeneficiarioId) {
     return carrelloDao.getByMultiBeneficarioId(mygovCarrelloMultiBeneficiarioId);
   }
 
@@ -232,7 +232,7 @@ public class CarrelloService {
 
     cart.setMygovAnagraficaStatoId(anagraficaStatoService.getByCodStatoAndTipoStato(status, Constants.STATO_TIPO_CARRELLO));
 
-    cart.setCodRpDomIdDominio(ctRp.getDominio().getIdentificativoDominio());
+    cart.setCodRpDomIdDominio(StringUtils.trim(ctRp.getDominio().getIdentificativoDominio()));
     cart.setCodRpDomIdStazioneRichiedente(ctRp.getDominio().getIdentificativoStazioneRichiedente());
     cart.setCodRpIdMessaggioRichiesta(ctRp.getIdentificativoMessaggioRichiesta());
     cart.setDtRpDataOraMessaggioRichiesta(ctRp.getDataOraMessaggioRichiesta().toGregorianCalendar().getTime());
@@ -393,6 +393,7 @@ public class CarrelloService {
       carrello.setDeRpSoggPagAnagraficaPagatore(Constants.CODICE_FISCALE_ANONIMO);
     }
 
+    carrello.setDtCreazione(new Date());
     carrello.setDtUltimaModificaRp(new Date());
     carrello.setDtUltimaModificaE(new Date());
     carrello.setCodRpSilinviarpIdPsp(datiRendicontazioneCod9.getIstitutoAttestante().getCodiceIdentificativoUnivoco());
@@ -763,7 +764,7 @@ public class CarrelloService {
 
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<Carrello> getByStatePagamentoInCorso(int modelloPagamento){
-    Assert.isTrue(Carrello.VALID_MODELLOPAGAMENTO.contains(modelloPagamento), "invalid value for modelloPagamento");
+    Assert.isTrue(Constants.MODELLO_PAG.asList().contains(modelloPagamento), "invalid value for modelloPagamento");
 
     int deltaMinutes;
     try {

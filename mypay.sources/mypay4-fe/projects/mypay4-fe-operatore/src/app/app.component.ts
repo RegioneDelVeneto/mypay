@@ -19,9 +19,11 @@ import {
     MenuItem, OverlaySpinnerRef, OverlaySpinnerService, UserService
 } from 'projects/mypay4-fe-common/src/public-api';
 import { combineLatest, Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
+import { NavigationEnd, Router } from '@angular/router';
 import {
     faBars, faChevronRight, faSignOutAlt, faTimes, faUser
 } from '@fortawesome/free-solid-svg-icons';
@@ -57,7 +59,17 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     private overlaySpinnerService: OverlaySpinnerService,
     public menuService: MenuService,
     public userService: UserService,
-    private enteService: EnteService) {
+    private enteService: EnteService,
+    private router: Router,
+  ) {
+
+    router.events.pipe(
+      filter( event => event instanceof NavigationEnd)
+    ).subscribe( event => {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+      //this.mainContentContainer.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
+    });
+
   }
 
   ngAfterViewInit(): void {
@@ -121,4 +133,5 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   toogleMainMenu() {
     this.mainMenuOpen = !this.mainMenuOpen;
   }
+
 }

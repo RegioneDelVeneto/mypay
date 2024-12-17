@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -58,45 +59,65 @@ public class DovutoToMapper implements RowMapper<DovutoTo> {
   private AnagraficaStatoService anagraficaStatoService;
 
   private static String deTipoDovutoScaduto;
+  private static String deTipoDovutoPagamentoInCorso;
 
   @Override
   public DovutoTo map(ResultSet rs, StatementContext ctx) throws SQLException {
 
-    DovutoTo debito = new DovutoTo();
+    DovutoTo dovutoTo = new DovutoTo();
 
     //fill nested object (using cache for better performance, only ID is retrieved in the main query)
-    //dovuto.setNestedEnte(enteService.getEnteById(dovuto.getNestedEnte().getMygovEnteId()));
-    //dovuto.setMygovAnagraficaStatoId(anagraficaStatoService.getById(dovuto.getMygovAnagraficaStatoId().getMygovAnagraficaStatoId()));
+    //dovutoTo.setNestedEnte(enteService.getEnteById(dovuto.getNestedEnte().getMygovEnteId()));
+    //dovutoTo.setMygovAnagraficaStatoId(anagraficaStatoService.getById(dovuto.getMygovAnagraficaStatoId().getMygovAnagraficaStatoId()));
 
-    debito.setId(rs.getLong("mygov_dovuto_id"));
-    debito.setCodIud(rs.getString("cod_iud"));
-    debito.setCausale(rs.getString("de_rp_dati_vers_dati_sing_vers_causale_versamento"));
-    debito.setCausaleVisualizzata(rs.getString("de_causale_visualizzata"));
-    //debito.setImporto(Utilities.parseImportoString(dovuto.getNumRpDatiVersDatiSingVersImportoSingoloVersamento()));
-    debito.setImporto(rs.getBigDecimal("num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento").toString());
-    debito.setValuta("EUR");
-    debito.setCodStato(rs.getString("cod_stato"));
-    debito.setDeEnte(rs.getString("de_nome_ente"));
-    debito.setCodIpaEnte(rs.getString("cod_ipa_ente"));
+    dovutoTo.setId(rs.getLong("mygov_dovuto_id"));
+    dovutoTo.setCodIud(rs.getString("cod_iud"));
+    dovutoTo.setCausale(rs.getString("de_rp_dati_vers_dati_sing_vers_causale_versamento"));
+    dovutoTo.setCausaleVisualizzata(rs.getString("de_causale_visualizzata"));
+    BigDecimal amount = rs.getBigDecimal("num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento");
+    dovutoTo.setImporto(amount.toString());
+    dovutoTo.setImportoAsCent(Utilities.amountAsEuroCents(amount));
+    dovutoTo.setImporto(rs.getBigDecimal("num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento").toString());
+    dovutoTo.setValuta("EUR");
+    dovutoTo.setCodStato(rs.getString("cod_stato"));
+    dovutoTo.setDeEnte(rs.getString("de_nome_ente"));
+    dovutoTo.setCodIpaEnte(rs.getString("cod_ipa_ente"));
+    dovutoTo.setCodiceFiscaleEnte(rs.getString("codice_fiscale_ente"));
 
     LocalDate dataScadenza = Utilities.toLocalDate(rs.getDate("dt_rp_dati_vers_data_esecuzione_pagamento"));
 
-    debito.setCodTipoDovuto(rs.getString("cod_tipo_dovuto"));
-    EnteTipoDovuto etd = enteTipoDovutoService.getOptionalByCodTipo(debito.getCodTipoDovuto(), debito.getCodIpaEnte(), false)
+    dovutoTo.setCodTipoDovuto(rs.getString("cod_tipo_dovuto"));
+    EnteTipoDovuto etd = enteTipoDovutoService.getOptionalByCodTipo(dovutoTo.getCodTipoDovuto(), dovutoTo.getCodIpaEnte(), false)
         .orElseThrow(()-> new NotFoundException("tipoDovuto not found"));
-    debito.setDeTipoDovuto(etd.getDeTipo());
-    debito.setDataScadenza(etd.isFlgStampaDataScadenza() ? dataScadenza : null);
+    dovutoTo.setDeTipoDovuto(etd.getDeTipo());
+    dovutoTo.setDataScadenza(etd.isFlgStampaDataScadenza() ? dataScadenza : null);
 
-    if (debito.getDataScadenza()!=null && dataScadenza.isBefore(LocalDate.now()) && etd.isFlgScadenzaObbligatoria()) {
-      debito.setCodStato(Constants.STATO_DOVUTO_SCADUTO);
+    if (etd.getUrlNotificaPnd() != null && etd.getUrlNotificaAttualizzazionePnd() != null) {
+      dovutoTo.setUrlNotificaPnd(true);
     }
 
-    if(StringUtils.equals(debito.getCodStato(), Constants.STATO_DOVUTO_SCADUTO)) {
+    if (dovutoTo.getDataScadenza()!=null && dataScadenza.isBefore(LocalDate.now()) && etd.isFlgScadenzaObbligatoria()) {
+      dovutoTo.setCodStato(Constants.STATO_DOVUTO_SCADUTO);
+    }
+
+    if(StringUtils.equals(dovutoTo.getCodStato(), Constants.STATO_DOVUTO_SCADUTO)) {
       if(deTipoDovutoScaduto == null)
         deTipoDovutoScaduto = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_SCADUTO, Constants.STATO_TIPO_DOVUTO).getDeStato();
-      debito.setDeStato(deTipoDovutoScaduto);
+      dovutoTo.setDeStato(deTipoDovutoScaduto);
     } else
-      debito.setDeStato(rs.getString("de_stato"));
+      dovutoTo.setDeStato(rs.getString("de_stato"));
+
+    String codIuv = rs.getString("cod_iuv");
+    boolean flgIuvVolatile = rs.getBoolean("flg_iuv_volatile");
+    if(flgIuvVolatile){
+      dovutoTo.setFlgIuvVolatile(true);
+      //iuv volatile: user should not se IUV; it should appear with state "pagamento in corso"
+      codIuv = null;
+      dovutoTo.setCodStato(Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO);
+      if (deTipoDovutoPagamentoInCorso == null)
+        deTipoDovutoPagamentoInCorso = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO, Constants.STATO_TIPO_DOVUTO).getDeStato();
+      dovutoTo.setDeStato(deTipoDovutoPagamentoInCorso);
+    }
 
     List<String> list;
     String codRpDatiVersTipoVersamento = rs.getString("cod_rp_dati_vers_tipo_versamento"); // NOT NULL
@@ -107,21 +128,20 @@ public class DovutoToMapper implements RowMapper<DovutoTo> {
       list = new ArrayList<>(Arrays.asList(StringUtils.split(codRpDatiVersTipoVersamento, "|")));
     }
     list.retainAll(Utilities.tipiVersamento);
-    debito.setModPagamento(list);
+    dovutoTo.setModPagamento(list);
 
     // ICONA AVVISO e suo ALT
-    String codIuv = rs.getString("cod_iuv");
     if (StringUtils.isNotBlank(codIuv)) {
-      debito.setCodIuv(codIuv);
+      dovutoTo.setCodIuv(codIuv);
       if(codIuv.length() == Constants.IUV_GENERATOR_17_LENGTH)
-        debito.setNumeroAvviso(Utilities.formatNumeroAvviso17digit(Constants.SMALL_IUV_AUX_DIGIT, codIuv));
+        dovutoTo.setNumeroAvviso(Utilities.formatCodAvviso(Constants.SMALL_IUV_AUX_DIGIT, "", codIuv));
       else
-        debito.setNumeroAvviso(Utilities.formatNumeroAvviso15digit(rs.getString("application_code"), codIuv));
-      debito.setIntestatarioAvviso(rs.getString("de_rp_sogg_pag_anagrafica_pagatore") + " - " + rs.getString("cod_rp_sogg_pag_id_univ_pag_codice_id_univoco"));
-      debito.setAvviso(Utilities.isAvviso(codIuv));
+        dovutoTo.setNumeroAvviso(Utilities.formatCodAvviso(Constants.OLD_IUV_AUX_DIGIT, rs.getString("application_code"), codIuv));
+      dovutoTo.setIntestatarioAvviso(rs.getString("de_rp_sogg_pag_anagrafica_pagatore") + " - " + rs.getString("cod_rp_sogg_pag_id_univ_pag_codice_id_univoco"));
+      dovutoTo.setAvviso(Utilities.isAvviso(codIuv));
     }
     else {
-      debito.setAvviso(false);
+      dovutoTo.setAvviso(false);
     }
 
     /*
@@ -133,10 +153,10 @@ public class DovutoToMapper implements RowMapper<DovutoTo> {
     }
 
     if (cfDovuto.equals(cfUtente)) {
-      debito.setMultiIntestatario(false);
+      dovutoTo.setMultiIntestatario(false);
     }
     else {
-      debito.setMultiIntestatario(true);
+      dovutoTo.setMultiIntestatario(true);
 
       // TODO lista codici fiscali altri instestatari
     }
@@ -174,8 +194,15 @@ public class DovutoToMapper implements RowMapper<DovutoTo> {
     intestatario.setLocalitaId(comune.map(ComuneTo::getComuneId).orElse(null));
     intestatario.setLocalita(comune.map(ComuneTo::getComune).orElse(null));
 
-    debito.setIntestatario(intestatario);
+    dovutoTo.setIntestatario(intestatario);
 
-    return debito;
+    //annullabile for cittadino if isAvviso and spontaneo and stato DA_PAGARE
+    dovutoTo.setAnnullabile(
+      (dovutoTo.getCodStato().equals(Constants.STATO_DOVUTO_DA_PAGARE) || dovutoTo.getCodStato().equals(Constants.STATO_DOVUTO_SCADUTO)) &&
+      rs.getBoolean("flg_spontaneo") &&
+      dovutoTo.isAvviso()
+    );
+
+    return dovutoTo;
   }
 }

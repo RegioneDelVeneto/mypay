@@ -26,15 +26,12 @@ import it.regioneveneto.mygov.payment.mypay4.dto.fesp.NodoSILInviaRPRispostaExce
 import it.regioneveneto.mygov.payment.mypay4.dto.fesp.RpEDettaglioDto;
 import it.regioneveneto.mygov.payment.mypay4.dto.fesp.RptRtDettaglioDto;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
-import it.regioneveneto.mygov.payment.mypay4.model.fesp.Ente;
-import it.regioneveneto.mygov.payment.mypay4.model.fesp.RpE;
-import it.regioneveneto.mygov.payment.mypay4.model.fesp.RptRt;
-import it.regioneveneto.mygov.payment.mypay4.model.fesp.RptRtDettaglio;
+import it.regioneveneto.mygov.payment.mypay4.model.fesp.*;
 import it.regioneveneto.mygov.payment.mypay4.service.common.JAXBTransformService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.regioneveneto.mygov.payment.mypay4.util.VerificationUtils;
-import it.regioneveneto.mygov.payment.mypay4.ws.impl.fesp.PagamentiTelematiciRPTImpl;
+import it.regioneveneto.mygov.payment.mypay4.ws.client.fesp.PagamentiTelematiciRPTClient;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.EnumUtils;
 import it.veneto.regione.pagamenti.nodoregionalefesp.nodoregionaleperpa.*;
 import it.veneto.regione.schemas._2012.pagamenti.*;
@@ -63,17 +60,17 @@ public class NodoInviaRPTService {
   @Autowired
   private EnteService enteFespService;
   @Autowired
-  private GiornaleService giornaleFespService;
-  @Autowired
   private RptRtService rptRtService;
   @Autowired
   private RpEService rpEService;
   @Autowired
   private RptRtDettaglioDao rptRtDettaglioDao;
   @Autowired
-  private PagamentiTelematiciRPTImpl pagamentiTelematiciRPTImpl;
+  private PagamentiTelematiciRPTClient pagamentiTelematiciRPTClient;
   @Autowired
   private JAXBTransformService jaxbTransformService;
+  @Autowired
+  private RPTConservazioneService rptConservazioneService;
 
   @Value("${app.be.absolute-path}")
   private String appBeAbsolutePath;
@@ -114,33 +111,8 @@ public class NodoInviaRPTService {
         risposta.setFault(fb);
         return risposta;
       }
-//
-//			// Se risposta di fesp a nodo a paaInviaRt non valorizzata
-//			// oppure valorizzata a KO ma senza fault code, rispondo che esito non presente
-//			if (rptRt.getCodRtInviartEsito() == null ||
-//				(rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_KO) &&
-//						StringUtils.isBlank(rptRt.getCodRtInviartFaultCode())) ){
-//				String msg = "Esito o faultCode di paaInviaRt non valorizzato [ "
-//						+ identificativoDominio + " ], IUV [ "
-//						+ identificativoUnivocoVersamento + " ] e codice contesto pagamento [ "
-//						+ codiceContestoPagamento + " ]";
-//				log.error(msg);
-//				FaultBean fb = new FaultBean();
-//				fb.setSerial(1);
-//				fb.setDescription(msg);
-//				fb.setFaultString(msg);
-//				fb.setFaultCode(FaultCodeConstants.PAA_SYSTEM_ERROR);
-//				fb.setId(FaultCodeConstants.PAA_SYSTEM_ERROR);
-//				risposta.setFault(fb);
-//				return risposta;
-//			}
-//
-      if (StringUtils.isNotBlank(rptRt.getCodRtDatiPagCodiceEsitoPagamento())
 
-//				&&(rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_OK)
-//					|| (rptRt.getCodRtInviartEsito().equals(Constants.NODO_REGIONALE_FESP_ESITO_KO) &&
-//						rptRt.getCodRtInviartFaultCode().equals(FaultCodeConstants.PAA_RT_DUPLICATA)))
-      ) {
+      if (StringUtils.isNotBlank(rptRt.getCodRtDatiPagCodiceEsitoPagamento())) {
         risposta.setTipoFirma(rptRt.getDeRptInviarptTipoFirma());
 
         risposta.setRt(rptRt.getBlbRtPayload());
@@ -317,11 +289,11 @@ public class NodoInviaRPTService {
                                                it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT header)
       throws NodoSILInviaRPRispostaException {
 
-    NodoInviaRPTRisposta _rispostaRPT = null;
-    NodoSILInviaRPRisposta _rispostaRP = null;
+    NodoInviaRPTRisposta rispostaRPT = null;
+    NodoSILInviaRPRisposta rispostaRP = null;
 
     //generare l'informazione idSession come UUID
-    UUID id_session = UUID.randomUUID();
+    UUID idSession = UUID.randomUUID();
 
     RptRt mygovRptRt = null;
     RpE mygovRpE = null;
@@ -336,52 +308,45 @@ public class NodoInviaRPTService {
       String idDominio = rp.getDominio().getIdentificativoDominio();
       Ente enteProp = enteFespService.getEnteByCodFiscale(idDominio);
 
-      RPT CtRPT = this.buildRPT(rp, enteProp);
-      IntestazionePPT _paaSILInviaRPT_header = this.buildHeaderRPT(header, enteProp);
-      NodoInviaRPT _paaSILInviaRPT_body = this.buildBodyRPT(CtRPT, bodyrichiesta);
-
-      //'TipoFirma' e stata tolta da RP prendi da tabella ente
-
-			/*
-			if (StringUtils.isBlank(enteProp.getDeRpInviarpTipoFirma())) {
-			        _paaSILInviaRPT_body.setTipoFirma("");
-			}else {
-			        _paaSILInviaRPT_body.setTipoFirma(enteProp.getDeRpInviarpTipoFirma());
-			}
-			*/
-
-      //Tipo Firma RPT (dichiarazione di tipo firma dell RPT inviato dal nodo regionale)
-      //_paaSILInviaRPT_body.setTipoFirma(StFirmaRicevuta.Enum.forInt(StFirmaRicevuta.INT_X_0).toString());
+      RPT ctRPT = this.buildRPT(rp, enteProp);
+      IntestazionePPT paaSILInviaRPTHeader = this.buildHeaderRPT(header);
+      NodoInviaRPT paaSILInviaRPTBody = this.buildBodyRPT(ctRPT, bodyrichiesta);
 
       //per poste questo campo e' obbligatorio e vuoto
-      _paaSILInviaRPT_body.setTipoFirma(Constants.EMPTY);
+      paaSILInviaRPTBody.setTipoFirma(Constants.EMPTY);
 
       //        	SALVA RPT
-      mygovRptRt = saveRPT(_paaSILInviaRPT_header, _paaSILInviaRPT_body, CtRPT, mygovRpE.getMygovRpEId(),
+      mygovRptRt = saveRPT(paaSILInviaRPTHeader, paaSILInviaRPTBody, ctRPT, mygovRpE.getMygovRpEId(),
           bodyrichiesta.getModelloPagamento());
+
+      try {
+        RPT_Conservazione rtpCons = rptConservazioneService.insertRptConservazione(ctRPT,  mygovRptRt, enteProp);
+        log.debug(rtpCons.toString());
+      } catch (Exception e) {
+        log.error("Errore nell'inserimento in RPT_Conservazione", e);
+      }
 
       // se modello 2 o 3 prendo in carico l'invio RPT e torno subito OK
       if (bodyrichiesta.getModelloPagamento() == 4
           || StringUtils.isNotBlank(mygovRpE.getDeRpDatiVersIbanAddebito())) {
 
-        log.debug("workaraund attiva per idSession: [" + id_session + "]");
+        log.debug("workaraund attiva per idSession: [" + idSession + "]");
 
-        _rispostaRP = new NodoSILInviaRPRisposta();
-        _rispostaRP.setEsito("OK");
-        _rispostaRP.setRedirect(1);
+        rispostaRP = new NodoSILInviaRPRisposta();
+        rispostaRP.setEsito("OK");
+        rispostaRP.setRedirect(1);
 
         FaultBean err = new FaultBean();
-        _rispostaRP.setFault(err);
+        rispostaRP.setFault(err);
 
       } else {
         //altrimenti invio adesso RPT
-        _rispostaRPT = pagamentiTelematiciRPTImpl.nodoInviaRPT(
-            mygovRptRt.getMygovRptRtId(),
-            _paaSILInviaRPT_body,
-            _paaSILInviaRPT_header);
+        rispostaRPT = pagamentiTelematiciRPTClient.nodoInviaRPT(
+            paaSILInviaRPTBody,
+            paaSILInviaRPTHeader);
 
         //        	COSTRUISCI RISPOSTA RP
-        _rispostaRP = builtRispostaRP(_rispostaRPT, id_session);
+        rispostaRP = builtRispostaRP(rispostaRPT, idSession);
       }
 
     } catch (Exception ex) {
@@ -391,81 +356,79 @@ public class NodoInviaRPTService {
       if (mygovRpE != null && bodyrichiesta.getModelloPagamento() != 4
           && StringUtils.isBlank(mygovRpE.getDeRpDatiVersIbanAddebito())) {
         //RISPOSTA RPT
-        _rispostaRPT = new NodoInviaRPTRisposta();
-        _rispostaRPT.setEsito("KO");
+        rispostaRPT = new NodoInviaRPTRisposta();
+        rispostaRPT.setEsito("KO");
 
         gov.telematici.pagamenti.ws.nodospcpernodoregionale.FaultBean faultRPT = new gov.telematici.pagamenti.ws.nodospcpernodoregionale.FaultBean();
         faultRPT.setFaultCode(PPT_ESITO_SCONOSCIUTO);
         faultRPT.setDescription(ex.getMessage());
-        _rispostaRPT.setFault(faultRPT);
+        rispostaRPT.setFault(faultRPT);
       }
 
       //RISPOSTA RP
-      _rispostaRP = new NodoSILInviaRPRisposta();
-      _rispostaRP.setEsito("KO");
+      rispostaRP = new NodoSILInviaRPRisposta();
+      rispostaRP.setEsito("KO");
 
       FaultBean faultRP = new FaultBean();
       faultRP.setFaultCode(PPT_ESITO_SCONOSCIUTO);
       faultRP.setDescription(ex.getMessage());
-      _rispostaRP.setFault(faultRP);
+      rispostaRP.setFault(faultRP);
     }
 
-    finally {
+    try {
+      if (mygovRpE != null) {
 
-      try {
-        if (mygovRpE != null) {
-
-          //	        	SALVA DB RISPOSTA RPT
-          //non e' modello  2 ne modello 3 (in quei casi non c'e' risposta da salvare)
-          if (bodyrichiesta.getModelloPagamento() != 4 && StringUtils.isBlank(mygovRpE.getDeRpDatiVersIbanAddebito())
-              && mygovRptRt != null) {
-            saveRPTRisposta(_rispostaRPT, mygovRptRt.getMygovRptRtId());
-          }
-
-          //        	SALVA DB RISPOSTA RP
-          saveRpRisposta(mygovRpE.getMygovRpEId(), _rispostaRP, id_session);
+        //	        	SALVA DB RISPOSTA RPT
+        //non e' modello  2 ne modello 3 (in quei casi non c'e' risposta da salvare)
+        if (bodyrichiesta.getModelloPagamento() != 4 && StringUtils.isBlank(mygovRpE.getDeRpDatiVersIbanAddebito())
+            && mygovRptRt != null) {
+          saveRPTRisposta(rispostaRPT, mygovRptRt.getMygovRptRtId());
         }
-      } catch (Exception e) {
-        log.error("Error saving RP risposta: [" + e.getMessage() + "]", e);
-      } finally {
-        //se errore nel salvataggio (invio preso in carico) RP o RPT e (modello 2 o 3) ROLLBACK per permettere risottomissione
-        if (_rispostaRP.getEsito().equals("KO") && (bodyrichiesta.getModelloPagamento() == 4
-            || StringUtils.isNotBlank(mygovRpE.getDeRpDatiVersIbanAddebito()))) {
-          // rollback
-          log.error("Rollback invia RPT con IUV [" + header.getIdentificativoUnivocoVersamento()
-              + "] esito KO e CCP [" + header.getCodiceContestoPagamento() + "]");
-          NodoSILInviaRPRispostaException nodoSILInviaRPRispostaException = new NodoSILInviaRPRispostaException(
-              "Rollback invia RPT con IUV [" + header.getIdentificativoUnivocoVersamento()
-                  + "] esito KO e CCP [" + header.getCodiceContestoPagamento() + "]");
 
-          nodoSILInviaRPRispostaException.setNodoSILInviaRPRisposta(_rispostaRP);
-          throw nodoSILInviaRPRispostaException;
-        }
+        //        	SALVA DB RISPOSTA RP
+        saveRpRisposta(mygovRpE.getMygovRpEId(), rispostaRP, idSession);
       }
+    } catch (Exception e) {
+      log.error("Error saving RP risposta: [" + e.getMessage() + "]", e);
     }
+
+    //se errore nel salvataggio (invio preso in carico) RP o RPT e (modello 2 o 3) ROLLBACK per permettere risottomissione
+    if (rispostaRP.getEsito().equals("KO") && (bodyrichiesta.getModelloPagamento() == 4
+        || StringUtils.isNotBlank(mygovRpE.getDeRpDatiVersIbanAddebito()))) {
+      // rollback
+      log.error("Rollback invia RPT con IUV [" + header.getIdentificativoUnivocoVersamento()
+          + "] esito KO e CCP [" + header.getCodiceContestoPagamento() + "]");
+      NodoSILInviaRPRispostaException nodoSILInviaRPRispostaException = new NodoSILInviaRPRispostaException(
+          "Rollback invia RPT con IUV [" + header.getIdentificativoUnivocoVersamento()
+              + "] esito KO e CCP [" + header.getCodiceContestoPagamento() + "]");
+
+      nodoSILInviaRPRispostaException.setNodoSILInviaRPRisposta(rispostaRP);
+      throw nodoSILInviaRPRispostaException;
+    }
+
+
 
     // commit
-    return _rispostaRP;
+    return rispostaRP;
   }
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRED)
-  public void saveRPTRisposta(NodoInviaRPTRisposta _rispostaRPT, Long mygovRptRtId)
+  public void saveRPTRisposta(NodoInviaRPTRisposta rispostaRPT, Long mygovRptRtId)
       throws UnsupportedEncodingException, MalformedURLException {
-    rptRtService.updateRispostaRptById(mygovRptRtId, _rispostaRPT.getEsito(), _rispostaRPT.getRedirect(),
-        _rispostaRPT.getUrl(),
-        ((_rispostaRPT.getFault() != null) ? _rispostaRPT.getFault().getFaultCode() : null),
-        ((_rispostaRPT.getFault() != null) ? _rispostaRPT.getFault().getFaultString() : null),
-        ((_rispostaRPT.getFault() != null) ? _rispostaRPT.getFault().getId() : null),
-        ((_rispostaRPT.getFault() != null) ? _rispostaRPT.getFault().getDescription() : null),
-        ((_rispostaRPT.getFault() != null) ? _rispostaRPT.getFault().getSerial() : null),
+    rptRtService.updateRispostaRptById(mygovRptRtId, rispostaRPT.getEsito(), rispostaRPT.getRedirect(),
+        rispostaRPT.getUrl(),
+        ((rispostaRPT.getFault() != null) ? rispostaRPT.getFault().getFaultCode() : null),
+        ((rispostaRPT.getFault() != null) ? rispostaRPT.getFault().getFaultString() : null),
+        ((rispostaRPT.getFault() != null) ? rispostaRPT.getFault().getId() : null),
+        ((rispostaRPT.getFault() != null) ? rispostaRPT.getFault().getDescription() : null),
+        ((rispostaRPT.getFault() != null) ? rispostaRPT.getFault().getSerial() : null),
         null, // OriginalFaultCode which not exists in Mypay4.
         null, // OriginalFaultString which not exists in Mypay4.
         null  // OriginalDescription which not exists in Mypay4.
     );
   }
 
-  public IntestazionePPT buildHeaderRPT(it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT header,
-                                                                            Ente enteProp) {
+  public IntestazionePPT buildHeaderRPT(it.veneto.regione.pagamenti.nodoregionalefesp.ppthead.IntestazionePPT header) {
     IntestazionePPT result = new IntestazionePPT();
 
     result.setCodiceContestoPagamento(header.getCodiceContestoPagamento());
@@ -580,7 +543,6 @@ public class NodoInviaRPTService {
 
     //SINGOLI VERSAMENTI
     List<it.gov.digitpa.schemas._2011.pagamenti.CtDatiSingoloVersamentoRPT> datiSingoloVersamentoArray = new ArrayList<>();
-        //new it.gov.digitpa.schemas._2011.pagamenti.CtDatiSingoloVersamentoRPT[rp.getDatiVersamento().getDatiSingoloVersamentoArray().length];
 
     for (it.veneto.regione.schemas._2012.pagamenti.CtDatiSingoloVersamentoRP tmpVer: rp.getDatiVersamento().getDatiSingoloVersamentos()) {
       it.gov.digitpa.schemas._2011.pagamenti.CtDatiSingoloVersamentoRPT datiSingoloVersamento = new it.gov.digitpa.schemas._2011.pagamenti.CtDatiSingoloVersamentoRPT();
@@ -733,8 +695,7 @@ public class NodoInviaRPTService {
       datiSingoloVersamento.setCredenzialiPagatore(StringUtils.stripToNull(mygovRptRtDettaglio.getCodRptDatiVersDatiSingVersCredenzialiPagatore()));
       datiSingoloVersamento.setCausaleVersamento(mygovRptRtDettaglio.getDeRptDatiVersDatiSingVersCausaleVersamento());
       datiSingoloVersamento.setDatiSpecificiRiscossione(mygovRptRtDettaglio.getDeRptDatiVersDatiSingVersDatiSpecificiRiscossione());
-      //datiSingoloVersamentoArray[mygovRptRtDettaglios.indexOf(mygovRptRtDettaglio)] = datiSingoloVersamento;
-      datiSingoloVersamentoArray.add(datiSingoloVersamento); //TODO Make sure if is correct.
+      datiSingoloVersamentoArray.add(datiSingoloVersamento);
     }
 
     datiVersamento.getDatiSingoloVersamentos().addAll(datiSingoloVersamentoArray);
@@ -773,16 +734,16 @@ public class NodoInviaRPTService {
 
   /**
    * @param mygovRpEId
-   * @param _rispostaRP
-   * @param id_session
+   * @param rispostaRP
+   * @param idSession
    */
-  private void saveRpRisposta(Long mygovRpEId, NodoSILInviaRPRisposta _rispostaRP, UUID id_session) {
+  private void saveRpRisposta(Long mygovRpEId, NodoSILInviaRPRisposta rispostaRP, UUID idSession) {
 
-    FaultBean esitoFault = _rispostaRP.getFault();
+    FaultBean esitoFault = rispostaRP.getFault();
 
-    rpEService.updateRispostaRpById(mygovRpEId, _rispostaRP.getEsito(), _rispostaRP.getRedirect(),
-        _rispostaRP.getUrl(), esitoFault.getFaultCode(), esitoFault.getFaultString(), esitoFault.getId(),
-        esitoFault.getDescription(), esitoFault.getSerial(), id_session.toString(), esitoFault.getOriginalFaultCode(),
+    rpEService.updateRispostaRpById(mygovRpEId, rispostaRP.getEsito(), rispostaRP.getRedirect(),
+        rispostaRP.getUrl(), esitoFault.getFaultCode(), esitoFault.getFaultString(), esitoFault.getId(),
+        esitoFault.getDescription(), esitoFault.getSerial(), idSession.toString(), esitoFault.getOriginalFaultCode(),
         esitoFault.getOriginalFaultString(), esitoFault.getOriginalDescription());
   }
 
@@ -830,45 +791,38 @@ public class NodoInviaRPTService {
         rp.getDominio().getIdentificativoDominio(), rp.getDominio().getIdentificativoStazioneRichiedente(),
         rp.getIdentificativoMessaggioRichiesta(), Utilities.toDate(rp.getDataOraMessaggioRichiesta()),
         rp.getAutenticazioneSoggetto().toString(),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getIdentificativoUnivocoVersante()
-            .getTipoIdentificativoUnivoco().toString() : null),
-        ((rp.getSoggettoVersante() != null)
-            ? rp.getSoggettoVersante().getIdentificativoUnivocoVersante().getCodiceIdentificativoUnivoco()
-            : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getAnagraficaVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getIndirizzoVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getCivicoVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getCapVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getLocalitaVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getProvinciaVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getNazioneVersante() : null),
-        ((rp.getSoggettoVersante() != null) ? rp.getSoggettoVersante().getEMailVersante() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getIdentificativoUnivocoPagatore()
-            .getTipoIdentificativoUnivoco().toString() : null),
-        ((rp.getSoggettoPagatore() != null)
-            ? rp.getSoggettoPagatore().getIdentificativoUnivocoPagatore().getCodiceIdentificativoUnivoco()
-            : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getAnagraficaPagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getIndirizzoPagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getCivicoPagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getCapPagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getLocalitaPagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getProvinciaPagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getNazionePagatore() : null),
-        ((rp.getSoggettoPagatore() != null) ? rp.getSoggettoPagatore().getEMailPagatore() : null),
-        ((rp.getDatiVersamento() != null) ? Utilities.toDate(rp.getDatiVersamento().getDataEsecuzionePagamento())
-            : null),
-        ((rp.getDatiVersamento() != null) ? rp.getDatiVersamento().getImportoTotaleDaVersare() : null),
-        ((rp.getDatiVersamento() != null) ? rp.getDatiVersamento().getTipoVersamento().toString() : null),
-        ((rp.getDatiVersamento() != null) ? rp.getDatiVersamento().getIdentificativoUnivocoVersamento() : null),
-        ((rp.getDatiVersamento() != null) ? rp.getDatiVersamento().getCodiceContestoPagamento() : null),
-        ((rp.getDatiVersamento() != null) ? rp.getDatiVersamento().getIbanAddebito() : null),
-        ((rp.getDatiVersamento() != null) ? rp.getDatiVersamento().getBicAddebito() : null),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), ct -> ct.getIdentificativoUnivocoVersante().getTipoIdentificativoUnivoco().toString()),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), ct -> ct.getIdentificativoUnivocoVersante().getCodiceIdentificativoUnivoco()),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getAnagraficaVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getIndirizzoVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getCivicoVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getCapVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getLocalitaVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getProvinciaVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getNazioneVersante),
+        Utilities.ifNotNull(rp.getSoggettoVersante(), CtSoggettoVersante::getEMailVersante),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), ct -> ct.getIdentificativoUnivocoPagatore().getTipoIdentificativoUnivoco().toString()),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), ct -> ct.getIdentificativoUnivocoPagatore().getCodiceIdentificativoUnivoco()),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getAnagraficaPagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getIndirizzoPagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getCivicoPagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getCapPagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getLocalitaPagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getProvinciaPagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getNazionePagatore),
+        Utilities.ifNotNull(rp.getSoggettoPagatore(), CtSoggettoPagatore::getEMailPagatore),
+        Utilities.ifNotNull(rp.getDatiVersamento(), ct -> Utilities.toDate(ct.getDataEsecuzionePagamento())),
+        Utilities.ifNotNull(rp.getDatiVersamento(), CtDatiVersamentoRP::getImportoTotaleDaVersare),
+        Utilities.ifNotNull(rp.getDatiVersamento(), ct -> ct.getTipoVersamento().toString()),
+        Utilities.ifNotNull(rp.getDatiVersamento(), CtDatiVersamentoRP::getIdentificativoUnivocoVersamento),
+        Utilities.ifNotNull(rp.getDatiVersamento(), CtDatiVersamentoRP::getCodiceContestoPagamento),
+        Utilities.ifNotNull(rp.getDatiVersamento(), CtDatiVersamentoRP::getIbanAddebito),
+        Utilities.ifNotNull(rp.getDatiVersamento(), CtDatiVersamentoRP::getBicAddebito),
         bodyrichiesta.getModelloPagamento(), rpVersamenti);
   }
 
   private RptRt saveRPT(gov.telematici.pagamenti.ws.nodospcpernodoregionale.IntestazionePPT header,
-                             NodoInviaRPT _paaSILInviaRPT_body,
+                             NodoInviaRPT paaSILInviaRPTBody,
                              RPT rpt, Long mygovRpEId,
                              Integer modelloPagamento) {
     List<RptRtDettaglioDto> richiestaVersamenti = new ArrayList<>();
@@ -919,9 +873,9 @@ public class NodoInviaRPTService {
           .getCodiceIdentificativoUnivoco();
     }
 
-    return rptRtService.insertRpt(_paaSILInviaRPT_body.getPassword(),
-        _paaSILInviaRPT_body.getIdentificativoPSP(), _paaSILInviaRPT_body.getIdentificativoIntermediarioPSP(),
-        _paaSILInviaRPT_body.getIdentificativoCanale(), _paaSILInviaRPT_body.getTipoFirma(),
+    return rptRtService.insertRpt(paaSILInviaRPTBody.getPassword(),
+        paaSILInviaRPTBody.getIdentificativoPSP(), paaSILInviaRPTBody.getIdentificativoIntermediarioPSP(),
+        paaSILInviaRPTBody.getIdentificativoCanale(), paaSILInviaRPTBody.getTipoFirma(),
         header.getIdentificativoIntermediarioPA(), header.getIdentificativoStazioneIntermediarioPA(),
         header.getIdentificativoDominio(), header.getIdentificativoUnivocoVersamento(),
         header.getCodiceContestoPagamento(), rpt.getVersioneOggetto(),
@@ -962,36 +916,36 @@ public class NodoInviaRPTService {
 
   }
 
-  private NodoSILInviaRPRisposta builtRispostaRP(NodoInviaRPTRisposta _rispostaRPT, UUID id_session) {
-    NodoSILInviaRPRisposta _rispostaRP = new NodoSILInviaRPRisposta();
+  private NodoSILInviaRPRisposta builtRispostaRP(NodoInviaRPTRisposta rispostaRPT, UUID idSession) {
+    NodoSILInviaRPRisposta rispostaRP = new NodoSILInviaRPRisposta();
 
-    _rispostaRP.setEsito(_rispostaRPT.getEsito());
-    _rispostaRP.setRedirect(_rispostaRPT.getRedirect());
+    rispostaRP.setEsito(rispostaRPT.getEsito());
+    rispostaRP.setRedirect(rispostaRPT.getRedirect());
 
-    if ((_rispostaRPT.getRedirect() != null) && (_rispostaRPT.getRedirect() == 1)) {
+    if ((rispostaRPT.getRedirect() != null) && (rispostaRPT.getRedirect() == 1)) {
       //prendi da properties :: NODO REGIONALE FESP BASE URL
-      _rispostaRP.setUrl(appBeAbsolutePath + "/nodoSILInviaRichiestaPagamento.html?idSession="
-          + id_session.toString());
+      rispostaRP.setUrl(appBeAbsolutePath + "/nodoSILInviaRichiestaPagamento.html?idSession="
+          + idSession.toString());
     } else {
-      _rispostaRP.setUrl(_rispostaRPT.getUrl());
+      rispostaRP.setUrl(rispostaRPT.getUrl());
     }
 
     FaultBean err = new FaultBean();
 
-    if (_rispostaRPT.getFault() != null) {
-      err.setFaultCode(_rispostaRPT.getFault().getFaultCode());
-      err.setFaultString(_rispostaRPT.getFault().getFaultString());
-      err.setId(_rispostaRPT.getFault().getId());
-      err.setDescription(_rispostaRPT.getFault().getDescription());
+    if (rispostaRPT.getFault() != null) {
+      err.setFaultCode(rispostaRPT.getFault().getFaultCode());
+      err.setFaultString(rispostaRPT.getFault().getFaultString());
+      err.setId(rispostaRPT.getFault().getId());
+      err.setDescription(rispostaRPT.getFault().getDescription());
       err.setOriginalFaultCode(null);   // OriginalFaultCode which not exists in Mypay4.
       err.setOriginalFaultString(null); // OriginalFaultString which not exists in Mypay4.
       err.setOriginalDescription(null); // OriginalDescription which not exists in Mypay4.
-      err.setSerial(_rispostaRPT.getFault().getSerial());
+      err.setSerial(rispostaRPT.getFault().getSerial());
     }
 
-    _rispostaRP.setFault(err);
+    rispostaRP.setFault(err);
 
-    return _rispostaRP;
+    return rispostaRP;
   }
 
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
@@ -1016,8 +970,7 @@ public class NodoInviaRPTService {
     RPT rptObj = buildRPT(mygovRptRt);
     NodoInviaRPT body = buildBodyRPT(rptObj, mygovRptRt);
     try {
-      NodoInviaRPTRisposta response = pagamentiTelematiciRPTImpl.nodoInviaRPT(
-          mygovRptRt.getMygovRptRtId(),
+      NodoInviaRPTRisposta response = pagamentiTelematiciRPTClient.nodoInviaRPT(
           body,
           header);
 

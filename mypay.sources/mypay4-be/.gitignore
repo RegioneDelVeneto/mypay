@@ -5,3 +5,4 @@
 /sshtunnel*
 /src/main/resources/application-local*.properties
 /standalone-run
+/.run

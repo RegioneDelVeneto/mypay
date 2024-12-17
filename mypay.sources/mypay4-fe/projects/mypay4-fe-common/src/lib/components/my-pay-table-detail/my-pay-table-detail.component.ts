@@ -18,7 +18,7 @@
 import { TableAction } from 'projects/mypay4-fe-common/src/public-api';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -33,7 +33,7 @@ export type UpdateDetailFun = (details:BehaviorSubject<KeyValue[]>)=>void;
   templateUrl: './my-pay-table-detail.component.html',
   styleUrls: ['./my-pay-table-detail.component.scss']
 })
-export class MyPayTableDetailComponent implements OnInit, OnDestroy {
+export class MyPayTableDetailComponent implements OnDestroy {
 
   public static DIALOG_ID = 'mypay4-table-detail-dialog';
 
@@ -50,6 +50,16 @@ export class MyPayTableDetailComponent implements OnInit, OnDestroy {
   public detailFilterExclude: string[];
   private detailSubjectSubscription: Subscription;
 
+  //Ente primario details
+  public detailsEntePrimarioGroups: any;
+  public detailsEntePrimarioLabel: any;
+
+  //multibeneficiario
+  public elementMultibeneficiario: any
+  public detailsMBGroups: any;
+  public detailsMBGroupsLabel: any;
+
+
   iconTimes = faTimes;
 
   constructor(
@@ -62,6 +72,7 @@ export class MyPayTableDetailComponent implements OnInit, OnDestroy {
     this.parentRef = data.parentRef;
     this.detailFilterInclude = data.detailFilterInclude;
     this.detailFilterExclude = data.detailFilterExclude;
+    this.elementMultibeneficiario = data.dovutoMultibeneficiario;
 
     let detailSubject:BehaviorSubject<KeyValue[]>;
     if(this.element.details instanceof BehaviorSubject){
@@ -71,7 +82,6 @@ export class MyPayTableDetailComponent implements OnInit, OnDestroy {
     }
 
     this.detailSubjectSubscription = detailSubject.subscribe(newDetails => {
-
       const detailsGroups = [];
       const detailsGroupsLabel = [];
       let details = [];
@@ -82,9 +92,14 @@ export class MyPayTableDetailComponent implements OnInit, OnDestroy {
           this.actionColumn = aColumn;
       });
       if(details){
+         //remove elemente 'Multi beneficiario' from detailsGroups
+        let indexMB = details.findIndex(el => el.key === 'Multi beneficiario');
+        details.splice(indexMB,1);
+
         detailsGroupsLabel.push(null);
         detailsGroups.push(details);
       }
+
 
       newDetails?.forEach(element => {
         if(element.key === MyPayTableDetailComponent.SECTION_ID){
@@ -104,18 +119,47 @@ export class MyPayTableDetailComponent implements OnInit, OnDestroy {
         }
       });
 
+
       this.detailsGroups = detailsGroups;
       this.detailsGroupsLabel = detailsGroupsLabel;
+      
     });
 
+    //detail Ente primario 
+    if(this.element.detailEntePrimario != null) {
+      const detailsEnteGropups = [];
+      const detailEnteGropupsLabel = [];
+      let detailsEnte = [];
+
+      this.element.detailEntePrimario.forEach(element => {
+        detailEnteGropupsLabel.push(element.key)
+        detailsEnte.push(element);
+      });
+      detailsEnteGropups.push(detailsEnte);
+      this.detailsEntePrimarioGroups = detailsEnteGropups;
+      this.detailsEntePrimarioLabel = detailEnteGropupsLabel;
+    }
+
+    //detail multibeneficiario
+    if(this.element.detailMultiBeneficiario != null) {
+      const detailsMBGroups = [];
+      const detailsMBGroupsLabel = [];
+      let detailsMB = [];
+
+      this.element.detailMultiBeneficiario.forEach(element => {
+        detailsMBGroupsLabel.push(element.key)
+        detailsMB.push(element);
+      });
+      detailsMBGroups.push(detailsMB);
+      this.detailsMBGroups = detailsMBGroups;
+      this.detailsMBGroupsLabel = detailsMBGroupsLabel;
+    }
+    
   }
 
   clickAction(action: TableAction, eventRef: any):void {
     MyPayTableDetailComponent.close(this.matDialog);
     action.click(this.tableId, this.element, this.parentRef, eventRef);
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnDestroy(): void {
@@ -129,6 +173,13 @@ export class MyPayTableDetailComponent implements OnInit, OnDestroy {
   public static markNoDetail(element: any){
     element.details = null;
     element[MyPayTableDetailComponent.NO_DETAIL] = true;
+  }
+
+  private formatStringNumber(str: string): string {
+    str = str.replace("€", "");
+    str = str.replace(".", "");
+    str = str.split(",").join(".").trim()
+    return str;
   }
 
 }

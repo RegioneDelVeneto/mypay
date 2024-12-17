@@ -19,7 +19,11 @@ package it.regioneveneto.mygov.payment.mypay4.util;
 
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.exception.ValidatorException;
-import it.regioneveneto.mygov.payment.mypay4.model.*;
+import it.regioneveneto.mygov.payment.mypay4.model.AnagraficaStato;
+import it.regioneveneto.mygov.payment.mypay4.model.Carrello;
+import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
+import it.regioneveneto.mygov.payment.mypay4.model.Ente;
+import it.regioneveneto.mygov.payment.mypay4.service.DovutoService;
 import it.regioneveneto.mygov.payment.mypay4.util.render.FieldBean;
 import it.veneto.regione.schemas._2012.pagamenti.ente.Bilancio;
 import it.veneto.regione.schemas._2012.pagamenti.ente.CtAccertamento;
@@ -29,6 +33,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import javax.imageio.ImageIO;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -41,30 +51,29 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 public class Utilities {
 
-  private final static ThreadLocal<SimpleDateFormat> date_fmt_UUID = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyMMddHHmmssSSS"));
 
-  private final static String SEP = "-";
+
+  private static final ThreadLocal<SimpleDateFormat> date_fmt_UUID = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyMMddHHmmssSSS"));
+
+  private static final String SEP = "-";
   private static final ThreadLocal<NumberFormat> number_fmt_IT = ThreadLocal.withInitial(() -> NumberFormat.getNumberInstance(Locale.ITALIAN));
 
   private static final ThreadLocal<SimpleDateFormat> date_fmt_IT = ThreadLocal.withInitial(() -> {
@@ -72,6 +81,12 @@ public class Utilities {
     simpleDateFormat.setLenient(false);
     return simpleDateFormat;
   });
+
+  public static void clean(){
+    date_fmt_UUID.remove();
+    number_fmt_IT.remove();
+    date_fmt_IT.remove();
+  }
 
   public static String parseImportoString(BigDecimal importo) {
     String importoString = number_fmt_IT.get().format(importo);
@@ -84,6 +99,13 @@ public class Utilities {
     }
     return importoString;
 
+  }
+
+  public static String parseImportoStringWithDotSeparator(BigDecimal importo) {
+    DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(Locale.ITALIAN);
+    dfs.setDecimalSeparator('.');
+    DecimalFormat df = new DecimalFormat("0.00", dfs);
+    return df.format(importo);
   }
 
   public static final Set<String> tipiVersamento = Collections
@@ -168,8 +190,12 @@ public class Utilities {
     if ("IT".equalsIgnoreCase(codiceIsoNazione)) {
       return cap.matches("^[0-9]{5}$");
     } else {
-      return cap.matches("^[a-zA-Z0-9]{1,16}$");
+      return isValidCAP(cap);
     }
+  }
+
+  public static boolean isValidCAP(String cap) {
+      return cap.matches("^[a-zA-Z0-9]{1,16}$");
   }
 
   public static boolean isValidUrl(String urlString){
@@ -317,14 +343,19 @@ public class Utilities {
   }
 
   public static boolean isValidCodIdUnivocoConAnonimo(boolean anonimo, String tipoPersona, String codIdUnivoco) {
+    boolean returnValue = false;
     if (anonimo && Constants.CODICE_FISCALE_ANONIMO.equals(codIdUnivoco) && !Constants.TIPOIDENTIFICATIVOUNIVOCO_G.equals(tipoPersona)) {
-      return true;
+      returnValue = true;
     } else if (Constants.TIPOIDENTIFICATIVOUNIVOCO_G.equals(tipoPersona)) {
-      return Utilities.isValidPIVA(codIdUnivoco);
+      returnValue = Utilities.isValidPIVA(codIdUnivoco);
     } else if (Constants.TIPOIDENTIFICATIVOUNIVOCO_F.equals(tipoPersona)) {
-      return Utilities.isValidCFpf(codIdUnivoco);
-    } else
-      return false;
+      //in some case of subject "persona fisica", the codIdUnivoco may be a "partita iva"
+      // (ditte unipersonali, liberi professionisti, codice fiscale provvisorio)
+      returnValue = Utilities.isValidCFOrPIVA(codIdUnivoco);
+    }
+    if(!returnValue)
+      log.info("invalid codIdUnivoco anonimo[{}] tipo[{}] cod[{}]", anonimo, tipoPersona, codIdUnivoco);
+    return returnValue;
   }
 
   public static boolean isValidData(String data) {
@@ -474,10 +505,17 @@ public class Utilities {
   }
 
   public static XMLGregorianCalendar toXMLGregorianCalendar(Date date) {
+    return toXMLGregorianCalendar(date, false);
+  }
+
+  public static XMLGregorianCalendar toXMLGregorianCalendar(Date date, boolean skipTimezone) {
     GregorianCalendar gCalendar = new GregorianCalendar();
     if(date!=null)
       gCalendar.setTime(date);
-    return toXMLGregorianCalendar(gCalendar);
+    XMLGregorianCalendar xmlCal = toXMLGregorianCalendar(gCalendar);
+    if(skipTimezone)
+      xmlCal.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
+    return xmlCal;
   }
 
   public static XMLGregorianCalendar toXMLGregorianCalendar(LocalDate localDate) {
@@ -515,6 +553,12 @@ public class Utilities {
     return date==null?null:new java.sql.Timestamp(date.getTime()).toLocalDateTime();
   }
 
+  public static String convertDateToISOString(Date date) {
+    if(date instanceof java.sql.Date)
+      date = new Date(date.getTime());
+    return Optional.ofNullable(date).map(Date::toInstant).map(DateTimeFormatter.ISO_INSTANT::format).orElse(null);
+  }
+
   public static Date addDays(Date date, int days) {
     Calendar cal = Calendar.getInstance();
     cal.setTime(date);
@@ -531,6 +575,8 @@ public class Utilities {
   }
 
   public static Calendar toCalendarAtMidnight(final Date date) {
+    if(date == null)
+      return null;
     final Calendar cal = Calendar.getInstance();
     cal.setTime(date);
     cal.set(Calendar.HOUR_OF_DAY,0);
@@ -540,8 +586,28 @@ public class Utilities {
     return cal;
   }
 
+  public static Calendar toCalendarAtEndOfDay(final Date date) {
+    if(date == null)
+      return null;
+    final Calendar cal = Calendar.getInstance();
+    cal.setTime(date);
+    cal.set(Calendar.HOUR_OF_DAY,23);
+    cal.set(Calendar.MINUTE,59);
+    cal.set(Calendar.SECOND,59);
+    cal.set(Calendar.MILLISECOND,999);
+    return cal;
+  }
+
   public static Date toDateAtMidnight(final Date date) {
+    if(date == null)
+      return null;
     return toCalendarAtMidnight(date).getTime();
+  }
+
+  public static Date toDateAtAtEndOfDay(final Date date) {
+    if(date == null)
+      return null;
+    return toCalendarAtEndOfDay(date).getTime();
   }
 
   public static XMLGregorianCalendar toXMLGregorianCalendarWithoutTimezone(Date date) {
@@ -571,7 +637,7 @@ public class Utilities {
     if (m.find()) {
       NumberFormat number_fmt_IT = NumberFormat.getNumberInstance(Locale.ITALIAN);
       Number number = number_fmt_IT.parse(importo);
-      BigDecimal impBigDecimal = new BigDecimal(number.doubleValue());
+      BigDecimal impBigDecimal = BigDecimal.valueOf(number.doubleValue());
 
       if (impBigDecimal.compareTo(BigDecimal.ZERO) == 0) {
         throw new Exception("Importo non valido");
@@ -675,13 +741,8 @@ public class Utilities {
   }
 
   public static boolean validaVersioneTracciatoExport(String versioneTracciato) {
-    if (org.apache.commons.lang3.StringUtils.isBlank(versioneTracciato))
-      throw new IllegalArgumentException("Versione tracciato nulla");
-
-    for (Constants.VERSIONE_TRACCIATO_EXPORT vte : Constants.VERSIONE_TRACCIATO_EXPORT.values())
-      if (vte.value.equals(versioneTracciato))
-        return true;
-    return false;
+    return Arrays.stream(Constants.VERSIONE_TRACCIATO_EXPORT.values())
+      .anyMatch(v -> v.getValue().equals(versioneTracciato));
   }
 
   public static Date toMidnight(Date data) {
@@ -710,11 +771,10 @@ public class Utilities {
     return downloadUrl;
   }
 
-  public static boolean validaIUV(String IUV, boolean flagGeneraIuv, String applicationCode) {
-
+  public static boolean validaIUV(String IUV, boolean flagGeneraIuv, String applicationCode, boolean forIuvCreationOperation) {
     if (StringUtils.isNotBlank(IUV)) {
       if (IUV.length() == 15) {
-        return !IUV.startsWith("00");
+        return (!forIuvCreationOperation || DovutoService.canCreateNowIUV15()) && !IUV.startsWith("00");
       } else if (IUV.length() == 25) {
         if (IUV.endsWith("0000")) {
           // vecchio
@@ -795,6 +855,14 @@ public class Utilities {
     return matcher.matches();
   }
 
+  public static boolean validaDatiSpecificiRiscossioneEnteSecondario(String stringa) {
+
+    Pattern pattern = Pattern.compile(Constants.TAXONOMIC_CODE_PATTERN);
+    Matcher matcher = pattern.matcher(stringa);
+
+    return matcher.matches();
+  }
+
   public static String bonificaIndirizzoAnagrafica(String stringa) {
 
     // se il carattere non previsto e' un diacritico sostituirlo con il
@@ -842,17 +910,9 @@ public class Utilities {
         + importo.multiply(new BigDecimal(100)).setScale(0).toString();
   }
 
-  public static String formatNumeroAvviso15digit(String applicationCode, String codIuv) {
-    return formatCodAvviso("0" + applicationCode + " ", codIuv);
-  }
-
-  public static String formatNumeroAvviso17digit(String auxDigit, String codIuv) {
-    return formatCodAvviso("",auxDigit + codIuv);
-  }
-
-  public static String formatCodAvviso(String prefix, String codAvviso) {
-    String[] parts = codAvviso.split("(?<=\\G....)");
-    return prefix + String.join(" ", parts);
+  public static String formatCodAvviso(String prefix, String applicationCode, String iuv) {
+    String[] parts = prefix.concat(applicationCode).concat(iuv).split("(?<=\\G....)");
+    return String.join(" ", parts);
   }
 
   public static BufferedImage getImageFromBase64String(String base64image) throws IOException {
@@ -924,7 +984,7 @@ public class Utilities {
   public static String numeroAvvisoToIuvValidator(String numeroAvviso) {
     String iuv;
     if (numeroAvviso!= null && numeroAvviso.length() == 18) {
-      if (numeroAvviso.startsWith("0")) {
+      if (numeroAvviso.startsWith(Constants.OLD_IUV_AUX_DIGIT)) {
         iuv = numeroAvviso.substring(3);
       } else if (numeroAvviso.startsWith(Constants.SMALL_IUV_AUX_DIGIT)) {
         iuv = numeroAvviso.substring(1);
@@ -937,6 +997,21 @@ public class Utilities {
       throw new ValidatorException("Codice avviso / IUV non corretto.");
     }
     return iuv;
+  }
+
+  public static String iuvToNumeroAvviso(String iuv, String applicationCodeEnte, boolean formatted){
+    if(StringUtils.isBlank(iuv))
+      return null;
+    iuv = StringUtils.remove(iuv, " ");
+    String codAvviso = null;
+    if (iuv.length() == Constants.IUV_GENERATOR_15_LENGTH) {
+      codAvviso = Utilities.formatCodAvviso(Constants.OLD_IUV_AUX_DIGIT, applicationCodeEnte, iuv);
+    } else if (iuv.length() == Constants.IUV_GENERATOR_17_LENGTH) {
+      codAvviso = Utilities.formatCodAvviso(Constants.SMALL_IUV_AUX_DIGIT, "", iuv);
+    }
+    if(!formatted)
+      codAvviso = StringUtils.remove(codAvviso, " ");
+    return codAvviso;
   }
 
   public static String getFilenameAvviso(String ente, String iuv){
@@ -1021,6 +1096,67 @@ public class Utilities {
         }
     } catch (Exception e) {}
     return carrelloOK;
+  }
+
+  public static <T> Function<T,T> tryOrInputValueWrapper(Function<T, T> fun){
+    return x -> tryOrOtherwise(()->fun.apply(x), x);
+  }
+  public static <T> T tryOrOtherwise(Supplier<T> supplier, T otherwise){
+    T returnValue = otherwise;
+    try{
+      returnValue = supplier.get();
+    }catch(Exception e){
+      //just ignore the error
+    }
+    return returnValue;
+  }
+
+  public static <T> Map<String, T> envToMap(ConfigurableEnvironment env, String prefix, Function<String, T> mapFunction) {
+    ThreadLocal<String> currentKey = new ThreadLocal<>();
+    try {
+      String prefixEnvSyntax = StringUtils.upperCase(prefix).replace('.', '_'); //handle env properties syntax
+      return StreamSupport.stream(env.getPropertySources().spliterator(), false)
+          .filter(ps -> ps instanceof EnumerablePropertySource)
+          .map(ps -> ((EnumerablePropertySource<?>) ps).getPropertyNames())
+          .flatMap(Arrays::stream)
+          .filter(name -> name.startsWith(prefix) || StringUtils.upperCase(name).replace('.', '_').startsWith(prefixEnvSyntax))
+          .distinct()
+          .peek(currentKey::set)
+          .map(name -> Pair.of(name.substring(prefix.length()), mapFunction.apply(env.getProperty(name))))
+          .distinct()
+          .collect(Collectors.toUnmodifiableMap(Pair::getKey, Pair::getValue));
+    } catch (Exception e) {
+      log.error("error envToMap prefix[{}] currentKey[{}]", prefix, currentKey.get(), e);
+      throw new MyPayException(e);
+    }
+  }
+
+  public static <T> Consumer<T> consumeAndCatch(Consumer<T> fun, BiConsumer<T, Boolean> finallyFun){
+    return in -> {
+      boolean ok = true;
+      try {
+        fun.accept(in);
+      } catch(Exception e) {
+        ok = false;
+        log.warn("catched exception in consumeAndCatch", e);
+      } finally {
+        if(finallyFun!=null)
+          finallyFun.accept(in, ok);
+      }
+    };
+  }
+
+  private final static BigDecimal BIG_DECIMAL_100 = new BigDecimal(100);
+  public static long amountAsEuroCents(BigDecimal amount){
+    return amount==null?0:amount.multiply(BIG_DECIMAL_100).longValueExact();
+  }
+
+  public static ResponseEntity<?> redirectTo(String url) throws URISyntaxException {
+    URI uri = new URI(url);
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setLocation(uri);
+    log.debug("redirecting to :{}", url);
+    return ResponseEntity.status(HttpStatus.SEE_OTHER).headers(httpHeaders).build();
   }
 
 }

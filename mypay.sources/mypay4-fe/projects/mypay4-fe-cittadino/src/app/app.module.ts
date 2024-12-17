@@ -16,23 +16,24 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import * as _ from 'lodash';
+import { Settings } from 'luxon';
 import { FileSaverModule } from 'ngx-filesaver';
 import { MAT_LUXON_DATE_ADAPTER_OPTIONS, MatLuxonDateModule } from 'ngx-material-luxon';
 import { ToastContainerModule, ToastrModule } from 'ngx-toastr';
 import {
-    ConfirmDialogComponent
+  ConfirmDialogComponent
 } from 'projects/mypay4-fe-common/src/lib/components/confirm-dialog/confirm-dialog.component';
 import {
-    HelpFieldComponent
+  HelpFieldComponent
 } from 'projects/mypay4-fe-common/src/lib/components/help-field/help-field.component';
 import { HelpComponent } from 'projects/mypay4-fe-common/src/lib/components/help/help.component';
 import {
-    AccessGuard, AppConfirmDirective, ConfigurationFactory, ConfigurationService,
-    ContentEditingPropertyComponent, CookieService, CustomBreakPointsProvider,
-    CustomLayoutDirective, DetailFilterPipe, DynamicOverlay, DynamicOverlayContainer, DynamicPipe,
-    getItalianPaginatorIntl, GlobalPipe, JoinPipe, MapPipe, MyPayBreadcrumbsComponent, OrderByPipe,
-    OverlaySpinnerContainerComponent, OverlaySpinnerService, RenderableItemsFilterPipe,
-    TabbingClickDirective, TokenInterceptor, TrimDirective
+  AccessGuard, AppConfirmDirective, ConfigurationFactory, ConfigurationService,
+  ContentEditingPropertyComponent, CookieService, CustomBreakPointsProvider,
+  CustomLayoutDirective, DetailFilterPipe, DynamicOverlay, DynamicOverlayContainer, DynamicPipe,
+  getItalianPaginatorIntl, GlobalPipe, JoinPipe, MapPipe, MyPayBreadcrumbsComponent, OrderByPipe,
+  OverlaySpinnerContainerComponent, OverlaySpinnerService, RemoveSpaceDirective,
+  RenderableItemsFilterPipe, TabbingClickDirective, TokenInterceptor, TrimDirective
 } from 'projects/mypay4-fe-common/src/public-api';
 
 import { OverlayModule } from '@angular/cdk/overlay';
@@ -75,15 +76,15 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgxMatomoRouterModule } from '@ngx-matomo/router';
 import {
-    MATOMO_CONFIGURATION, MatomoConsentMode, NgxMatomoTrackerModule
+  MATOMO_CONFIGURATION, MatomoConsentMode, NgxMatomoTrackerModule
 } from '@ngx-matomo/tracker';
 
 import {
-    LoggedComponent
+  LoggedComponent
 } from '../../../mypay4-fe-common/src/lib/components/logged/logged.component';
 import { LoginComponent } from '../../../mypay4-fe-common/src/lib/components/login/login.component';
 import {
-    MyPayTableDetailComponent
+  MyPayTableDetailComponent
 } from '../../../mypay4-fe-common/src/lib/components/my-pay-table-detail/my-pay-table-detail.component';
 import { ToDoComponent } from '../../../mypay4-fe-common/src/lib/components/to-do/to-do.component';
 import { AppRoutingModule } from './app-routing/app-routing.module';
@@ -101,14 +102,16 @@ import { HomeEnteComponent } from './components/home-ente/home-ente.component';
 import { HomeComponent } from './components/home/home.component';
 import { LandingComponent } from './components/landing/landing.component';
 import {
-    MyPayTableCittadinoComponent
+  MyPayTableCittadinoComponent
 } from './components/my-pay-table-cittadino/my-pay-table-cittadino.component';
 import { PagatiComponent } from './components/pagati/pagati.component';
 import { SpontaneoDynamoComponent } from './components/spontaneo-dynamo/spontaneo-dynamo.component';
 import { SpontaneoComponent } from './components/spontaneo/spontaneo.component';
+import { RecaptchaV2Dialog } from './services/recaptcha.service';
 import { SidenavService } from './services/sidenav.service';
 
 registerLocaleData(localeIt, localeItExtra);
+Settings.defaultLocale = 'it-it';
 
 export function bootstrapMyPayConfig(configurationService: ConfigurationService) {
   return () => ConfigurationFactory.get().init().then( () => configurationService.bootstrapConfig() );
@@ -180,6 +183,8 @@ export function matomoConfigFactory() {
     OrderByPipe,
     OverlaySpinnerContainerComponent,
     PagatiComponent,
+    RecaptchaV2Dialog,
+    RemoveSpaceDirective,
     RenderableItemsFilterPipe,
     SpontaneoComponent,
     SpontaneoDynamoComponent,

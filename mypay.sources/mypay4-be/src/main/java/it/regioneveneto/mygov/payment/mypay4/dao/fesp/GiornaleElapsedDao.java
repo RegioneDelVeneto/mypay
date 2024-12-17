@@ -25,7 +25,10 @@ import java.sql.Timestamp;
 public interface GiornaleElapsedDao extends BaseDao {
 
   enum Operation {
-    paaVerificaRPT, paaAttivaRPT, paaInviaRT
+    //max 20 chars (due to size on DB column)
+    paaVerificaRPT, paaAttivaRPT, paaInviaRT,
+    paVerifyPaymentNotic, paGetPayment, paSendRT,
+    paDemandPaymentNotic, paGetPaymentV2, paSendRTV2
   }
 
   @SqlUpdate(

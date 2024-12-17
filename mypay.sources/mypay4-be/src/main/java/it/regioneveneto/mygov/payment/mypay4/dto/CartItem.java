@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItem extends BaseTo implements Serializable {
@@ -48,9 +48,15 @@ public class CartItem extends BaseTo implements Serializable {
   private String securityTokenAvviso;
   private String versanteEmail;
 
+  //to prepare avviso for spontaneo;
+  private String mailValidationToken;
+
   //only for WS paaSILInviaDovuti
   private String iud;
   private String datiSpecificiRiscossione;
   private String identificativoUnivocoFlusso;
   private DatiMarcaBolloDigitale bolloDigitale;
+
+  //check if the amount has been updated
+  private boolean importoAtt;
 }

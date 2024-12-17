@@ -20,6 +20,10 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
+    dynamicTitle: false,
+    baseTitle: 'MyPay - Cittadino',
+    dynamicMetaDescription: false,
+    baseMetaDescription: 'MyPay, il Portale dei pagamenti'
 };
 
 /*

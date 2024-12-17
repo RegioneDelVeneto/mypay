@@ -44,5 +44,9 @@ function bootstrapManageError(error:any){
             message = message + ' Causa dell\'errore: ' + error;
         }
     }
-    errorMsgElement.textContent = message;
+    if(errorMsgElement)
+        errorMsgElement.textContent = message;
+    const initialLoader: HTMLElement = document.querySelector('#initialLoader');
+    if(initialLoader)
+        initialLoader.style.display = 'none';
 }

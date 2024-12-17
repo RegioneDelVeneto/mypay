@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovDatiMarcaBolloDigitaleId")
 public class DatiMarcaBolloDigitale {
 
-  public final static String ALIAS = "DatiMarcaBolloDigitale";
-  public final static String FIELDS = ""+ALIAS+".mygov_dati_marca_bollo_digitale_id as DatiMarcaBolloDigitale_mygovDatiMarcaBolloDigitaleId"+
+  public static final String ALIAS = "DatiMarcaBolloDigitale";
+  public static final String FIELDS = ""+ALIAS+".mygov_dati_marca_bollo_digitale_id as DatiMarcaBolloDigitale_mygovDatiMarcaBolloDigitaleId"+
       ","+ALIAS+".version as DatiMarcaBolloDigitale_version,"+ALIAS+".tipo_bollo as DatiMarcaBolloDigitale_tipoBollo"+
       ","+ALIAS+".hash_documento as DatiMarcaBolloDigitale_hashDocumento"+
       ","+ALIAS+".provincia_residenza as DatiMarcaBolloDigitale_provinciaResidenza";

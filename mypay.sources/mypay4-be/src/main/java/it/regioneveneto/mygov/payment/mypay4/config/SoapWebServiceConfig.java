@@ -18,15 +18,14 @@
 package it.regioneveneto.mygov.payment.mypay4.config;
 
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
-import it.regioneveneto.mygov.payment.mypay4.ws.server.PagamentiTelematiciCCPPaEndpoint;
-import it.regioneveneto.mygov.payment.mypay4.ws.server.PagamentiTelematiciDovutiPagatiEndpoint;
-import it.regioneveneto.mygov.payment.mypay4.ws.server.PagamentiTelematiciEsitoEndpoint;
-import it.regioneveneto.mygov.payment.mypay4.ws.server.PagamentiTelematiciFlussiSPCEndpoint;
+import it.regioneveneto.mygov.payment.mypay4.ws.server.*;
 import it.regioneveneto.mygov.payment.mypay4.ws.server.fesp.*;
+import it.regioneveneto.mygov.payment.mypay4.ws.util.MyEndpointInterceptor;
 import it.regioneveneto.mygov.payment.mypay4.ws.util.MyWsdl11Definition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -37,6 +36,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.ws.config.annotation.EnableWs;
 import org.springframework.ws.config.annotation.WsConfigurerAdapter;
+import org.springframework.ws.server.EndpointInterceptor;
 import org.springframework.ws.support.WebUtils;
 import org.springframework.ws.transport.http.MessageDispatcherServlet;
 import org.springframework.ws.transport.http.WsdlDefinitionHandlerAdapter;
@@ -51,6 +51,7 @@ import org.springframework.xml.xsd.commons.CommonsXsdSchemaCollection;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,19 +70,39 @@ public class SoapWebServiceConfig extends WsConfigurerAdapter {
   @Autowired
   private ResourceLoader resourceLoader;
 
-  public final static String WS_PATH_PA = MyPay4AbstractSecurityConfig.PATH_WS+"/pa/";
-  public final static String WS_PATH_FESP = MyPay4AbstractSecurityConfig.PATH_WS+"/fesp/";
+  @Autowired
+  private MyEndpointInterceptor myEndpointInterceptor;
 
-  public final static String XSD_PagInf_Dovuti_Pagati_6_2_0 = "PagInf_Dovuti_Pagati_6_2_0";
-  public final static String XSD_PagInf_RPT_RT_6_2_0 = "PagInf_RPT_RT_6_2_0";
+  public static final String WS_PATH_PA = MyPay4AbstractSecurityConfig.PATH_WS+"/pa/";
+  public static final String WS_PATH_FESP = MyPay4AbstractSecurityConfig.PATH_WS+"/fesp/";
+
+  public static final String XSD_PagInf_Dovuti_Pagati_6_2_0 = "PagInf_Dovuti_Pagati_6_2_0";
+  public static final String XSD_PagInf_RP_Esito_6_2_0 = "PagInf_RP_Esito_6_2_0";
+  public static final String XSD_PagInf_RPT_RT_6_2_0 = "PagInf_RPT_RT_6_2_0";
+  public static final String XSD_PaForNode = "paForNode";
+  public static final String XSD_SacCommonTypes = "sac-common-types-1.0";
+  public static final String XSD_MarcaDaBollo = "MarcaDaBollo";
+  public static final String XSD_XmldsigCoreSchema = "xmldsig-core-schema";
+
+
 
   public static Set<String> WS_PATH_NAME_SET = new HashSet<>();
 
 
-  public final static Map<String, String> XSD_NAME_PATH_MAP = Map.of(
+  public static final Map<String, String> XSD_NAME_PATH_MAP = Map.of(
       XSD_PagInf_Dovuti_Pagati_6_2_0, WS_PATH_PA,
-      XSD_PagInf_RPT_RT_6_2_0,WS_PATH_FESP
+      XSD_PagInf_RP_Esito_6_2_0, WS_PATH_PA,
+      XSD_PagInf_RPT_RT_6_2_0,WS_PATH_FESP,
+      XSD_PaForNode,WS_PATH_FESP,
+      XSD_SacCommonTypes,WS_PATH_FESP,
+      XSD_MarcaDaBollo, WS_PATH_FESP,
+      XSD_XmldsigCoreSchema, WS_PATH_FESP
   );
+
+  @Override
+  public void addInterceptors(List<EndpointInterceptor> interceptors) {
+    interceptors.add(myEndpointInterceptor);
+  }
 
   private void registerWsdlDefinition(String path){
     String contextRoot;
@@ -215,27 +236,8 @@ public class SoapWebServiceConfig extends WsConfigurerAdapter {
     }
   }
 
-  @Bean(name = PagamentiTelematiciCCPEndpoint.NAME)
-  @ConditionalOnProperty(prefix = "fesp", name = "mode", havingValue = "local")
-  public Wsdl11Definition pagamentiTelematiciCCPEndpoint(XsdSchemaCollection xsdSchemaCollection) {
-    registerWsdlDefinition(WS_PATH_FESP+PagamentiTelematiciCCPEndpoint.NAME);
-    if("dynamic".equalsIgnoreCase(dynamicwsdl)) {
-      MyWsdl11Definition def = new MyWsdl11Definition();
-      def.setPortTypeName(PagamentiTelematiciCCPEndpoint.NAME + "Port");
-      def.setServiceName(PagamentiTelematiciCCPEndpoint.NAME + "Service");
-      def.setLocationUri(WS_PATH_FESP + PagamentiTelematiciCCPEndpoint.NAME);
-      def.setRequestSuffix("");
-      def.setResponseSuffix("Risposta");
-      def.setTargetNamespace(PagamentiTelematiciCCPEndpoint.NAMESPACE_URI);
-      def.setSchemaCollection(xsdSchemaCollection);
-      return def;
-    } else {
-      return new SimpleWsdl11Definition(resourceLoader.getResource("classpath:wsdl/fesp/nodo-regionale-per-nodo-spc-pagamento-presso-psp.wsdl"));
-    }
-  }
-
   @Bean(name = PagamentiTelematiciCCP25Endpoint.NAME)
-  @ConditionalOnProperty(prefix = "fesp", name = "mode", havingValue = "local")
+  @ConditionalOnExpression("'${fesp.mode}'.equals('local') && !${pa.modelloUnico}")
   public Wsdl11Definition pagamentiTelematiciCCP25Endpoint(XsdSchemaCollection xsdSchemaCollection) {
     registerWsdlDefinition(WS_PATH_FESP+PagamentiTelematiciCCP25Endpoint.NAME);
     if("dynamic".equalsIgnoreCase(dynamicwsdl)) {
@@ -328,6 +330,24 @@ public class SoapWebServiceConfig extends WsConfigurerAdapter {
     }
   }
 
+  @Bean(name = AllineamentoMyCSEndpoint.NAME)
+  public Wsdl11Definition allineamentoMyCSEndpoint(XsdSchemaCollection xsdSchemaCollection) {
+    registerWsdlDefinition(WS_PATH_PA+AllineamentoMyCSEndpoint.NAME);
+    if("dynamic".equalsIgnoreCase(dynamicwsdl)) {
+      MyWsdl11Definition def = new MyWsdl11Definition();
+      def.setPortTypeName(AllineamentoMyCSEndpoint.NAME + "Port");
+      def.setServiceName(AllineamentoMyCSEndpoint.NAME + "Service");
+      def.setLocationUri(WS_PATH_PA + AllineamentoMyCSEndpoint.NAME);
+      def.setRequestSuffix("");
+      def.setResponseSuffix("Risposta");
+      def.setTargetNamespace(AllineamentoMyCSEndpoint.NAMESPACE_URI);
+      def.setSchemaCollection(xsdSchemaCollection);
+      return def;
+    } else {
+      return new SimpleWsdl11Definition(resourceLoader.getResource("classpath:wsdl/pa/pa-per-mycs.wsdl"));
+    }
+  }
+
   @Bean(name = PagamentiTelematiciFlussiSPCEndpoint.NAME)
   public Wsdl11Definition pagamentiTelematiciFlussiSPCEndpoint(XsdSchemaCollection xsdSchemaCollection) {
     registerWsdlDefinition(WS_PATH_PA+PagamentiTelematiciFlussiSPCEndpoint.NAME);
@@ -346,9 +366,33 @@ public class SoapWebServiceConfig extends WsConfigurerAdapter {
     }
   }
 
+  @Bean(name = PagamentiTelematiciCCP36Endpoint.NAME)
+  @ConditionalOnExpression("'${fesp.mode}'.equals('local') && ${pa.modelloUnico}")
+  public Wsdl11Definition pagamentiTelematiciCCP36Endpoint(XsdSchemaCollection xsdSchemaCollection) {
+    registerWsdlDefinition(WS_PATH_FESP+PagamentiTelematiciCCP36Endpoint.NAME);
+    if("dynamic".equalsIgnoreCase(dynamicwsdl)) {
+      MyWsdl11Definition def = new MyWsdl11Definition();
+      def.setPortTypeName(PagamentiTelematiciCCP36Endpoint.NAME + "Port");
+      def.setServiceName(PagamentiTelematiciCCP36Endpoint.NAME + "Service");
+      def.setLocationUri(WS_PATH_FESP + PagamentiTelematiciCCP36Endpoint.NAME);
+      def.setRequestSuffix("");
+      def.setResponseSuffix("Risposta");
+      def.setTargetNamespace(PagamentiTelematiciCCP36Endpoint.NAMESPACE_URI);
+      def.setSchemaCollection(xsdSchemaCollection);
+      return def;
+    } else {
+      return new SimpleWsdl11Definition(resourceLoader.getResource("classpath:wsdl/fesp/paForNode.wsdl"));
+    }
+  }
+
   @Bean(name = XSD_PagInf_Dovuti_Pagati_6_2_0)
   public XsdSchema getPagInf_Dovuti_Pagati_6_2_0Xsd() {
     return new SimpleXsdSchema(new ClassPathResource("wsdl/pa/"+XSD_PagInf_Dovuti_Pagati_6_2_0+".xsd"));
+  }
+
+  @Bean(name = XSD_PagInf_RP_Esito_6_2_0)
+  public XsdSchema getPagInf_RP_Esito_6_2_0Xsd() {
+    return new SimpleXsdSchema(new ClassPathResource("wsdl/pa/"+XSD_PagInf_RP_Esito_6_2_0+".xsd"));
   }
 
   @Bean(name = XSD_PagInf_RPT_RT_6_2_0)
@@ -356,4 +400,23 @@ public class SoapWebServiceConfig extends WsConfigurerAdapter {
     return new SimpleXsdSchema(new ClassPathResource("wsdl/fesp/"+XSD_PagInf_RPT_RT_6_2_0+".xsd"));
   }
 
+  @Bean(name = XSD_PaForNode)
+  public XsdSchema getPaForNodeXsd() {
+    return new SimpleXsdSchema(new ClassPathResource("wsdl/fesp/"+XSD_PaForNode+".xsd"));
+  }
+
+  @Bean(name = XSD_SacCommonTypes)
+  public XsdSchema getSacCommonTypesXsd() {
+    return new SimpleXsdSchema(new ClassPathResource("wsdl/fesp/"+XSD_SacCommonTypes+".xsd"));
+  }
+
+  @Bean(name = XSD_MarcaDaBollo)
+  public XsdSchema getMarcaDaBolloXsd() {
+    return new SimpleXsdSchema(new ClassPathResource("wsdl/fesp/"+XSD_MarcaDaBollo+".xsd"));
+  }
+
+  @Bean(name = XSD_XmldsigCoreSchema)
+  public XsdSchema getXmldsigCoreSchemaXsd() {
+    return new SimpleXsdSchema(new ClassPathResource("wsdl/fesp/"+XSD_XmldsigCoreSchema+".xsd"));
+  }
 }

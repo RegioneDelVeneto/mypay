@@ -20,8 +20,6 @@ sourceSets {
         "**/.*/**",
         "mypay4-be/src/main/resources/wsdl/fesp/envelope.xsd",
         "mypay4-be/src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc.wsdl",
-        "mypay4-be/src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc-pagamento-presso-psp.wsdl",
-        "mypay4-be/src/main/resources/wsdl/fesp/nodo-regionale-per-nodo-spc-richiesta-avvisi.wsdl",
         "mypay4-be/src/main/resources/wsdl/fesp/nodo-sac-common-types-1.0.xsd",
         "mypay4-be/src/main/resources/wsdl/fesp/nodo-spc-per-nodo-regionale.wsdl",
         "mypay4-be/src/main/resources/wsdl/fesp/NodoPerPaAvvisiDigitali.wsdl",

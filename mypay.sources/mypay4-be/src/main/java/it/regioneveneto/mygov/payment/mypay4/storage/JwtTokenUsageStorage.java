@@ -39,6 +39,18 @@ public class JwtTokenUsageStorage {
     return System.currentTimeMillis();
   }
 
+  @Cacheable(value= CacheService.CACHE_NAME_TOKEN_USAGE, key="{'reqUid',#jti}", unless="#result==null")
+  public String getTokenUsageReqUid(String jti){
+    log.debug("getTokenUsageReqUid: "+jti);
+    return null;
+  }
+
+  @CachePut(value= CacheService.CACHE_NAME_TOKEN_USAGE, key="{'reqUid',#jti}")
+  public String markTokenUsedReqUid(String jti, String reqUid){
+    log.debug("markTokenUsedReqUid: "+jti);
+    return reqUid;
+  }
+
   @Cacheable(value= CacheService.CACHE_NAME_TOKEN_USAGE, key="{'rolling',#jti}", unless="#result==null")
   public Long wasTokenRolled(String jti){
     log.debug("getRollingToken: "+jti);

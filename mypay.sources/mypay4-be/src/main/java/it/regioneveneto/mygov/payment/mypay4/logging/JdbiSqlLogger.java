@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 @Component
 public class JdbiSqlLogger implements SqlLogger {
 
-  private final static DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
   private static final String LOG_TEMPLATE = "method={} elapsed_ms={} {} - ro={} - {}{}";
 
@@ -115,7 +115,7 @@ public class JdbiSqlLogger implements SqlLogger {
         , attributes
         , ex);
       else if(isSlowQuery)
-        sqlLogger.info(LogMarker.DB_STATEMENT.marker, LOG_TEMPLATE
+        sqlLogger.warn(LogMarker.DB_STATEMENT.marker, LOG_TEMPLATE
           , methodLogSupplier.get()
           , executionTime
           , slowString

@@ -36,10 +36,10 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovDovutoElaboratoId")
 public class DovutoElaborato extends BaseEntity {
 
-  public final static char TIPO_SOGGETTO_PERSONA_FISICA = 'F';
+  public static final char TIPO_SOGGETTO_PERSONA_FISICA = 'F';
 
-  public final static String ALIAS = "DovutoElaborato";
-  public final static String FIELDS = ""+ALIAS+".mygov_dovuto_elaborato_id as DovutoElaborato_mygovDovutoElaboratoId"+
+  public static final String ALIAS = "DovutoElaborato";
+  public static final String FIELDS = ""+ALIAS+".mygov_dovuto_elaborato_id as DovutoElaborato_mygovDovutoElaboratoId"+
       ","+ALIAS+".version as DovutoElaborato_version,"+ALIAS+".flg_dovuto_attuale as DovutoElaborato_flgDovutoAttuale"+
       ","+ALIAS+".mygov_flusso_id as DovutoElaborato_mygovFlussoId,"+ALIAS+".num_riga_flusso as DovutoElaborato_numRigaFlusso"+
       ","+ALIAS+".mygov_anagrafica_stato_id as DovutoElaborato_mygovAnagraficaStatoId"+
@@ -192,7 +192,9 @@ public class DovutoElaborato extends BaseEntity {
       ","+ALIAS+".de_rp_silinviarp_original_fault_description as DovutoElaborato_deRpSilinviarpOriginalFaultDescription"+
       ","+ALIAS+".cod_e_silinviaesito_original_fault_code as DovutoElaborato_codESilinviaesitoOriginalFaultCode"+
       ","+ALIAS+".de_e_silinviaesito_original_fault_string as DovutoElaborato_deESilinviaesitoOriginalFaultString"+
-      ","+ALIAS+".de_e_silinviaesito_original_fault_description as DovutoElaborato_deESilinviaesitoOriginalFaultDescription";
+      ","+ALIAS+".de_e_silinviaesito_original_fault_description as DovutoElaborato_deESilinviaesitoOriginalFaultDescription"+
+      ","+ALIAS+".gpd_iupd as DovutoElaborato_gpdIupd"+
+      ","+ALIAS+".gpd_status as DovutoElaborato_gpdStatus";
 
 
   private Long mygovDovutoElaboratoId;
@@ -356,6 +358,8 @@ public class DovutoElaborato extends BaseEntity {
   private String codESilinviaesitoOriginalFaultCode;
   private String deESilinviaesitoOriginalFaultString;
   private String deESilinviaesitoOriginalFaultDescription;
+  private String gpdIupd;
+  private Character gpdStatus;
 
   @Nested(Ente.ALIAS)
   private Ente nestedEnte;

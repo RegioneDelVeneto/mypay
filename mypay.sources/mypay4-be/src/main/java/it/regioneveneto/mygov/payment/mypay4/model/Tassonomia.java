@@ -33,8 +33,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovTassonomiaId")
 public class Tassonomia extends BaseEntity {
 
-  public final static String ALIAS = "Tassonomia";
-  public final static String FIELDS = ""+ALIAS+".mygov_tassonomia_id as Tassonomia_mygovTassonomiaId,"+ALIAS+".version as Tassonomia_version"+
+  public static final String ALIAS = "Tassonomia";
+  public static final String FIELDS = ""+ALIAS+".mygov_tassonomia_id as Tassonomia_mygovTassonomiaId,"+ALIAS+".version_my_pay as Tassonomia_versionMyPay"+
       ","+ALIAS+".tipo_ente as Tassonomia_tipoEnte,"+ALIAS+".descrizione_tipo_ente as Tassonomia_descrizioneTipoEnte"+
       ","+ALIAS+".prog_macro_area as Tassonomia_progMacroArea,"+ALIAS+".nome_macro_area as Tassonomia_nomeMacroArea"+
       ","+ALIAS+".desc_macro_area as Tassonomia_descMacroArea,"+ALIAS+".cod_tipo_servizio as Tassonomia_codTipoServizio"+
@@ -43,10 +43,10 @@ public class Tassonomia extends BaseEntity {
       ","+ALIAS+".motivo_riscossione as Tassonomia_motivoRiscossione"+
       ","+ALIAS+".dt_inizio_validita as Tassonomia_dtInizioValidita,"+ALIAS+".dt_fine_validita as Tassonomia_dtFineValidita"+
       ","+ALIAS+".codice_tassonomico as Tassonomia_codiceTassonomico,"+ALIAS+".dt_creazione as Tassonomia_dtCreazione"+
-      ","+ALIAS+".dt_ultima_modifica as Tassonomia_dtUltimaModifica";
+      ","+ALIAS+".dt_ultima_modifica as Tassonomia_dtUltimaModifica,"+ALIAS+".version as Tassonomia_version";
 
   private Long mygovTassonomiaId;
-  private int version;
+  private int versionMyPay;  //workaround: properties added due to previous mistake on "version"
   private String tipoEnte;
   private String descrizioneTipoEnte;
   private String progMacroArea;
@@ -61,4 +61,5 @@ public class Tassonomia extends BaseEntity {
   private String codiceTassonomico;
   private Date dtCreazione;
   private Date dtUltimaModifica;
+  private int version;
 }

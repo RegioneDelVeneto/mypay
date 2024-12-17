@@ -25,6 +25,7 @@ import org.jdbi.v3.sqlobject.customizer.Define;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import org.jdbi.v3.stringtemplate4.UseStringTemplateEngine;
 
 import java.util.List;
 import java.util.Optional;
@@ -129,17 +130,25 @@ public interface CarrelloMultiBeneficiarioDao extends BaseDao {
   @SqlQuery(" select " + CarrelloMultiBeneficiario.ALIAS + ALL_FIELDS +
       " from mygov_carrello_multi_beneficiario " + CarrelloMultiBeneficiario.ALIAS +
       " where "+CarrelloMultiBeneficiario.ALIAS + ".mygov_anagrafica_stato_id = :mygovAnagraficaStatoId " +
-      "   and "+CarrelloMultiBeneficiario.ALIAS + ".dt_creazione < now() - make_interval(0,0,0,0,0,:deltaMinutes,0) " +
+      "   and "+CarrelloMultiBeneficiario.ALIAS + ".dt_creazione \\< now() - make_interval(0,0,0,0,0,:deltaMinutes,0) " +
+      "   <if(notInCarrello)> and not exists (select 1 from mygov_carrello mc where mc.mygov_carrello_multi_beneficiario_id = "+CarrelloMultiBeneficiario.ALIAS+".mygov_carrello_multi_beneficiario_id) <endif>" +
       " limit <queryLimit> " +
       " for update skip locked"
   )
   @RegisterFieldMapper(CarrelloMultiBeneficiario.class)
-  List<CarrelloMultiBeneficiario> getOlderByState(int deltaMinutes, Long mygovAnagraficaStatoId, @Define int queryLimit);
+  @UseStringTemplateEngine
+  List<CarrelloMultiBeneficiario> getOlderByState(int deltaMinutes, Long mygovAnagraficaStatoId, @Define int queryLimit, @Define boolean notInCarrello);
 
   @SqlUpdate("update mygov_carrello_multi_beneficiario" +
       " set mygov_anagrafica_stato_id = :mygovAnagraficaStatoId"+
       " where mygov_carrello_multi_beneficiario_id = :mygovCarrelloMultiBeneficiarioId"
   )
   int updateStato(Long mygovCarrelloMultiBeneficiarioId, Long mygovAnagraficaStatoId);
+
+  @SqlUpdate("delete from mygov_carrello_multi_beneficiario" +
+      " where mygov_carrello_multi_beneficiario_id = :mygovCarrelloMultiBeneficiarioId" +
+      "   and mygov_anagrafica_stato_id = :mygovAnagraficaStatoId"
+  )
+  int delete(Long mygovCarrelloMultiBeneficiarioId, Long mygovAnagraficaStatoId);
 
 }

@@ -61,6 +61,9 @@ public class DovutoOperatoreToMapper implements RowMapper<DovutoOperatoreTo> {
 
   private boolean loadDetails = false;
 
+  private static String deTipoDovutoScaduto;
+  private static String deTipoDovutoPagamentoInCorso;
+
   @Override
   public DovutoOperatoreTo map(ResultSet rs, StatementContext ctx) throws SQLException {
     String dovutoType = rs.getString("search_type");
@@ -75,22 +78,37 @@ public class DovutoOperatoreToMapper implements RowMapper<DovutoOperatoreTo> {
       LocalDateTime dataStato = Utilities.toLocalDateTime(rs.getTimestamp("dt_ultima_modifica"));
       LocalDate dataScadenzaRaw = Utilities.toLocalDate(rs.getTimestamp("dt_rp_dati_vers_data_esecuzione_pagamento"));
       LocalDate dataScadenza = etd.isFlgStampaDataScadenza() ? dataScadenzaRaw : null;
-      String iuv = rs.getString("cod_iuv");
+
       codStato = rs.getString("cod_stato");
       if(dataScadenza!=null && dataScadenza.isBefore(LocalDate.now())
           && !codStato.equals(AnagraficaStato.STATO_DOVUTO_PAGAMENTO_INIZIATO)
           && etd.isFlgScadenzaObbligatoria()){
         codStato = AnagraficaStato.STATO_DOVUTO_SCADUTO;
-        deStato = anagraficaStatoService.getByCodStatoAndTipoStato(AnagraficaStato.STATO_DOVUTO_SCADUTO, AnagraficaStato.STATO_TIPO_DOVUTO).getDeStato();
+        if(deTipoDovutoScaduto == null)
+          deTipoDovutoScaduto = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_SCADUTO, Constants.STATO_TIPO_DOVUTO).getDeStato();
+        deStato = deTipoDovutoScaduto;
       } else {
         deStato = rs.getString("de_stato");
       }
+
+      String iuv = rs.getString("cod_iuv");
+      boolean flgIuvVolatile = rs.getBoolean("flg_iuv_volatile");
+      if(flgIuvVolatile){
+        //iuv volatile: user should not se IUV; it should appear with state "pagamento in corso"
+        iuv = null;
+        codStato = Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO;
+        if(deTipoDovutoPagamentoInCorso == null)
+          deTipoDovutoPagamentoInCorso = anagraficaStatoService.getByCodStatoAndTipoStato(Constants.STATO_DOVUTO_PAGAMENTO_INIZIATO, Constants.STATO_TIPO_DOVUTO).getDeStato();
+        deStato = deTipoDovutoPagamentoInCorso;
+      }
+
       builder
           .dovutoType("debito")
           .id(rs.getLong("mygov_dovuto_id"))
           .codFiscale(rs.getString("cod_rp_sogg_pag_id_univ_pag_codice_id_univoco"))
           .iud(rs.getString("cod_iud"))
           .iuv(iuv)
+          .flgIuvVolatile(flgIuvVolatile)
           .causale(rs.getString("de_rp_dati_vers_dati_sing_vers_causale_versamento"))
           .causaleVisualizzata(rs.getString("de_causale_visualizzata"))
           .importo(Utilities.ifNotNull(rs.getBigDecimal("num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento"), BigDecimal::toString))

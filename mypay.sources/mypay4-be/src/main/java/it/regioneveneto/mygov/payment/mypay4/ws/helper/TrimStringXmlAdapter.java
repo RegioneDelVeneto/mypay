@@ -50,8 +50,8 @@ public class TrimStringXmlAdapter extends XmlAdapter<String, String> {
     if(text==null)
       return null;
     String trimmed = text.trim();
-    if(log.isInfoEnabled() && trimmed.length()!=text.length())
-      log.info("{}: trim [{}] -> [{}]", oper, text, trimmed);
+    if(log.isDebugEnabled() && trimmed.length()!=text.length())
+      log.debug("{}: trim [{}] -> [{}]", oper, text, trimmed);
     return trimmed;
   }
 }

@@ -16,14 +16,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import {
-    ConfigurationService, genericRetryStrategy
+  ConfigurationService, UserService, genericRetryStrategy
 } from 'projects/mypay4-fe-common/src/public-api';
-import { BehaviorSubject, from, Observable, of, ReplaySubject, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject, from, of, throwError } from 'rxjs';
 import { catchError, first, flatMap, retryWhen } from 'rxjs/operators';
 
-import { Injectable, Renderer2 } from '@angular/core';
+import { Component, Injectable, NgZone, Renderer2 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 
-declare var grecaptcha: any;
+declare let grecaptcha: any;
 
 @Injectable({
   providedIn: 'root'
@@ -35,12 +36,24 @@ export class RecaptchaService {
 
   private enabled: boolean;
   private siteKey: string;
+  private siteKeyV2: string;
+  private recaptchaV3Prefix: string = '';
 
   constructor(
     private conf: ConfigurationService,
+    private userService: UserService,
+    private dialog: MatDialog,
+    private ngZone: NgZone,
   ) {
+    this.siteKey = this.conf.getBackendProperty('recaptchaSiteKey');
+    this.siteKeyV2 = this.conf.getBackendProperty('recaptchaV2SiteKey');
+    this.enabled = this.siteKey ? true : false;
+    console.log("recaptcha enabled: "+this.enabled);
   }
 
+  public isEnabled():boolean {
+    return this.enabled;
+  }
   public isActive():boolean {
     return this.active.value;
   }
@@ -56,25 +69,40 @@ export class RecaptchaService {
   }
 
   public init(renderer: Renderer2) {
-    if(typeof grecaptcha === 'undefined'){
+    if(this.enabled && typeof grecaptcha === 'undefined'){
       console.log("init recaptcha");
-      this.siteKey = this.conf.getBackendProperty('recaptchaSiteKey');
-      this.enabled = this.siteKey ? true : false;
-      console.log("recaptcha enabled: "+this.enabled);
-      if(this.enabled){
-        const script = renderer.createElement('script');
-        script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
-        renderer.appendChild(document.head, script);
-        this.ready.next(true);
-        console.log("init recaptcha: done");
-      }
+      if(this.conf.getFlag("recaptchaForceV2", 'false')==='true')
+        this.recaptchaV3Prefix = "V2Force|";
+      const script = renderer.createElement('script');
+      script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
+      renderer.appendChild(document.head, script);
+      this.ready.next(true);
+      console.log("init recaptcha: done");
     }
     //console.log('recaptcha: activating');
     if(this.enabled)
       this.active.next(true);
   }
 
-  public submitToken(action: string){
+  public initFallback(callback: (recaptchaResponse: string)=>void){
+    grecaptcha.ready(() => {
+      const recaptchaV2DialogRef = this.dialog.open(RecaptchaV2Dialog);
+      const recaptchaV2WidgetId = grecaptcha.render('recaptcha_fallback', {
+          'sitekey' : this.siteKeyV2,
+          'callback' : (response) => {
+            setTimeout(()=>{
+              grecaptcha.reset(recaptchaV2WidgetId);
+              this.ngZone.run(() => {
+                recaptchaV2DialogRef.close();
+                callback(response);
+              });
+            });
+          }
+      });
+    });
+  }
+
+  private submitToken(action: string):Observable<string>{
     if(this.enabled)
       return this.ready.pipe(
         flatMap(() => from(grecaptcha.execute(this.siteKey, {action: action}))),
@@ -84,9 +112,50 @@ export class RecaptchaService {
           return throwError(error || 'Errore durante la verifica del codice reCaptcha');
         }),
         first()
-      );
+      ) as Observable<string>;
     else
       return of('reCaptcha_disabled');
   }
 
+  
+
+  public submitWithRecaptchaHandling<T>(action: string,
+    payloadFunAnon: (recaptchaResponse: string)=>Observable<T>,
+    payloadFunLogged?: ()=>Observable<T>) {
+
+    if(this.userService.isLogged())
+      return payloadFunLogged?.() ?? of(null);
+    else
+      return this.submitToken(action).pipe(
+        flatMap(token => payloadFunAnon(this.recaptchaV3Prefix + token)),
+        catchError(error => {
+          if(error?.status===471 && error?.error==='recaptcha_low_score' && this.siteKeyV2){
+            console.log('falling back to recaptcha V2');
+            const v2Callback = new Subject<string>();
+            this.ngZone.runOutsideAngular(()=>{
+              this.initFallback(recaptchaResponseV2 => {
+                v2Callback.next(recaptchaResponseV2);
+                v2Callback.complete();
+              });
+            });
+            return v2Callback.asObservable().pipe(
+              flatMap(token => payloadFunAnon("V2|"+token)),
+            );
+          } else {
+            return throwError(error);
+          }
+        })
+      );
+
+  }
+
+}
+
+
+@Component({
+  selector: 'recaptchaV2-dialog',
+  templateUrl: 'recaptchaV2-dialog.html',
+})
+export class RecaptchaV2Dialog {
+  constructor() {}
 }

@@ -17,6 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dao;
 
+import it.regioneveneto.mygov.payment.mypay4.dto.DovutoElaboratoEntePrimarioTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.DovutoOperatoreTo;
 import it.regioneveneto.mygov.payment.mypay4.model.*;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
@@ -198,6 +199,8 @@ public interface DovutoElaboratoDao extends BaseDao {
           ",  cod_e_silinviaesito_original_fault_code = :d.codESilinviaesitoOriginalFaultCode" +
           ",  de_e_silinviaesito_original_fault_string = :d.deESilinviaesitoOriginalFaultString" +
           ",  de_e_silinviaesito_original_fault_description = :d.deESilinviaesitoOriginalFaultDescription" +
+          ",  gpd_iupd = :d.gpdIupd" +
+          ",  gpd_status = :d.gpdStatus" +
           " where  mygov_dovuto_elaborato_id = :d.mygovDovutoElaboratoId"
   )
   int update(@BindBean("d") DovutoElaborato d);
@@ -362,6 +365,8 @@ public interface DovutoElaboratoDao extends BaseDao {
           " , cod_e_silinviaesito_original_fault_code" +
           " , de_e_silinviaesito_original_fault_string" +
           " , de_e_silinviaesito_original_fault_description" +
+          " , gpd_iupd" +
+          " , gpd_status" +
           " ) values ( " +
           "   nextval('mygov_dovuto_elaborato_mygov_dovuto_elaborato_id_seq')"+
           " , :d.version" +
@@ -521,6 +526,8 @@ public interface DovutoElaboratoDao extends BaseDao {
           " , :d.codESilinviaesitoOriginalFaultCode" +
           " , :d.deESilinviaesitoOriginalFaultString" +
           " , :d.deESilinviaesitoOriginalFaultDescription" +
+          " , :d.gpdIupd" +
+          " , :d.gpdStatus" +
           " )"
   )
   @GetGeneratedKeys("mygov_dovuto_elaborato_id")
@@ -638,7 +645,7 @@ public interface DovutoElaboratoDao extends BaseDao {
           "    on "+DovutoElaborato.ALIAS+".mygov_flusso_id = "+Flusso.ALIAS+".mygov_flusso_id " +
           "  join mygov_ente " + Ente.ALIAS +
           "    on "+Flusso.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
-          "  left join mygov_carrello " + Carrello.ALIAS +
+          "  join mygov_carrello " + Carrello.ALIAS +
           "    on "+Carrello.ALIAS+".mygov_carrello_id = "+DovutoElaborato.ALIAS+".mygov_carrello_id " +
           "  where ("+Ente.ALIAS + ".cod_ipa_ente = :codIpaEnte or coalesce(:codIpaEnte, '') = '')" +
           "    and "+DovutoElaborato.ALIAS+".cod_rp_sogg_pag_id_univ_pag_tipo_id_univoco = :tipoIdUnivoco" +
@@ -670,7 +677,14 @@ public interface DovutoElaboratoDao extends BaseDao {
           "        "+DovutoElaborato.ALIAS+".cod_tipo_dovuto = :codTipoDovuto ) " +
           "   and (:causale is null or " +
           "        coalesce("+DovutoElaborato.ALIAS+".de_rp_dati_vers_dati_sing_vers_causale_versamento_agid, " +
-          "                 "+DovutoElaborato.ALIAS+".de_rp_dati_vers_dati_sing_vers_causale_versamento) ilike '%' || :causale || '%' ) ";
+          "                 "+DovutoElaborato.ALIAS+".de_rp_dati_vers_dati_sing_vers_causale_versamento) ilike '%' || :causale || '%' ) " +
+          "   and (:codStato is null or "+AnagraficaStato.ALIAS+".cod_stato= :codStato)" +
+          "   and (:codStato is null or "+AnagraficaStato.ALIAS+".de_tipo_stato='dovuto')" +
+          "   and (" +
+          "         :importoCod is null" +
+          "    or (:importoCod = 'eqZero' and num_e_dati_pag_dati_sing_pag_singolo_importo_pagato = 0)" +
+          "    or (:importoCod = 'gtZero' and num_e_dati_pag_dati_sing_pag_singolo_importo_pagato > 0)" +
+          "   )";
 
   @SqlQuery(
       "    select 1007," + DovutoElaborato.ALIAS + ALL_FIELDS + ", " + AnagraficaStato.FIELDS + ", " + Ente.FIELDS +
@@ -680,14 +694,16 @@ public interface DovutoElaboratoDao extends BaseDao {
   )
   @RegisterFieldMapper(DovutoElaborato.class)
   List<DovutoElaborato> searchDovutoElaborato(String codIpaEnte, String idUnivocoPagatoreVersante,
-                                              LocalDate from, LocalDate to, String causale, String codTipoDovuto, @Define int queryLimit);
+                                              LocalDate from, LocalDate to, String causale, String codTipoDovuto,
+                                              String codStato, String importoCod, @Define int queryLimit);
 
   @SqlQuery(
       "    select count(1)" +
           SQL_SEARCH_DOVUTO_ELABORATO)
   @RegisterFieldMapper(DovutoElaborato.class)
   int searchDovutoElaboratoCount(String codIpaEnte, String idUnivocoPagatoreVersante,
-                                 LocalDate from, LocalDate to, String causale, String codTipoDovuto);
+                                 LocalDate from, LocalDate to, String causale, String codTipoDovuto,
+                                 String codStato, String importoCod);
 
   @SqlQuery(
       "    select 1 " +
@@ -720,13 +736,14 @@ public interface DovutoElaboratoDao extends BaseDao {
           "    on "+DovutoElaborato.ALIAS+".mygov_flusso_id = "+Flusso.ALIAS+".mygov_flusso_id " +
           "  join mygov_ente " + Ente.ALIAS +
           "    on "+Flusso.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
-          " where ( lower("+DovutoElaborato.ALIAS+".cod_rp_silinviarp_id_univoco_versamento)=lower(:iuv)" +
-          "         or lower("+DovutoElaborato.ALIAS+".cod_iuv)=lower(:iuv) )" +
+          " where ( "+DovutoElaborato.ALIAS+".cod_rp_silinviarp_id_univoco_versamento=:iuv" +
+          "         or "+DovutoElaborato.ALIAS+".cod_iuv=:iuv )" +
           "   and lower("+DovutoElaborato.ALIAS+".cod_rp_sogg_pag_id_univ_pag_codice_id_univoco) = lower(:idUnivocoPagatore) " +
           "   and (:anagraficaPagatore is null or lower("+DovutoElaborato.ALIAS+".de_rp_sogg_pag_anagrafica_pagatore) = lower(:anagraficaPagatore) ) " +
+          "   and ("+Ente.ALIAS+".mygov_ente_id = :mygovEnteId or :mygovEnteId is null) " +
           " order by "+DovutoElaborato.ALIAS+".mygov_dovuto_elaborato_id desc")
   @RegisterFieldMapper(DovutoElaborato.class)
-  List<DovutoElaborato> searchDovutoElaboratoByIuvIdPagatore(String iuv, String idUnivocoPagatore, String anagraficaPagatore);
+  List<DovutoElaborato> searchDovutoElaboratoByIuvIdPagatore(Long mygovEnteId, String iuv, String idUnivocoPagatore, String anagraficaPagatore);
 
   @SqlQuery(
       "    select 1009," + DovutoElaborato.ALIAS + ALL_FIELDS + ", " + AnagraficaStato.FIELDS + ", " + Ente.FIELDS +
@@ -739,8 +756,8 @@ public interface DovutoElaboratoDao extends BaseDao {
           "  join mygov_ente " + Ente.ALIAS +
           "    on "+Flusso.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
           " where "+Ente.ALIAS+".cod_ipa_ente = :codIpaEnte " +
-          "   and ( lower("+DovutoElaborato.ALIAS+".cod_rp_silinviarp_id_univoco_versamento)=lower(:iuv)" +
-          "         or lower("+DovutoElaborato.ALIAS+".cod_iuv)=lower(:iuv) )")
+          "   and ( "+DovutoElaborato.ALIAS+".cod_rp_silinviarp_id_univoco_versamento=:iuv" +
+          "         or "+DovutoElaborato.ALIAS+".cod_iuv=:iuv )")
   @RegisterFieldMapper(DovutoElaborato.class)
   List<DovutoElaborato> searchDovutoElaboratoByIuvEnte(String iuv, String codIpaEnte);
 
@@ -776,8 +793,8 @@ public interface DovutoElaboratoDao extends BaseDao {
           "  and (:codIud is null or "+DovutoElaborato.ALIAS+".cod_iud ilike '%' || :codIud || '%')" +
           "  and (:codIuv is null or" +
           "    (" +
-          "      lower("+DovutoElaborato.ALIAS+".cod_rp_silinviarp_id_univoco_versamento)=lower(:codIuv)" +
-          "      or lower("+DovutoElaborato.ALIAS+".cod_iuv)=lower(:codIuv)" +
+          "      "+DovutoElaborato.ALIAS+".cod_rp_silinviarp_id_univoco_versamento=:codIuv" +
+          "      or "+DovutoElaborato.ALIAS+".cod_iuv=:codIuv" +
           "    )" +
           "  )";
 
@@ -891,6 +908,8 @@ public interface DovutoElaboratoDao extends BaseDao {
       ":n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, "+
       ":n_mygov_utente_id, "+
       ":insert_avv_dig, "+
+      ":n_cod_iupd, " +
+      ":n_gpd_status, " +
       ":result, "+
       ":result_desc "+
       ")}" )
@@ -905,7 +924,8 @@ public interface DovutoElaboratoDao extends BaseDao {
                                     Date n_dt_rp_dati_vers_data_esecuzione_pagamento, String n_cod_rp_dati_vers_tipo_versamento,
                                     Double n_num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento, Double n_num_rp_dati_vers_dati_sing_vers_commissione_carico_pa,
                                     String n_cod_tipo_dovuto, String n_de_rp_dati_vers_dati_sing_vers_causale_versamento,
-                                    String n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, Long n_mygov_utente_id, boolean insert_avv_dig);
+                                    String n_de_rp_dati_vers_dati_sing_vers_dati_specifici_riscossione, Long n_mygov_utente_id, boolean insert_avv_dig,
+                                    String n_cod_iupd, Character n_gpd_status);
 
   @SqlQuery(
       "    select 1012,"+DovutoElaborato.ALIAS+ALL_FIELDS+", "+Flusso.FIELDS+", "+AnagraficaStato.FIELDS+", "+Ente.FIELDS+", "+Carrello.FIELDS +
@@ -922,4 +942,27 @@ public interface DovutoElaboratoDao extends BaseDao {
   )
   @RegisterFieldMapper(DovutoElaborato.class)
   Optional<DovutoElaborato> getByCodRpIdMessaggioRichiesta(String idMessaggioRichiesta);
+
+
+
+  @SqlQuery( "SELECT " +
+          DovutoElaborato.ALIAS+".mygov_dovuto_elaborato_id, "+
+          Ente.ALIAS+".de_nome_ente, " +
+          Ente.ALIAS+".codice_fiscale_ente, " +
+          Ente.ALIAS+".cod_rp_dati_vers_dati_sing_vers_iban_accredito, " +
+          Ente.ALIAS+".de_rp_ente_benef_indirizzo_beneficiario, " +
+          Ente.ALIAS+".de_rp_ente_benef_civico_beneficiario, " +
+          Ente.ALIAS+".cod_rp_ente_benef_cap_beneficiario, " +
+          Ente.ALIAS+".cod_rp_ente_benef_nazione_beneficiario, " +
+          Ente.ALIAS+".de_rp_ente_benef_provincia_beneficiario, " +
+          Ente.ALIAS+".de_rp_ente_benef_localita_beneficiario, " +
+          DovutoElaborato.ALIAS+".num_rp_dati_vers_dati_sing_vers_importo_singolo_versamento "+
+          "FROM mygov_dovuto_elaborato " + DovutoElaborato.ALIAS +
+          " JOIN mygov_flusso " + Flusso.ALIAS + " ON "+Flusso.ALIAS+".mygov_flusso_id = "+DovutoElaborato.ALIAS+".mygov_flusso_id" +
+          " JOIN mygov_ente " + Ente.ALIAS + " ON " + Ente.ALIAS+".mygov_ente_id = " +Flusso.ALIAS+".mygov_ente_id" +
+          " WHERE " + DovutoElaborato.ALIAS+".mygov_dovuto_elaborato_id IN (<ids>)"
+
+  )
+  List<DovutoElaboratoEntePrimarioTo> getListInfoEntePrimarioByIdDovuto(@BindList("ids") List<Long> ids);
+
 }

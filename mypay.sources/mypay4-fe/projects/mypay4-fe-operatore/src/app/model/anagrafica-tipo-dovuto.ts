@@ -42,7 +42,6 @@ export class AnagraficaTipoDovuto {
   tipoServizio: string;
   motivoRiscossione: string;
   codTassonomico: string;
-  flgScadenzaObbligatoriaEnable: boolean;
 
   // Data in mygov_ente_sil
   nomeApplicativo: string;
@@ -52,4 +51,10 @@ export class AnagraficaTipoDovuto {
   codServiceAccountJwtUscitaSecretKeyId: string;
   codServiceAccountJwtUscitaSecretKey: string;
   flgJwtAttivo: boolean;
+
+  // Dati per Pnd
+  urlNotificaPnd: string;
+  userPnd: string;
+  pswPnd: string;
+  urlNotificaAttualizzazionePnd: string;
 }

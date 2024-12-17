@@ -1,3 +1,9 @@
 {
-  "baseApiUrl": "http://localhost:8080/mypay4/"
+  "baseApiUrl": "http://localhost:8070/mypay4/",
+  "YbaseApiUrl": "https://mypay4.mywire.org/mypay4/test/api/",
+  "ZbaseApiUrl": "https://mypay4.collaudo.regione.veneto.it/mypay4/apioperatore/",
+  "fakeAuthUser":"TTTGLI52T24D530V",
+  "def.fakeAuthUser":"TTTGLI52T24D530V",
+  "demo.fakeAuthUser":"DMEMPY15L21L736U",
+  "fakeAuthPassword":"thePassword"
 }

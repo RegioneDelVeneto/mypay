@@ -61,8 +61,7 @@ public class ThumbnailService {
       BufferedImage thumb = Scalr.resize(image, 48);
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       ImageIO.write(thumb, "png", Base64.getEncoder().wrap(os));
-      String thumbnail = os.toString(StandardCharsets.ISO_8859_1.name());
-      //String md5 = DigestUtils.md5Hex(thumbnail).toLowerCase();
+      String thumbnail = os.toString(StandardCharsets.ISO_8859_1);
       String hash = ThumbnailCacheKeyGenerator.currentKeyTL.get();
       log.debug("thumbnail size: {} chars - hash: {}",thumbnail.length(),hash);
       self.putHashCache(imgData, hash);
@@ -77,10 +76,10 @@ public class ThumbnailService {
     if(StringUtils.isBlank(imgData))
       return Optional.empty();
     Optional<StringWithHashTo> stringWithHashTo = self.generateThumbnail(imgData);
-    return stringWithHashTo.map(x -> x.getHash());
+    return stringWithHashTo.map(StringWithHashTo::getHash);
   }
 
-  @CachePut(value = CacheService.CACHE_NAME_THUMBNAIL_HASH, key = "{'imgData'}")
+  @CachePut(value = CacheService.CACHE_NAME_THUMBNAIL_HASH, key = "#imgData")
   public String putHashCache(String imgData, String hash){
     return hash;
   }
@@ -93,7 +92,7 @@ class ThumbnailCacheKeyGenerator implements KeyGenerator{
   @Override
   public Object generate(Object target, Method method, Object... params) {
     String hash;
-    if(params==null || params.length==0 || params[0]==null)
+    if(params.length == 0 || params[0] == null)
       hash = "";
     else
       hash = Integer.toString(MurmurHash.hash(((String)params[0]).getBytes(), 1));
@@ -120,7 +119,7 @@ class ThumbnailCacheKeyGenerator implements KeyGenerator{
  * limitations under the License.
  */
 
-/**
+/*
  * This is a very fast, non-cryptographic hash suitable for general hash-based
  * lookup.  See http://murmurhash.googlepages.com/ for more details.
  *

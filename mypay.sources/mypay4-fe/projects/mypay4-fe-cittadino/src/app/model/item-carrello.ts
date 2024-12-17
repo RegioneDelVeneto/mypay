@@ -43,6 +43,8 @@ export class ItemCarrello extends WithActions {
   intestatario: Person;
   details: object[];
 
+  multibeneficiario: boolean;
+
   // Used when mail intestatario is null and mail is compulsory
   versanteEmail: string;
 
@@ -51,6 +53,9 @@ export class ItemCarrello extends WithActions {
   }
 
   static isSpontaneo(elem: ItemCarrello): elem is Spontaneo {
-    return _.isNil(elem?.['codIuv']);
+    return _.isNil(elem?.['codIuv']) && !elem?.['flgIuvVolatile'] && _.isNil(elem?.['id']);
   }
+
+  urlNotificaPnd: boolean;
+  importoAtt: boolean;
 }

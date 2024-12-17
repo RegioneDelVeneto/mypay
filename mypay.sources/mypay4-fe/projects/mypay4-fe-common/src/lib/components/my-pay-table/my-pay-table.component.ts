@@ -17,18 +17,18 @@
  */
 import { ToastrService } from 'ngx-toastr';
 import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
-import { first, map, takeUntil } from 'rxjs/operators';
+import { filter, first, map, takeUntil } from 'rxjs/operators';
 
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import {
-    Component, ElementRef, Injector, Input, OnChanges, OnDestroy, OnInit, PipeTransform, Renderer2,
-    SimpleChanges, Type, ViewChild, ViewContainerRef
+  Component, ElementRef, Injector, Input, OnChanges, OnDestroy, OnInit, PipeTransform, Renderer2,
+  SimpleChanges, Type, ViewChild, ViewContainerRef
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { faEllipsisH, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faCopy, faEllipsisH, faFile, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 import { OverlaySpinnerService } from '../../overlay-spinner/overlay-spinner.service';
 import { PaginatorData } from '../../table/paginator-data';
@@ -61,6 +61,9 @@ export class MyPayBaseTableComponent<T> implements OnInit, OnChanges, OnDestroy 
 
 
   iconEllipsisH = faEllipsisH;
+
+  iconCopy = faCopy;
+  iconFile = faFile;
 
   getProp = getProp;
 
@@ -165,6 +168,7 @@ export class MyPayBaseTableComponent<T> implements OnInit, OnChanges, OnDestroy 
           combineLatest([this.theadChanged$, this.tbodyChanged$])
             .pipe(
               map(x => [this.thead.rows.item(0), this.tbody.rows]),
+              filter(([headRow, bodyRows]) => headRow != null),
               map(
                 ([headRow, bodyRows]: [HTMLTableRowElement, HTMLCollectionOf<HTMLTableRowElement>]) => {
                   // let headRowChildren = [];
@@ -230,6 +234,7 @@ export class MyPayBaseTableComponent<T> implements OnInit, OnChanges, OnDestroy 
   onClickRow(element:any){
     if(!this.enableDetail(element))
       return; //in this case there is no expandable detail
+      
     if(this.expandedElement === element)
       this.expandedElement = null;
     else {

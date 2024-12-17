@@ -18,6 +18,7 @@
 
 
 import { environment } from '../environments/environment';
+import { versionInfo } from '../environments/version';
 
 export class ConfigurationFactory {
 
@@ -53,6 +54,21 @@ export class ConfigurationFactory {
         .then(this.handleFetchErrors)
         .then(response => response.json())
         .then(json => this.backendConfiguration = json)
+        .then(() => {
+          const versionBE = this.backendConfiguration?.['gitHash']?.substring(0,8);
+          const versionFE = versionInfo.gitHash?.substring(0,8);
+          const urlSearchParams = new URLSearchParams(document.location.search);
+          const versionUrl = urlSearchParams.get("mypayVersion");
+          let skipReload = versionUrl==versionBE || versionBE==versionFE || versionFE==='?';
+          console.log('versionFE['+versionFE+'] versionBE['+versionBE+'] versionUrl['+versionUrl+']');
+          if(!skipReload){
+            if(urlSearchParams.has('mypayVersion'))
+              urlSearchParams.delete('mypayVersion');
+            urlSearchParams.append('mypayVersion', versionBE);
+            console.log('try reload FE becuse possibly outdated, new searchString['+urlSearchParams.toString()+']');
+            document.location.search = urlSearchParams.toString();
+          }
+        })
         .then(() => console.log('backendConfiguration', this.backendConfiguration))
         .catch(error => {console.error(error); throw new Error('errore comunicando con il server')})
         .then(() => {this.initDone=true});
@@ -70,7 +86,7 @@ export class ConfigurationFactory {
     if(this.externalizedConfiguration?.hasOwnProperty(key))
       return this.externalizedConfiguration[key];
 
-      if(appEnvironment?.hasOwnProperty(key))
+    if(appEnvironment?.hasOwnProperty(key))
       return appEnvironment[key];
 
     if(environment.hasOwnProperty(key))

@@ -21,10 +21,10 @@
   <div>
     <p>Se hai ricevuto un avviso di pagamento compila il seguente form, riportando esattamente i dati indicati nell'avviso
       di pagamento.</p>
-      <p>Se stai pagando un avviso di pagamento intestato a un altro soggetto, seleziona "Altro soggetto" e compila il campo
+      <p *ngIf="logged">Se stai pagando un avviso di pagamento intestato a un altro soggetto, seleziona "Altro soggetto" e compila il campo
       "Codice fiscale / partita IVA destinatario".</p>
       <p>Se l'intestatario dell'avviso di pagamento non dispone di un codice fiscale, seleziona l'apposita casella e compila il
-      campo "Anagrafica intestatario" riportando esattamente i dati indicati nell'avviso.</p>
+      campo "Anagrafica intestatario"</p>
   </div>
 </ng-template>
 
@@ -42,7 +42,6 @@
     <div class="title-row">
       <h1 class="mat-h1 bold"><fa-icon class="pr-1" *ngIf="titleIcon" [icon]="titleIcon" aria-hidden="true"></fa-icon> {{titleLabel}}</h1>
       <p class="mat-h3">Se hai ricevuto un avviso di pagamento compila il seguente form <my-pay-help [template]="helpPage"></my-pay-help></p>
-      <p class="mat-h3">Non riesci a trovare l'avviso su MyPay? Forse l'ente che lo ha emesso non aderisce a MyPay. Prova direttamente sul sito di PagoPA <a href="https://checkout.pagopa.it/">"https://checkout.pagopa.it/"</a></p>
     </div>
 
     <ng-container *ngIf="hasConsent">
@@ -54,7 +53,7 @@
                 <mat-label id="sr-IUV" class="sr-only">Codice avviso / IUV</mat-label>
                 <mat-form-field fxFlex="100%" fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
                   <mat-label>Codice avviso / IUV</mat-label>
-                  <input aria-labelledby="sr-IUV" required matInput formControlName="numeroAvviso" (focusout)="removeSpaces('numeroAvviso')">
+                  <input aria-labelledby="sr-IUV" removeSpace="blur" required matInput formControlName="numeroAvviso">
                   <mat-error *ngIf="formErrors['numeroAvviso']">{{ formErrors.numeroAvviso }}</mat-error>
                 </mat-form-field>
                 <div *ngIf="logged" fxFlex="100%" fxFlex.gt-sm="initial" fxLayout="column" class="tipo-persona-group">
@@ -71,14 +70,14 @@
                   <mat-label id="sr-CodFis" class="sr-only">Codice fiscale / Partita IVA destinatario avviso</mat-label>
                   <mat-form-field class="cod-fiscale" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
                     <mat-label aria-hidden="true">Codice fiscale / Partita IVA destinatario avviso</mat-label>
-                    <input aria-labelledby="sr-CodFis" matInput required formControlName="codIdUnivoco" (focusout)="removeSpaces('codIdUnivoco')">
+                    <input aria-labelledby="sr-CodFis" matInput removeSpace="blur" required formControlName="codIdUnivoco">
                     <mat-error *ngIf="formErrors['codIdUnivoco']">{{ formErrors.codIdUnivoco }}</mat-error>
                   </mat-form-field>
                 </div>
                 <mat-label id="sr-Destin" class="sr-only">Anagrafica destinatario avviso</mat-label>
                 <mat-form-field *ngIf="cfAnonimoChecked" class="cod-fiscale" fxFlex="100%" fxFlex.gt-sm="20em" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
                   <mat-label aria-hidden="true">Anagrafica destinatario avviso</mat-label>
-                  <input aria-labelledby="sr-Destin" matInput required formControlName="anagrafica">
+                  <input aria-labelledby="sr-Destin" matInput trim="blur" required formControlName="anagrafica">
                   <mat-error *ngIf="formErrors['anagrafica']">{{ formErrors.anagrafica }}</mat-error>
                 </mat-form-field>
                 <my-pay-help-field *ngIf="cfAnonimoChecked" [template]="helpFieldPageCF"></my-pay-help-field>
@@ -95,6 +94,12 @@
       </div>
 
       <p *ngIf="hasSearched && tableData?.length==0">Nessun dato trovato con i criteri di ricerca impostati.</p>
+      <p *ngIf="hasSearched && tableData?.length==0">Non riesci a trovare l'avviso su MyPay? Forse l'ente che lo 
+        ha emesso non aderisce a MyPay.
+        Prova direttamente sul sito di PagoPA <a href="https://checkout.pagopa.it/">"https://checkout.pagopa.it/"</a></p>
+      <p *ngIf="hasSearched && tableData?.length>0">Tramite menù Azioni, cliccando sui tre puntini, è possibile 
+        procedere con la visualizzazione del dettaglio, il download della copia pdf dell’Avviso, l’aggiunta al 
+        carrello per il successivo pagamento.</p>
       <my-pay-table-cittadino [tableData]="tableData" [tableColumns]="tableColumns" [parentRef]="this"
         [rowStyle]="rowStyleFun">
       </my-pay-table-cittadino>

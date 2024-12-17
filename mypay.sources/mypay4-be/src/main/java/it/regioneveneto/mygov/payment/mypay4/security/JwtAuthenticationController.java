@@ -39,8 +39,10 @@ import it.regioneveneto.mygov.payment.mypay4.model.Utente;
 import it.regioneveneto.mygov.payment.mypay4.service.LocationService;
 import it.regioneveneto.mygov.payment.mypay4.service.UtenteProfileService;
 import it.regioneveneto.mygov.payment.mypay4.service.UtenteService;
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -58,11 +60,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Tag(name = "Autenticazione", description = "Gestione dell'autenticazione")
 @RestController
 @RequestMapping("/")
-@CrossOrigin
 @Slf4j
 @ConditionalOnWebApplication
 public class JwtAuthenticationController {
@@ -91,7 +94,7 @@ public class JwtAuthenticationController {
       })
   @SecurityRequirements
   @PostMapping(MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/authtoken")
-  public ResponseEntity<?> authWithToken(@RequestBody String loginToken, HttpServletResponse response) {
+  public ResponseEntity<Object> authWithToken(@RequestBody String loginToken, HttpServletResponse response) {
     String error;
     try {
       //parse JWT token
@@ -140,12 +143,66 @@ public class JwtAuthenticationController {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
   }
 
+  @PostMapping(MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/authfeder")
+  public ResponseEntity<Object> authWithFederatedLoginToken(@RequestBody String federatedLoginToken, HttpServletResponse response) {
+    String error;
+    try {
+      //parse JWT token
+      Pair<String, Jws<Claims>> jwsAndSystem = jwtTokenUtil.parseFederatedLoginToken(federatedLoginToken);
+      Jws<Claims> jws = jwsAndSystem.getRight();
+      Claims claims = jws.getBody();
+      String federatedApp = claims.get(JwtTokenUtil.JWT_CLAIM_APP, String.class);
+      String ente = claims.get(JwtTokenUtil.JWT_CLAIM_ENTE, String.class);
+      log.info("federated login, app[{}], ente[{}]", federatedApp, ente);
+      //extract logged user details from authentication system
+      Utente utente = utenteService.mapLoginClaimsToUtente(claims);
+      //set last login time
+      utente.setDtUltimoLogin(new Date());
+      // update user details of logged user into DB (or insert into DB when not existing)
+      utente = utenteService.upsertUtente(utente, true);
+      //generate auth token
+      claims.put(JwtTokenUtil.JWT_CLAIM_EMAIL_SOURCE_TYPE,utente.getEmailSourceType());
+      claims.put(JwtTokenUtil.JWT_CLAIM_EMAIL,utente.getDeEmailAddress());
+
+      String token = jwtTokenUtil.generateToken(claims.getSubject(), claims);
+      AbstractMap.SimpleImmutableEntry<String, String> authHeader = jwtTokenUtil.generateAuthorizationHeader(token);
+      UtenteTo utenteTo = UtenteService.mapUtenteToDto(utente).toBuilder()
+        .statoNascita(claims.get(JwtTokenUtil.JWT_CLAIM_NAZIONE_NASCITA, String.class))
+        .provinciaNascita(claims.get(JwtTokenUtil.JWT_CLAIM_PROV_NASCITA, String.class))
+        .comuneNascita(claims.get(JwtTokenUtil.JWT_CLAIM_COMUNE_NASCITA, String.class))
+        .dataNascita(claims.get(JwtTokenUtil.JWT_CLAIM_DATA_NASCITA, String.class))
+          .loginType(Stream.of(claims.get(JwtTokenUtil.JWT_CLAIM_AUTH_AUTHORITY, String.class),
+                  claims.get(JwtTokenUtil.JWT_CLAIM_AUTH_METHOD, String.class))
+              .filter(StringUtils::isNotBlank)
+              .collect(Collectors.joining(" - ")) )
+        .emailValidationNeeded(StringUtils.isBlank(utente.getDeEmailAddress()))
+        .build();
+      //add roles into utente
+      utenteTo.setEntiRoles(utenteProfileService.getAndUpdateUserTenantsAndRoles(utente.getCodFedUserId()));
+      return ResponseEntity.ok()
+        .header(authHeader.getKey(), authHeader.getValue())
+        .body(utenteTo);
+    } catch (IllegalArgumentException | SignatureException e) {
+      error = "Unable to get JWT Token";
+      log.warn(error, e);
+    } catch (ExpiredJwtException e) {
+      error = "JWT Token has expired";
+      log.warn(error, e);
+    } catch (AlreadyUsedJwtException e) {
+      error = "JWT Token was already used";
+      log.warn(error, e);
+    } catch (InvalidJwtException e) {
+      error = e.getMessage();
+      log.warn(error, e);
+    }
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+  }
+
   @Operation(summary ="Effettua login utilizzando il cookie http-only", description = "Verifica che esista il cookie http-only di autenticazione e, in caso, effettua il login con tale cookie")
   @PostMapping(CHECK_LOGIN_COOKIE_PATH)
-  public ResponseEntity<?> checkLoginCookie(@AuthenticationPrincipal UserWithAdditionalInfo user){
+  public ResponseEntity<UtenteTo> checkLoginCookie(@AuthenticationPrincipal UserWithAdditionalInfo user){
     //if I'm here this means that http-only access cookie is valid. Just return user data
     Utente utente = utenteService.getByCodFedUserId(user.getUsername()).orElseThrow(NotFoundException::new);
-    //Utente utente = utenteService.mapUserWithAdditionalInfoToUtente(user);
     UtenteTo utenteTo = UtenteService.mapUtenteToDto(utente).toBuilder()
         .statoNascita(user.getStatoNascita())
         .provinciaNascita(user.getProvinciaNascita())
@@ -170,7 +227,7 @@ public class JwtAuthenticationController {
 
   @Hidden
   @PostMapping(MyPay4AbstractSecurityConfig.PATH_PUBLIC+"/authpassword")
-  public ResponseEntity<?> authWithUsernamePassword(@RequestBody JwtRequest authenticationRequest, HttpServletResponse response) {
+  public ResponseEntity<Object> authWithUsernamePassword(@RequestBody JwtRequest authenticationRequest, HttpServletResponse response) {
     if(!"true".equalsIgnoreCase(fakeAuthEnabled))
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
@@ -180,13 +237,6 @@ public class JwtAuthenticationController {
       //fake authentication
       Utente utente = utenteService.getByCodFedUserId(username).orElseThrow(()->new BadCredentialsException("not existing user"));
 
-      //TODO: remove after test
-      utente.setCap("00100");
-      utente.setIndirizzo("via roma");
-      utente.setCivico(null);
-      utente.setNazioneId(1L);
-      utente.setProvinciaId(null);
-      utente.setComuneId(null);
       //set last login time
       utente.setDtUltimoLogin(new Date());
       // update user details of logged user into DB (or insert into DB when not existing)
@@ -213,9 +263,9 @@ public class JwtAuthenticationController {
       UtenteTo utenteTo = UtenteService.mapUtenteToDto(utente).toBuilder()
           .loginType("Sviluppo - password")
           .statoNascita(statoNascita)
-          .provinciaNascita(provinciaNascita!=null?provinciaNascita.getSigla():null)
+          .provinciaNascita(Utilities.ifNotNull(provinciaNascita, ProvinciaTo::getSigla))
           .comuneNascita(comune)
-          .dataNascita(LocalDate.now().minusDays(360*30+new Random().nextInt(360*30)).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+          .dataNascita(LocalDate.now().minusDays((long)360*30+random.nextInt(360*30)).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
           .emailValidationNeeded(StringUtils.isBlank(utente.getDeEmailAddress()))
           .build();
       final UserWithAdditionalInfo userDetails = UserWithAdditionalInfo.builder()

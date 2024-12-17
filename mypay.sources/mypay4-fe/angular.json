@@ -55,7 +55,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "outputPath": "dist/mypay4-fe-cittadino",
             "index": "projects/mypay4-fe-cittadino/src/index.html",
@@ -76,7 +76,8 @@
               "projects/mypay4-fe-cittadino/src/styles.scss",
               "projects/mypay4-fe-cittadino/src/app-mat-theme.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "indexTransform": "./index-html-transform.js"
           },
           "configurations": {
             "production": {
@@ -86,8 +87,8 @@
                   "with": "projects/mypay4-fe-cittadino/src/environments/environment.prod.ts"
                 },
                 {
-                  "replace": "projects/mypay4-fe-common/src/environments/environment.ts",
-                  "with": "projects/mypay4-fe-common/src/environments/environment.prod.ts"
+                  "replace": "projects/mypay4-fe-common/src/lib/environments/environment.ts",
+                  "with": "projects/mypay4-fe-common/src/lib/environments/environment.prod.ts"
                 },
                 {
                   "replace": "projects/mypay4-fe-common/src/lib/environments/version.ts",

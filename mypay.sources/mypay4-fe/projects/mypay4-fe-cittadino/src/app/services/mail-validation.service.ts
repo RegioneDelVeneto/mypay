@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import {
-    ApiInvokerService, BaseUrlService, Mappers
+  ApiInvokerService, BaseUrlService, Mappers
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Subject, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';

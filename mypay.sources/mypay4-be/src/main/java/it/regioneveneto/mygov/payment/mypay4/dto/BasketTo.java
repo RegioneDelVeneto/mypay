@@ -17,6 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.dto;
 
+import it.veneto.regione.schemas._2012.pagamenti.ente.DovutiEntiSecondari;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,4 +39,6 @@ public class BasketTo extends BaseTo implements Serializable {
   private String tipoCarrello;
   private String showMyPay;
   private String enteCaller;
+  private DovutiEntiSecondari dovutiEntiSecondari;
+  private String mailValidationToken;
 }

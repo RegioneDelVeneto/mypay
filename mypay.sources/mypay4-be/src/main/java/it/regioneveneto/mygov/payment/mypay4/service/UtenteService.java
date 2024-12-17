@@ -35,6 +35,7 @@ import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.regioneveneto.mygov.payment.mypay4.util.VerificationUtils;
 import it.veneto.regione.pagamenti.ente.FaultBean;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -71,6 +72,10 @@ public class UtenteService {
   @Cacheable(value=CacheService.CACHE_NAME_UTENTE, key="{'codFedUserId',#codFedUserId}", unless="#result==null")
   public Optional<Utente> getByCodFedUserId(String codFedUserId) {
     return utenteDao.getByCodFedUserId(codFedUserId);
+  }
+
+  public List<Utente> getAll() {
+    return utenteDao.getAll();
   }
 
   @CacheEvict(value=CacheService.CACHE_NAME_UTENTE,key="{'codFedUserId',#codFedUserId}")
@@ -135,8 +140,8 @@ public class UtenteService {
         .deFirstname(claims.get(JwtTokenUtil.JWT_CLAIM_NOME, String.class))
         .deLastname(claims.get(JwtTokenUtil.JWT_CLAIM_COGNOME, String.class))
         .codCodiceFiscaleUtente(claims.get(JwtTokenUtil.JWT_CLAIM_CODICE_FISCALE, String.class))
-        .deFedLegalEntity(claims.get(JwtTokenUtil.JWT_CLAIM_LEGAL_ENTITY, String.class))
-        .flgFedAuthorized(claims.get(JwtTokenUtil.JWT_CLAIM_FED_AUTH, Boolean.class))
+        .deFedLegalEntity(StringUtils.firstNonBlank(claims.get(JwtTokenUtil.JWT_CLAIM_LEGAL_ENTITY, String.class),"fisica"))
+        .flgFedAuthorized(ObjectUtils.firstNonNull(claims.get(JwtTokenUtil.JWT_CLAIM_FED_AUTH, Boolean.class), Boolean.TRUE))
         .nazioneId(nazione.map(NazioneTo::getNazioneId).orElse(null))
         .provinciaId(provincia.map(ProvinciaTo::getProvinciaId).orElse(null))
         .comuneId(comune.map(ComuneTo::getComuneId).orElse(null))

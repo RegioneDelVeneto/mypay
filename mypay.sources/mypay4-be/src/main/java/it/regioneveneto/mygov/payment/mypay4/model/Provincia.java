@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "provinciaId")
 public class Provincia extends BaseEntity {
 
-  public final static String ALIAS = "Provincia";
-  public final static String FIELDS = ""+ALIAS+".provincia_id as Provincia_provinciaId,"+ALIAS+".provincia as Provincia_provincia"+
+  public static final String ALIAS = "Provincia";
+  public static final String FIELDS = ""+ALIAS+".provincia_id as Provincia_provinciaId,"+ALIAS+".provincia as Provincia_provincia"+
       ","+ALIAS+".sigla as Provincia_sigla";
 
   private Long provinciaId;

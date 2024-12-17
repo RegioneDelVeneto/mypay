@@ -24,7 +24,6 @@ import it.regioneveneto.mygov.payment.mypay4.dto.NazioneTo;
 import it.regioneveneto.mygov.payment.mypay4.dto.ProvinciaTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.PaymentOrderException;
 import it.regioneveneto.mygov.payment.mypay4.model.Dovuto;
-import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.veneto.regione.schemas._2012.pagamenti.CtIdentificativoUnivocoPersonaFG;
 import it.veneto.regione.schemas._2012.pagamenti.StTipoIdentificativoUnivocoPersFG;
@@ -116,16 +115,15 @@ public class AnagraficaSoggettoService {
     ctIdentificativoUnivocoPersonaFG.setCodiceIdentificativoUnivoco(anag.getCodiceIdentificativoUnivoco().trim());
     map.put("identificativoUnivoco"+soggetto, ctIdentificativoUnivocoPersonaFG);
 
-    String anagrafica = Utilities.getTruncatedAt(Constants.MAX_LENGHT_ANAGRAFICA_UTENTE_POSTE).apply(anag.getAnagrafica());
+    String anagrafica = Utilities.getTruncatedAt(70).apply(anag.getAnagrafica());
     putIn.accept("anagrafica", anagrafica);
 
-    String civico= StringUtils.defaultString(anag.getCivico()).trim();
+    String civico = Optional.ofNullable(anag.getCivico()).filter(StringUtils::isNotBlank).map(String::trim).orElse(null);
     putIn.accept("civico", civico);
-    int lunghezzaDisponibilePerIndirizzo = Constants.MAX_LENGHT_INDIRIZZO_PLUS_CIVICO_POSTE - civico.length();
-    String indirizzo = Utilities.getTruncatedAt(lunghezzaDisponibilePerIndirizzo).apply(anag.getIndirizzo());
+    String indirizzo = Utilities.getTruncatedAt(70).apply(anag.getIndirizzo());
     putIn.accept("indirizzo", indirizzo);
     putIn.accept("email", anag.getEmail());
-    putIn.accept("cap", anag.getCap());
+
 
     Optional<NazioneTo> nazione = Optional.ofNullable(anag.getNazione())
       .filter(StringUtils::isNotBlank).map(String::trim)
@@ -141,10 +139,15 @@ public class AnagraficaSoggettoService {
     } else {
       provincia = Optional.empty();
     }
+    String codNazione = nazione.map(NazioneTo::getCodiceIsoAlpha2).orElse(null);
+    String cap = Optional.ofNullable(anag.getCap())
+      .filter(s -> Utilities.isValidCAP(s, codNazione))
+      .orElse(null);
+    putIn.accept("cap", cap);
 
     putIn.accept("localita", comune.map(ComuneTo::getComune).orElse(null));
     putIn.accept("provincia", provincia.map(ProvinciaTo::getSigla).orElse(null));
-    putIn.accept("nazione", nazione.map(NazioneTo::getCodiceIsoAlpha2).orElse(null));
+    putIn.accept("nazione", codNazione);
 
     map.values().removeIf(ObjectUtils::isEmpty);
 
@@ -156,7 +159,7 @@ public class AnagraficaSoggettoService {
     Optional<NazioneTo> nazioneTo = Optional.ofNullable(soggettoPagatore.getNazionePagatore())
       .filter(s -> s.length()==2)
       .map(locationService::getNazioneByCodIso);
-    Optional<ProvinciaTo> provinciaTo = nazioneTo.filter(n -> n.hasProvince())
+    Optional<ProvinciaTo> provinciaTo = nazioneTo.filter(NazioneTo::hasProvince)
       .map(x -> soggettoPagatore.getProvinciaPagatore())
       .filter(s -> s.length()==2)
       .map(locationService::getProvinciaBySigla);

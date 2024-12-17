@@ -81,6 +81,23 @@ public interface EnteFunzionalitaDao extends BaseDao {
   List<EnteFunzionalita> getAllByCodIpaEnte(String codIpaEnte, Boolean flgAttivo);
 
   @SqlQuery(
+          "    select "+EnteFunzionalita.ALIAS+ALL_FIELDS+","+
+                  " (select max("+ RegistroOperazione.ALIAS+".dt_operazione) as dt_ultima_abilitazione" +
+                  "    from mygov_registro_operazione "+RegistroOperazione.ALIAS+
+                  "   where "+RegistroOperazione.ALIAS+".cod_tipo_operazione = 'ENTE_FUNZ'"+
+                  "     and "+RegistroOperazione.ALIAS+".de_oggetto_operazione = "+EnteFunzionalita.ALIAS+".cod_ipa_ente || '|' || "+EnteFunzionalita.ALIAS+".cod_funzionalita"+
+                  "     and "+RegistroOperazione.ALIAS+".cod_stato_bool = true),"+
+                  " (select max("+ RegistroOperazione.ALIAS+".dt_operazione) as dt_ultima_disabilitazione" +
+                  "    from mygov_registro_operazione "+RegistroOperazione.ALIAS+
+                  "   where "+RegistroOperazione.ALIAS+".cod_tipo_operazione = 'ENTE_FUNZ'"+
+                  "     and "+RegistroOperazione.ALIAS+".de_oggetto_operazione = "+EnteFunzionalita.ALIAS+".cod_ipa_ente || '|' || "+EnteFunzionalita.ALIAS+".cod_funzionalita"+
+                  "     and "+RegistroOperazione.ALIAS+".cod_stato_bool = false)"+
+                  "  from mygov_ente_funzionalita "+EnteFunzionalita.ALIAS+
+                  " order by "+EnteFunzionalita.ALIAS+".cod_funzionalita")
+  @RegisterFieldMapper(EnteFunzionalita.class)
+  List<EnteFunzionalita> getAll();
+
+  @SqlQuery(
       "    select count(1) > 0 " +
           "  from mygov_ente_funzionalita "+EnteFunzionalita.ALIAS +
           " where "+EnteFunzionalita.ALIAS+".cod_ipa_ente = :codIpaEnte " +

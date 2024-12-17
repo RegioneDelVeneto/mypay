@@ -55,8 +55,8 @@ public class ValidazioneEmailController {
 
   @PostMapping("init")
   public ValidazioneEmailTo initValidation(@AuthenticationPrincipal UserWithAdditionalInfo user,
-                                       @RequestParam String emailAddress){
-    validazioneEmailService.initiateEmailValidationProcess(user.getUsername(), emailAddress);
+                                       @RequestParam String emailAddress, @RequestParam(required = false) String codIpaEnte){
+    validazioneEmailService.initiateEmailValidationProcess(user.getUsername(), emailAddress, codIpaEnte);
     return this.checkEmailValidationStatus(user);
   }
 

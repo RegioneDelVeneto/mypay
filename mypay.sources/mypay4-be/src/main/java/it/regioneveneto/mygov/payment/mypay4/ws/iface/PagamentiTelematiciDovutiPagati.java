@@ -17,30 +17,7 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.ws.iface;
 
-import it.veneto.regione.pagamenti.ente.FaultBean;
-import it.veneto.regione.pagamenti.ente.ListaCarrelli;
-import it.veneto.regione.pagamenti.ente.PaaSILAutorizzaImportFlusso;
-import it.veneto.regione.pagamenti.ente.PaaSILAutorizzaImportFlussoRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediPosizioniAperte;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediPosizioniAperteRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediStatoExportFlusso;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediStatoExportFlussoRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediStatoImportFlusso;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediStatoImportFlussoRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediStoricoPagamenti;
-import it.veneto.regione.pagamenti.ente.PaaSILChiediStoricoPagamentiRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILImportaDovuto;
-import it.veneto.regione.pagamenti.ente.PaaSILImportaDovutoRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILInviaCarrelloDovuti;
-import it.veneto.regione.pagamenti.ente.PaaSILInviaCarrelloDovutiRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILInviaDovuti;
-import it.veneto.regione.pagamenti.ente.PaaSILInviaDovutiRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILPrenotaExportFlusso;
-import it.veneto.regione.pagamenti.ente.PaaSILPrenotaExportFlussoIncrementaleConRicevuta;
-import it.veneto.regione.pagamenti.ente.PaaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILPrenotaExportFlussoRisposta;
-import it.veneto.regione.pagamenti.ente.PaaSILVerificaAvviso;
-import it.veneto.regione.pagamenti.ente.PaaSILVerificaAvvisoRisposta;
+import it.veneto.regione.pagamenti.ente.*;
 import it.veneto.regione.pagamenti.ente.ppthead.IntestazionePPT;
 
 import javax.activation.DataHandler;
@@ -49,6 +26,9 @@ import javax.xml.ws.Holder;
 import java.math.BigDecimal;
 
 public interface PagamentiTelematiciDovutiPagati {
+
+    PaaSILImportaDovutoRisposta paaSILImportaDovuto(PaaSILImportaDovuto request, IntestazionePPT intestazionePPT);
+
     PaaSILAutorizzaImportFlussoRisposta paaSILAutorizzaImportFlusso(PaaSILAutorizzaImportFlusso bodyrichiesta, IntestazionePPT header);
 
     void paaSILChiediEsitoCarrelloDovuti(String codIpaEnte, String password, String idSessionCarrello, Holder<FaultBean> fault, Holder<ListaCarrelli> listaCarrelli);
@@ -66,8 +46,6 @@ public interface PagamentiTelematiciDovutiPagati {
     PaaSILChiediStatoImportFlussoRisposta paaSILChiediStatoImportFlusso(PaaSILChiediStatoImportFlusso bodyrichiesta, IntestazionePPT header);
 
     PaaSILChiediStoricoPagamentiRisposta paaSILChiediStoricoPagamenti(PaaSILChiediStoricoPagamenti bodyrichiesta);
-
-    PaaSILImportaDovutoRisposta paaSILImportaDovuto(PaaSILImportaDovuto bodyrichiesta, IntestazionePPT header);
 
     PaaSILInviaCarrelloDovutiRisposta paaSILInviaCarrelloDovuti(PaaSILInviaCarrelloDovuti bodyrichiesta, IntestazionePPT header);
 

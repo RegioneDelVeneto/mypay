@@ -33,7 +33,9 @@
     <p>Se il pagamento è in stato "Transazione non completata", il pagamento è stato iniziato ma non è pervenuta nessuna
       ricevuta telematica (né con esito positivo né con esito negativo). Per maggiori informazioni contattare l'Ente
       Beneficiario.</p>
-    <p>Se il pagamento è in stato "Scaduto", è stata superata la data di scadenza prevista per la posizione debitoria.</p>
+    <p>Se il pagamento è in stato "Scaduto", è stata superata la data di scadenza prevista per la posizione debitoria
+       e non è più possibile procedere al pagamento. Per regolarizzare la propria posizione debitoria è necessario
+       contattare l'Ente Beneficiario.</p>
   </div>
 </ng-template>
 
@@ -57,7 +59,7 @@
           <mat-card-content class="white">
             <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
               <mat-label id="sr-ente" class="sr-only">Ente</mat-label>
-              <mat-form-field fxFlex="100%" fxFlex.gt-sm="50%" fxFlex.gt-md="60%" appearance="{{'appearance'|global}}" [floatLabel]="'always'">
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="calc( 100% - 32em )"  appearance="{{'appearance'|global}}" [floatLabel]="'always'">
                 <mat-label aria-hidden="true">Ente</mat-label>
                 <input aria-labelledby="sr-ente" type="text" matInput formControlName="ente"
                   [matAutocomplete]="autoEnte" [placeholder]="placeholderEnte">
@@ -97,6 +99,16 @@
                 <mat-date-range-picker #pickerDate></mat-date-range-picker>
                 <mat-error *ngIf="formErrors['dateFrom']">{{ formErrors.dateFrom }}</mat-error>
               </mat-form-field>
+
+              <mat-form-field fxFlex="100%" fxFlex.gt-sm="15em" appearance="{{'appearance'|global}}">
+                <mat-label>Stato</mat-label>
+                <mat-select required formControlName="state" name="state">
+                  <mat-option *ngFor="let state of stateOptions" [value]="state.code">
+                    {{state.label}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
             </div>
 
             <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">

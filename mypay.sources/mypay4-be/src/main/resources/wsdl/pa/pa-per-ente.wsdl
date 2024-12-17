@@ -19,18 +19,18 @@
 
 -->
 <wsdl:definitions xmlns:ppt="http://www.regione.veneto.it/pagamenti/ente/"
-	xmlns:ppthead="http://www.regione.veneto.it/pagamenti/ente/ppthead"
-	xmlns:pay_i="http://www.regione.veneto.it/schemas/2012/Pagamenti/Ente/"
-	xmlns:tns="http://www.regione.veneto.it/pagamenti/ente/PagamentiTelematiciDovutiPagati"
-	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
-	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="PagamentiTelematiciDovutiPagatiService"
-	targetNamespace="http://www.regione.veneto.it/pagamenti/ente/PagamentiTelematiciDovutiPagati">
+				  xmlns:ppthead="http://www.regione.veneto.it/pagamenti/ente/ppthead"
+				  xmlns:pay_i="http://www.regione.veneto.it/schemas/2012/Pagamenti/Ente/"
+				  xmlns:tns="http://www.regione.veneto.it/pagamenti/ente/PagamentiTelematiciDovutiPagati"
+				  xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+				  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+				  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="PagamentiTelematiciDovutiPagatiService"
+				  targetNamespace="http://www.regione.veneto.it/pagamenti/ente/PagamentiTelematiciDovutiPagati">
 
 	<wsdl:types>
 
 		<xsd:schema version="1.0"
-			targetNamespace="http://www.regione.veneto.it/pagamenti/ente/ppthead">
+					targetNamespace="http://www.regione.veneto.it/pagamenti/ente/ppthead">
 			<xsd:simpleType name="stText35">
 				<xsd:restriction base="xsd:string">
 					<xsd:minLength value="1"/>
@@ -68,32 +68,38 @@
 					<xsd:maxLength value="35" />
 				</xsd:restriction>
 			</xsd:simpleType>
+			<xsd:simpleType name="stText70">
+				<xsd:restriction base="xsd:string">
+					<xsd:minLength value="1" />
+					<xsd:maxLength value="70" />
+				</xsd:restriction>
+			</xsd:simpleType>
 			<xsd:simpleType name="stPassword">
 				<xsd:restriction base="xsd:string">
 					<xsd:minLength value="8"/>
 					<xsd:maxLength value="15"/>
 				</xsd:restriction>
 			</xsd:simpleType>
-      		<xsd:simpleType name="hashSHA256">
+			<xsd:simpleType name="hashSHA256">
 				<xsd:restriction base="xsd:string">
 					<xsd:minLength value="64"/>
 					<xsd:maxLength value="64"/>
 				</xsd:restriction>
-			</xsd:simpleType>			
-            <xsd:simpleType name="stShowMyPay">
-                            <xsd:restriction base="xsd:string">
-                                             <xsd:enumeration value="SHORT"/> <!-- (default) stesso funzionamento  -->
-                                             <xsd:enumeration value="NONE"/> <!-- per utente, mypay è trasparente  -->
-                                             <xsd:maxLength value="4"/>
-                            </xsd:restriction>
-             </xsd:simpleType>      
-      <xsd:element name="paaSILChiediEsitoCarrelloDovuti" type="ppt:paaSILChiediEsitoCarrelloDovuti" />
+			</xsd:simpleType>
+			<xsd:simpleType name="stShowMyPay">
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="SHORT"/> <!-- (default) stesso funzionamento  -->
+					<xsd:enumeration value="NONE"/> <!-- per utente, mypay è trasparente  -->
+					<xsd:maxLength value="4"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+			<xsd:element name="paaSILChiediEsitoCarrelloDovuti" type="ppt:paaSILChiediEsitoCarrelloDovuti" />
 			<xsd:element name="paaSILChiediEsitoCarrelloDovutiRisposta" type="ppt:paaSILChiediEsitoCarrelloDovutiRisposta"/>
 
 			<xsd:element name="paaSILInviaDovuti" type="ppt:paaSILInviaDovuti"/>
 			<xsd:element name="paaSILInviaDovutiRisposta" type="ppt:paaSILInviaDovutiRisposta"/>
-      
-      <xsd:element name="paaSILInviaCarrelloDovuti" type="ppt:paaSILInviaCarrelloDovuti" />
+
+			<xsd:element name="paaSILInviaCarrelloDovuti" type="ppt:paaSILInviaCarrelloDovuti" />
 			<xsd:element name="paaSILInviaCarrelloDovutiRisposta" type="ppt:paaSILInviaCarrelloDovutiRisposta"/>
 
 			<xsd:element name="paaSILVerificaAvviso" type="ppt:paaSILVerificaAvviso"/>
@@ -101,16 +107,16 @@
 
 			<xsd:element name="paaSILChiediPagati" type="ppt:paaSILChiediPagati"/>
 			<xsd:element name="paaSILChiediPagatiRisposta" type="ppt:paaSILChiediPagatiRisposta"/>
-			
+
 			<xsd:element name="paaSILChiediPagatiConRicevuta" type="ppt:paaSILChiediPagatiConRicevuta"/>
 			<xsd:element name="paaSILChiediPagatiConRicevutaRisposta" type="ppt:paaSILChiediPagatiConRicevutaRisposta"/>
 
 			<xsd:element name="paaSILImportaDovuto" type="ppt:paaSILImportaDovuto"/>
 			<xsd:element name="paaSILImportaDovutoRisposta" type="ppt:paaSILImportaDovutoRisposta"/>
-			
+
 			<xsd:element name="paaSILRegistraPagamento" type="ppt:paaSILRegistraPagamento"/>
 			<xsd:element name="paaSILRegistraPagamentoRisposta" type="ppt:paaSILRegistraPagamentoRisposta"/>
-			
+
 			<xsd:element name="paaSILAutorizzaImportFlusso" type="ppt:paaSILAutorizzaImportFlusso"/>
 			<xsd:element name="paaSILAutorizzaImportFlussoRisposta" type="ppt:paaSILAutorizzaImportFlussoRisposta" />
 
@@ -119,25 +125,31 @@
 
 			<xsd:element name="paaSILPrenotaExportFlusso" type="ppt:paaSILPrenotaExportFlusso"/>
 			<xsd:element name="paaSILPrenotaExportFlussoRisposta" type="ppt:paaSILPrenotaExportFlussoRisposta"/>
-			
+
 			<xsd:element name="paaSILPrenotaExportFlussoIncrementaleConRicevuta" type="ppt:paaSILPrenotaExportFlussoIncrementaleConRicevuta"/>
 			<xsd:element name="paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta" type="ppt:paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta"/>
+
+			<xsd:element name="paaSILPrenotaExportFlussoScaduti" type="ppt:paaSILPrenotaExportFlussoScaduti"/>
+			<xsd:element name="paaSILPrenotaExportFlussoScadutiRisposta" type="ppt:paaSILPrenotaExportFlussoScadutiRisposta"/>
 
 			<xsd:element name="paaSILChiediStatoExportFlusso" type="ppt:paaSILChiediStatoExportFlusso"/>
 			<xsd:element name="paaSILChiediStatoExportFlussoRisposta" type="ppt:paaSILChiediStatoExportFlussoRisposta" />
 
+			<xsd:element name="paaSILChiediStatoExportFlussoScaduti" type="ppt:paaSILChiediStatoExportFlussoScaduti"/>
+			<xsd:element name="paaSILChiediStatoExportFlussoScadutiRisposta" type="ppt:paaSILChiediStatoExportFlussoScadutiRisposta" />
+
 			<xsd:element name="paaSILChiediAvvisiPendenti" type="ppt:paaSILChiediAvvisiPendenti"/>
 			<xsd:element name="paaSILChiediAvvisiPendentiRisposta" type="ppt:paaSILChiediAvvisiPendentiRisposta" />
 			<xsd:element name="paaSILAvvisoPendente" type="ppt:paaSILAvvisoPendente"/>
-			
+
 
 			<xsd:element name="paaSILChiediPosizioniAperte" type="ppt:paaSILChiediPosizioniAperte" />
 			<xsd:element name="paaSILChiediPosizioniAperteRisposta"
-				type="ppt:paaSILChiediPosizioniAperteRisposta" />
+						 type="ppt:paaSILChiediPosizioniAperteRisposta" />
 			<xsd:element name="paaSILPosizioniAperte" type="ppt:paaSILPosizioniAperte" />
 			<xsd:element name="paaSILChiediStoricoPagamenti" type="ppt:paaSILChiediStoricoPagamenti" />
 			<xsd:element name="paaSILChiediStoricoPagamentiRisposta"
-				type="ppt:paaSILChiediStoricoPagamentiRisposta" />
+						 type="ppt:paaSILChiediStoricoPagamentiRisposta" />
 			<xsd:element name="paaSILStoricoPagamenti" type="ppt:paaSILStoricoPagamenti" />
 			<xsd:complexType name="risposta">
 				<xsd:sequence>
@@ -156,13 +168,13 @@
 					<xsd:element name="originalDescription" type="xsd:string" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:complexType>
-			
+
 			<xsd:complexType name="paaSILInviaDovuti">
 				<xsd:sequence>
 					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
 					<xsd:element name="dovuti" type="xsd:base64Binary"/>
 					<xsd:element name="enteSILInviaRispostaPagamentoUrl"
-						type="xsd:string" default="" minOccurs="0" />
+								 type="xsd:string" default="" minOccurs="0" />
 					<xsd:element name="showMyPay" type="ppt:stShowMyPay" minOccurs="0"/>
 				</xsd:sequence>
 			</xsd:complexType>
@@ -171,56 +183,65 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="esito" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="idSession" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="redirect" type="xsd:int" default="0"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="url" type="xsd:string" default=""
-								minOccurs="0" />
+										 minOccurs="0" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
 			</xsd:complexType>
-       
-      <xsd:complexType name="paaSILInviaCarrelloDovuti">
+
+			<xsd:complexType name="paaSILInviaCarrelloDovuti">
 				<xsd:sequence>
 					<xsd:element name="password" type="ppt:stPassword"/>
-          <xsd:element name="listaDovuti" type="ppt:listaDovuti"/>
-				 	<xsd:element name="enteSILInviaRispostaPagamentoUrl"
-						type="xsd:string" default="" minOccurs="0" />
+					<xsd:element name="listaDovuti" type="ppt:listaDovuti"/>
+					<xsd:element name="listaDovutiEntiSecondari" type="ppt:listaDovutiEntiSecondari" minOccurs="0"/>
+					<xsd:element name="enteSILInviaRispostaPagamentoUrl" type="xsd:string" default="" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:complexType>
-      
-      <xsd:complexType name="listaDovuti">
-          <xsd:sequence>
-        	 <xsd:element name="elementoListaDovuti" type="ppt:elementoListaDovuti" minOccurs="1" maxOccurs="unbounded"/>
-          </xsd:sequence>
-      </xsd:complexType>
-      
-      <xsd:complexType name="elementoListaDovuti">
-        	<xsd:sequence>
-              <xsd:element name="codIpaEnte" type="ppthead:stText35"/>
-              <xsd:element name="password" type="ppt:hashSHA256"/>
-              
-              <xsd:element name="dovuti" type="xsd:base64Binary"/>
-          </xsd:sequence>
-      </xsd:complexType>
-      
-      
-      
+
+			<xsd:complexType name="listaDovuti">
+				<xsd:sequence>
+					<xsd:element name="elementoListaDovuti" type="ppt:elementoListaDovuti" minOccurs="1" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="elementoListaDovuti">
+				<xsd:sequence>
+					<xsd:element name="codIpaEnte" type="ppthead:stText35"/>
+					<xsd:element name="password" type="ppt:hashSHA256"/>
+					<xsd:element name="dovuti" type="xsd:base64Binary"/>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="listaDovutiEntiSecondari">
+				<xsd:sequence>
+					<xsd:element name="elementoListaDovutiEntiSecondari" type="ppt:elementoListaDovutiEntiSecondari" minOccurs="1" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="elementoListaDovutiEntiSecondari">
+				<xsd:sequence>
+					<xsd:element name="dovutiEntiSecondari" type="xsd:base64Binary"/>
+				</xsd:sequence>
+			</xsd:complexType>
+
 			<xsd:complexType name="paaSILInviaCarrelloDovutiRisposta">
 				<xsd:complexContent>
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="esito" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="idSessionCarrello" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="redirect" type="xsd:int" default="0"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="url" type="xsd:string" default=""
-								minOccurs="0" />
+										 minOccurs="0" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -230,9 +251,9 @@
 				<xsd:sequence>
 					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
 					<xsd:element name="identificativoUnivocoVersamento"
-						type="ppt:stText35" />
+								 type="ppt:stText35" />
 					<xsd:element name="enteSILInviaRispostaPagamentoUrl"
-						type="xsd:string" default="" minOccurs="0" />
+								 type="xsd:string" default="" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:complexType>
 			<xsd:complexType name="paaSILVerificaAvvisoRisposta">
@@ -240,13 +261,13 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="esito" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="idSession" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="redirect" type="xsd:int" default="0"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="url" type="xsd:string" default=""
-								minOccurs="0" />
+										 minOccurs="0" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -264,13 +285,13 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="pagati" type="xsd:base64Binary"
-								xmime:expectedContentTypes="application/octet-stream"
-								xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
+										 xmime:expectedContentTypes="application/octet-stream"
+										 xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
 			</xsd:complexType>
-			
+
 			<xsd:complexType name="paaSILChiediPagatiConRicevuta">
 				<xsd:sequence>
 					<xsd:element name="codIpaEnte" type="ppthead:stText35"/>
@@ -285,13 +306,13 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="pagati" type="xsd:base64Binary"
-								xmime:expectedContentTypes="application/octet-stream"
-								xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
+										 xmime:expectedContentTypes="application/octet-stream"
+										 xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
 							<xsd:element name="tipoFirma" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="rt" type="xsd:base64Binary"
-								xmime:expectedContentTypes="application/octet-stream"
-								xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
+										 xmime:expectedContentTypes="application/octet-stream"
+										 xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -302,27 +323,28 @@
 					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
 					<xsd:element name="dovuto" type="xsd:base64Binary"/>
 					<xsd:element name="flagGeneraIuv" type="xsd:boolean" minOccurs="0"/>
+					<xsd:element name="listaDovutiEntiSecondari" type="ppt:listaDovutiEntiSecondari" minOccurs="0"/>
 				</xsd:sequence>
 			</xsd:complexType>
+
 			<xsd:complexType name="paaSILImportaDovutoRisposta">
 				<xsd:complexContent>
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="esito" type="xsd:string"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="identificativoUnivocoVersamento" type="ppt:stText35"
-								minOccurs="0" />
+										 minOccurs="0" />
 							<xsd:element name="urlFileAvviso" type="xsd:string"
-								minOccurs="0" />
-							<xsd:element name="base64ZipAvviso" type="xsd:base64Binary" 
-								xmime:expectedContentTypes="application/octet-stream"
-								xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
-								minOccurs="0" />
+										 minOccurs="0" />
+							<xsd:element name="base64ZipAvviso" type="xsd:base64Binary"
+										 xmime:expectedContentTypes="application/octet-stream"
+										 xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+										 minOccurs="0" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
 			</xsd:complexType>
-			
 
 			<xsd:complexType name="paaSILRegistraPagamento">
 				<xsd:sequence>
@@ -348,13 +370,13 @@
 					</xsd:extension>
 				</xsd:complexContent>
 			</xsd:complexType>
-			
-			
-			
-			
-			
-			
-			
+
+
+
+
+
+
+
 			<xsd:complexType name="paaSILAutorizzaImportFlusso">
 				<xsd:sequence>
 					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
@@ -401,11 +423,28 @@
 					<xsd:element name="dateFrom" type="xsd:date"/>
 					<xsd:element name="dateTo" type="xsd:date"/>
 					<xsd:element name="identificativoTipoDovuto" type="pay_i:stText35"
-						minOccurs="0" />
+								 minOccurs="0" />
 					<xsd:element name="versioneTracciato" type="pay_i:stText35" minOccurs="0" default="1.0"/>
 				</xsd:sequence>
 			</xsd:complexType>
 			<xsd:complexType name="paaSILPrenotaExportFlussoRisposta">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="requestToken" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+			
+			<xsd:complexType name="paaSILPrenotaExportFlussoScaduti">
+				<xsd:sequence>
+					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
+					<xsd:element name="dataScadenza" type="xsd:date"/>
+					<xsd:element name="tipiDovuto" type="xsd:string"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paaSILPrenotaExportFlussoScadutiRisposta">
 				<xsd:complexContent>
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
@@ -421,10 +460,11 @@
 					<xsd:element name="dateFrom" type="xsd:dateTime"/>
 					<xsd:element name="dateTo" type="xsd:dateTime" minOccurs="0"/>
 					<xsd:element name="identificativoTipoDovuto" type="pay_i:stText35"
-						minOccurs="0" />
+								 minOccurs="0" />
 					<xsd:element name="ricevuta" type="xsd:boolean"/>
 					<xsd:element name="incrementale" type="xsd:boolean"/>
 					<xsd:element name="versioneTracciato" type="pay_i:stText35" minOccurs="0" default="1.0"/>
+					<xsd:element name="passwordMypivot" type="ppt:stPassword" minOccurs="0"/>
 				</xsd:sequence>
 			</xsd:complexType>
 			<xsd:complexType name="paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta">
@@ -454,6 +494,25 @@
 					</xsd:extension>
 				</xsd:complexContent>
 			</xsd:complexType>
+			
+			<xsd:complexType name="paaSILChiediStatoExportFlussoScaduti">
+				<xsd:sequence>
+					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
+					<xsd:element name="requestToken" type="xsd:string"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paaSILChiediStatoExportFlussoScadutiRisposta">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="stato" type="xsd:string"/>
+							<xsd:element name="nomeFile" type="xsd:string"/>
+							<xsd:element name="downloadUrl" type="xsd:string"/>
+							<xsd:element name="pathFile" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>			
 
 			<xsd:complexType name="paaSILChiediAvvisiPendenti">
 				<xsd:sequence>
@@ -468,7 +527,7 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="paaSILAvvisoPendente" type="ppt:paaSILAvvisoPendente"
-								minOccurs="0" maxOccurs="unbounded" />
+										 minOccurs="0" maxOccurs="unbounded" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -478,12 +537,13 @@
 				<xsd:sequence>
 					<xsd:element name="dtCreazioneCodIuv" type="xsd:date"/>
 					<xsd:element name="dovuti" type="xsd:base64Binary"
-						xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
-						minOccurs="0" />
+								 xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+								 minOccurs="0" />
 				</xsd:sequence>
 			</xsd:complexType>
 			<xsd:complexType name="paaSILChiediPosizioniAperte">
 				<xsd:sequence>
+					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
 					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0"/>
 					<xsd:element name="identificativoUnivocoPersonaFG" type="pay_i:ctIdentificativoUnivocoPersonaFG"/>
 				</xsd:sequence>
@@ -493,7 +553,7 @@
 					<xsd:extension base="ppt:risposta">
 						<xsd:sequence>
 							<xsd:element name="paaSILPosizioniAperte" type="ppt:paaSILPosizioniAperte"
-								minOccurs="0" maxOccurs="unbounded" />
+										 minOccurs="0" maxOccurs="unbounded" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -504,13 +564,14 @@
 					<xsd:element name="deNomeEnte" type="ppt:stText100" minOccurs="1"/>
 					<xsd:element name="urlPagamento" type="xsd:string" minOccurs="0"/>
 					<xsd:element name="dovuti" type="xsd:base64Binary"
-						xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
-						minOccurs="1" maxOccurs="1"/>
+								 xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+								 minOccurs="1" maxOccurs="1"/>
 				</xsd:sequence>
 			</xsd:complexType>
-      
+
 			<xsd:complexType name="paaSILChiediStoricoPagamenti">
 				<xsd:sequence>
+					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
 					<xsd:element name="codIpaEnte" type="ppt:stText35" minOccurs="0"/>
 					<xsd:element name="identificativoUnivocoPersonaFG" type="pay_i:ctIdentificativoUnivocoPersonaFG"/>
 					<xsd:element name="dataFrom" type="xsd:dateTime" minOccurs="1"/>
@@ -523,7 +584,7 @@
 						<xsd:sequence>
 							<xsd:element name="dateTo" type="xsd:dateTime"/>
 							<xsd:element name="paaSILStoricoPagamenti" type="ppt:paaSILStoricoPagamenti"
-								minOccurs="0" maxOccurs="unbounded" />
+										 minOccurs="0" maxOccurs="unbounded" />
 						</xsd:sequence>
 					</xsd:extension>
 				</xsd:complexContent>
@@ -531,53 +592,53 @@
 			<xsd:complexType name="paaSILStoricoPagamenti">
 				<xsd:sequence>
 					<xsd:element name="ctPagatiConRicevuta" type="xsd:base64Binary"
-						xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
-						minOccurs="0" />
+								 xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+								 minOccurs="0" />
 					<xsd:element name="urlDownloadRT" type="xsd:string" minOccurs="0"/>
 					<xsd:element name="rt" type="xsd:base64Binary"
-						xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
-						minOccurs="0" />
+								 xmime:expectedContentTypes="application/octet-stream" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"
+								 minOccurs="0" />
 					<xsd:element name="codIpaEnte" type="ppt:stText80" minOccurs="1"/>
 					<xsd:element name="deNomeEnte" type="ppt:stText100" minOccurs="1"/>
 				</xsd:sequence>
 			</xsd:complexType>
-      <xsd:complexType name="paaSILChiediEsitoCarrelloDovuti">
-        <xsd:sequence>
-           <xsd:element name="codIpaEnte" type="ppthead:stText35"/>
-           <xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
-           <xsd:element name="idSessionCarrello" type="xsd:string"  />
-        </xsd:sequence>
-      </xsd:complexType>
-      
-      <xsd:complexType name="paaSILChiediEsitoCarrelloDovutiRisposta">
-        <xsd:complexContent>
-          <xsd:extension base="ppt:risposta">
-            <xsd:sequence>
-                <xsd:element name="listaCarrelli" type="ppt:listaCarrelli"/>
-          </xsd:sequence>
-        </xsd:extension>
-      </xsd:complexContent>
-    </xsd:complexType>
-    
-     <xsd:complexType name="listaCarrelli">
-          <xsd:sequence>
-        	 <xsd:element name="rispostaCarrello" type="ppt:rispostaCarrello"  minOccurs="1" maxOccurs="unbounded" />
-          </xsd:sequence>
-      </xsd:complexType>
-    
-    <xsd:complexType name="rispostaCarrello">
-       <xsd:sequence>
-  			        <xsd:element name="esito" type="xsd:string"/>
-                <xsd:element name="codIpaEnte" type="ppthead:stText35"/>
-                <xsd:element name="codIdentificativoUnivocoCarrello" type="ppthead:stText35"/>
-                <xsd:element name="pagati" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream"
-                      xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
-                <xsd:element name="rt" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream"
-                      xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
-         </xsd:sequence>
-		</xsd:complexType>
+			<xsd:complexType name="paaSILChiediEsitoCarrelloDovuti">
+				<xsd:sequence>
+					<xsd:element name="codIpaEnte" type="ppthead:stText35"/>
+					<xsd:element name="password" type="ppt:stPassword" minOccurs="0"/>
+					<xsd:element name="idSessionCarrello" type="xsd:string"  />
+				</xsd:sequence>
+			</xsd:complexType>
 
-      
+			<xsd:complexType name="paaSILChiediEsitoCarrelloDovutiRisposta">
+				<xsd:complexContent>
+					<xsd:extension base="ppt:risposta">
+						<xsd:sequence>
+							<xsd:element name="listaCarrelli" type="ppt:listaCarrelli"/>
+						</xsd:sequence>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="listaCarrelli">
+				<xsd:sequence>
+					<xsd:element name="rispostaCarrello" type="ppt:rispostaCarrello"  minOccurs="1" maxOccurs="unbounded" />
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="rispostaCarrello">
+				<xsd:sequence>
+					<xsd:element name="esito" type="xsd:string"/>
+					<xsd:element name="codIpaEnte" type="ppthead:stText35"/>
+					<xsd:element name="codIdentificativoUnivocoCarrello" type="ppthead:stText35"/>
+					<xsd:element name="pagati" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream"
+								 xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
+					<xsd:element name="rt" type="xsd:base64Binary" xmime:expectedContentTypes="application/octet-stream"
+								 xmlns:xmime="http://www.w3.org/2005/05/xmlmime" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:complexType>
+
+
 
 
 		</xsd:schema>
@@ -594,8 +655,8 @@
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILInviaDovutiRisposta">
 		</wsdl:part>
 	</wsdl:message>
-  
-  	<wsdl:message name="paaSILInviaCarrelloDovuti">
+
+	<wsdl:message name="paaSILInviaCarrelloDovuti">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILInviaCarrelloDovuti">
 		</wsdl:part>
 		<wsdl:part name="header" element="ppthead:intestazionePPT">
@@ -624,7 +685,7 @@
 	<wsdl:message name="paaSILChiediPagatiResponse">
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILChiediPagatiRisposta"/>
 	</wsdl:message>
-	
+
 	<wsdl:message name="paaSILChiediPagatiConRicevuta">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILChiediPagatiConRicevuta"/>
 	</wsdl:message>
@@ -642,14 +703,14 @@
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILImportaDovutoRisposta">
 		</wsdl:part>
 	</wsdl:message>
-	
+
 	<wsdl:message name="paaSILRegistraPagamento">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILRegistraPagamento"/>
 	</wsdl:message>
 	<wsdl:message name="paaSILRegistraPagamentoResponse">
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILRegistraPagamentoRisposta"/>
 	</wsdl:message>
-	
+
 	<wsdl:message name="paaSILAutorizzaImportFlusso">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILAutorizzaImportFlusso">
 		</wsdl:part>
@@ -682,7 +743,18 @@
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILPrenotaExportFlussoRisposta">
 		</wsdl:part>
 	</wsdl:message>
-	
+
+	<wsdl:message name="paaSILPrenotaExportFlussoScaduti">
+		<wsdl:part name="bodyrichiesta" element="ppt:paaSILPrenotaExportFlussoScaduti">
+		</wsdl:part>
+		<wsdl:part name="header" element="ppthead:intestazionePPT">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="paaSILPrenotaExportFlussoScadutiResponse">
+		<wsdl:part name="bodyrisposta" element="ppt:paaSILPrenotaExportFlussoScadutiRisposta">
+		</wsdl:part>
+	</wsdl:message>
+
 	<wsdl:message name="paaSILPrenotaExportFlussoIncrementaleConRicevuta">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILPrenotaExportFlussoIncrementaleConRicevuta">
 		</wsdl:part>
@@ -704,6 +776,17 @@
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILChiediStatoExportFlussoRisposta">
 		</wsdl:part>
 	</wsdl:message>
+	
+	<wsdl:message name="paaSILChiediStatoExportFlussoScaduti">
+		<wsdl:part name="bodyrichiesta" element="ppt:paaSILChiediStatoExportFlussoScaduti">
+		</wsdl:part>
+		<wsdl:part name="header" element="ppthead:intestazionePPT">
+		</wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="paaSILChiediStatoExportFlussoScadutiResponse">
+		<wsdl:part name="bodyrisposta" element="ppt:paaSILChiediStatoExportFlussoScadutiRisposta">
+		</wsdl:part>
+	</wsdl:message>	
 
 	<wsdl:message name="paaSILChiediAvvisiPendenti">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILChiediAvvisiPendenti"/>
@@ -711,8 +794,8 @@
 	<wsdl:message name="paaSILChiediAvvisiPendentiResponse">
 		<wsdl:part name="bodyrisposta" element="ppt:paaSILChiediAvvisiPendentiRisposta"/>
 	</wsdl:message>
-  
-  <wsdl:message name="paaSILChiediEsitoCarrelloDovuti">
+
+	<wsdl:message name="paaSILChiediEsitoCarrelloDovuti">
 		<wsdl:part name="bodyrichiesta" element="ppt:paaSILChiediEsitoCarrelloDovuti"/>
 	</wsdl:message>
 	<wsdl:message name="paaSILChiediEsitoCarrelloDovutiResponse">
@@ -735,178 +818,198 @@
 
 		<wsdl:operation name="paaSILInviaDovuti">
 			<wsdl:input name="paaSILInviaDovuti" message="tns:paaSILInviaDovuti"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRichiesta">
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRichiesta">
 			</wsdl:input>
 			<wsdl:output name="paaSILInviaDovutiResponse" message="tns:paaSILInviaDovutiResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRisposta">
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaDovutiRisposta">
 			</wsdl:output>
 		</wsdl:operation>
-    
-   		<wsdl:operation name="paaSILInviaCarrelloDovuti">
+
+		<wsdl:operation name="paaSILInviaCarrelloDovuti">
 			<wsdl:input name="paaSILInviaCarrelloDovuti" message="tns:paaSILInviaCarrelloDovuti"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRichiesta">
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRichiesta">
 			</wsdl:input>
 			<wsdl:output name="paaSILInviaCarrelloDovutiResponse" message="tns:paaSILInviaCarrelloDovutiResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRisposta">
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILInviaCarrelloDovutiRisposta">
 			</wsdl:output>
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILVerificaAvviso">
 			<wsdl:input name="paaSILVerificaAvviso" message="tns:paaSILVerificaAvviso"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRichiesta">
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRichiesta">
 			</wsdl:input>
 			<wsdl:output name="paaSILVerificaAvvisoResponse" message="tns:paaSILVerificaAvvisoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRisposta">
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILVerificaAvvisoRisposta">
 			</wsdl:output>
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILChiediPagati">
 			<wsdl:input name="paaSILChiediPagati" message="tns:paaSILChiediPagati"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRichiesta" />
 			<wsdl:output name="paaSILChiediPagatiResponse" message="tns:paaSILChiediPagatiResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRisposta" />
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiRisposta" />
 		</wsdl:operation>
-		
+
 		<wsdl:operation name="paaSILChiediPagatiConRicevuta">
 			<wsdl:input name="paaSILChiediPagatiConRicevuta" message="tns:paaSILChiediPagatiConRicevuta"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRichiesta" />
 			<wsdl:output name="paaSILChiediPagatiConRicevutaResponse" message="tns:paaSILChiediPagatiConRicevutaResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRisposta" />
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPagatiConRicevutaRisposta" />
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILImportaDovuto">
 			<wsdl:input name="paaSILImportaDovuto" message="tns:paaSILImportaDovuto"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRichiesta">
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRichiesta">
 			</wsdl:input>
 			<wsdl:output name="paaSILImportaDovutoResponse" message="tns:paaSILImportaDovutoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRisposta">
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILImportaDovutoRisposta">
 			</wsdl:output>
 		</wsdl:operation>
-		
+
 		<wsdl:operation name="paaSILRegistraPagamento">
 			<wsdl:input name="paaSILRegistraPagamento" message="tns:paaSILRegistraPagamento"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRichiesta">
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRichiesta">
 			</wsdl:input>
 			<wsdl:output name="paaSILRegistraPagamentoResponse" message="tns:paaSILRegistraPagamentoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRisposta">
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILRegistraPagamentoRisposta">
 			</wsdl:output>
 		</wsdl:operation>
-		
+
 		<wsdl:operation name="paaSILAutorizzaImportFlusso">
 			<wsdl:input name="paaSILAutorizzaImportFlusso" message="tns:paaSILAutorizzaImportFlusso"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRichiesta" />
 			<wsdl:output name="paaSILAutorizzaImportFlussoResponse"
-				message="tns:paaSILAutorizzaImportFlussoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRisposta" />
+						 message="tns:paaSILAutorizzaImportFlussoResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILAutorizzaImportFlussoRisposta" />
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILChiediStatoImportFlusso">
 			<wsdl:input name="paaSILChiediStatoImportFlusso" message="tns:paaSILChiediStatoImportFlusso"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRichiesta" />
 			<wsdl:output name="paaSILChiediStatoImportFlussoResponse"
-				message="tns:paaSILChiediStatoImportFlussoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRisposta" />
+						 message="tns:paaSILChiediStatoImportFlussoResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoImportFlussoRisposta" />
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILPrenotaExportFlusso">
 			<wsdl:input name="paaSILPrenotaExportFlusso" message="tns:paaSILPrenotaExportFlusso"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRichiesta" />
 			<wsdl:output name="paaSILPrenotaExportFlussoResponse"
-				message="tns:paaSILPrenotaExportFlussoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRisposta" />
+						 message="tns:paaSILPrenotaExportFlussoResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoRisposta" />
 		</wsdl:operation>
+		
+		<wsdl:operation name="paaSILPrenotaExportFlussoScaduti">
+			<wsdl:input name="paaSILPrenotaExportFlussoScaduti" message="tns:paaSILPrenotaExportFlussoScaduti"
+				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoScadutiRichiesta"
+				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoScadutiRichiesta" />
+			<wsdl:output name="paaSILPrenotaExportFlussoScadutiResponse"
+				message="tns:paaSILPrenotaExportFlussoScadutiResponse"
+				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoScadutiRisposta"
+				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoScadutiRisposta" />
+		</wsdl:operation>		
 		
 		<wsdl:operation name="paaSILPrenotaExportFlussoIncrementaleConRicevuta">
 			<wsdl:input name="paaSILPrenotaExportFlussoIncrementaleConRicevuta" message="tns:paaSILPrenotaExportFlussoIncrementaleConRicevuta"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRichiesta" />
 			<wsdl:output name="paaSILPrenotaExportFlussoIncrementaleConRicevutaResponse"
-				message="tns:paaSILPrenotaExportFlussoIncrementaleConRicevutaResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta" />
+						 message="tns:paaSILPrenotaExportFlussoIncrementaleConRicevutaResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILPrenotaExportFlussoIncrementaleConRicevutaRisposta" />
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILChiediStatoExportFlusso">
 			<wsdl:input name="paaSILChiediStatoExportFlusso" message="tns:paaSILChiediStatoExportFlusso"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRichiesta" />
 			<wsdl:output name="paaSILChiediStatoExportFlussoResponse"
-				message="tns:paaSILChiediStatoExportFlussoResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRisposta" />
+						 message="tns:paaSILChiediStatoExportFlussoResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoRisposta" />
 		</wsdl:operation>
+		
+		<wsdl:operation name="paaSILChiediStatoExportFlussoScaduti">
+			<wsdl:input name="paaSILChiediStatoExportFlussoScaduti" message="tns:paaSILChiediStatoExportFlussoScaduti"
+				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoScadutiRichiesta"
+				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoScadutiRichiesta" />
+			<wsdl:output name="paaSILChiediStatoExportFlussoScadutiResponse"
+				message="tns:paaSILChiediStatoExportFlussoScadutiResponse"
+				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoScadutiRisposta"
+				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStatoExportFlussoScadutiRisposta" />
+		</wsdl:operation>		
 
 		<wsdl:operation name="paaSILChiediAvvisiPendenti">
 			<wsdl:input name="paaSILChiediAvvisiPendenti" message="tns:paaSILChiediAvvisiPendenti"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRichiesta" />
 			<wsdl:output name="paaSILChiediAvvisiPendentiResponse"
-				message="tns:paaSILChiediAvvisiPendentiResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRisposta" />
+						 message="tns:paaSILChiediAvvisiPendentiResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediAvvisiPendentiRisposta" />
 		</wsdl:operation>
-    
-    <wsdl:operation name="paaSILChiediEsitoCarrelloDovuti">
+
+		<wsdl:operation name="paaSILChiediEsitoCarrelloDovuti">
 			<wsdl:input name="paaSILChiediEsitoCarrelloDovuti" message="tns:paaSILChiediEsitoCarrelloDovuti"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRichiesta" />
 			<wsdl:output name="paaSILChiediEsitoCarrelloDovutiResponse"
-				message="tns:paaSILChiediEsitoCarrelloDovutiResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRisposta" />
+						 message="tns:paaSILChiediEsitoCarrelloDovutiResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediEsitoCarrelloDovutiRisposta" />
 		</wsdl:operation>
 
 		<wsdl:operation name="paaSILChiediPosizioniAperte">
 			<wsdl:input name="paaSILChiediPosizioniAperte" message="tns:paaSILChiediPosizioniAperte"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRichiesta" />
 			<wsdl:output name="paaSILChiediPosizioniAperteResponse"
-				message="tns:paaSILChiediPosizioniAperteResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRisposta" />
+						 message="tns:paaSILChiediPosizioniAperteResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediPosizioniAperteRisposta" />
 		</wsdl:operation>
 		<wsdl:operation name="paaSILChiediStoricoPagamenti">
 			<wsdl:input name="paaSILChiediStoricoPagamenti" message="tns:paaSILChiediStoricoPagamenti"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRichiesta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRichiesta" />
+						wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRichiesta"
+						wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRichiesta" />
 			<wsdl:output name="paaSILChiediStoricoPagamentiResponse"
-				message="tns:paaSILChiediStoricoPagamentiResponse"
-				wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRisposta"
-				wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRisposta" />
+						 message="tns:paaSILChiediStoricoPagamentiResponse"
+						 wsam:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRisposta"
+						 wsaw:Action="http://www.regione.veneto.it/pagamenti/ente/PPT/paaSILChiediStoricoPagamentiRisposta" />
 		</wsdl:operation>
 	</wsdl:portType>
 
 	<wsdl:binding name="PagamentiTelematiciDovutiPagatiBinding"
-		type="tns:PagamentiTelematiciDovutiPagati">
+				  type="tns:PagamentiTelematiciDovutiPagati">
 
 		<soap:binding style="document"
-			transport="http://schemas.xmlsoap.org/soap/http" />
+					  transport="http://schemas.xmlsoap.org/soap/http" />
 
 		<wsdl:operation name="paaSILInviaDovuti">
 			<soap:operation soapAction="paaSILInviaDovuti" style="document"/>
 			<wsdl:input name="paaSILInviaDovuti">
 				<soap:header message="tns:paaSILInviaDovuti" part="header"
-					use="literal">
+							 use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -914,12 +1017,12 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-    
-    <wsdl:operation name="paaSILInviaCarrelloDovuti">
+
+		<wsdl:operation name="paaSILInviaCarrelloDovuti">
 			<soap:operation soapAction="paaSILInviaCarrelloDovuti" style="document"/>
 			<wsdl:input name="paaSILInviaCarrelloDovuti">
 				<soap:header message="tns:paaSILInviaCarrelloDovuti" part="header"
-					use="literal">
+							 use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -930,10 +1033,10 @@
 
 		<wsdl:operation name="paaSILVerificaAvviso">
 			<soap:operation soapAction="paaSILVerificaAvviso"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILVerificaAvviso">
 				<soap:header message="tns:paaSILVerificaAvviso" part="header"
-					use="literal">
+							 use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -951,7 +1054,7 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-		
+
 		<wsdl:operation name="paaSILChiediPagatiConRicevuta">
 			<soap:operation soapAction="paaSILChiediPagatiConRicevuta" style="document"/>
 			<wsdl:input name="paaSILChiediPagatiConRicevuta">
@@ -966,7 +1069,7 @@
 			<soap:operation soapAction="paaSILImportaDovuto" style="document"/>
 			<wsdl:input name="paaSILImportaDovuto">
 				<soap:header message="tns:paaSILImportaDovuto" part="header"
-					use="literal">
+							 use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -974,7 +1077,7 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-		
+
 		<wsdl:operation name="paaSILRegistraPagamento">
 			<soap:operation soapAction="paaSILRegistraPagamento" style="document"/>
 			<wsdl:input name="paaSILRegistraPagamento">
@@ -984,13 +1087,13 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-		
+
 		<wsdl:operation name="paaSILAutorizzaImportFlusso">
 			<soap:operation soapAction="paaSILAutorizzaImportFlusso"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILAutorizzaImportFlusso">
 				<soap:header message="tns:paaSILAutorizzaImportFlusso"
-					part="header" use="literal">
+							 part="header" use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -1001,10 +1104,10 @@
 
 		<wsdl:operation name="paaSILChiediStatoImportFlusso">
 			<soap:operation soapAction="paaSILChiediStatoImportFlusso"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILChiediStatoImportFlusso">
 				<soap:header message="tns:paaSILChiediStatoImportFlusso"
-					part="header" use="literal">
+							 part="header" use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -1015,10 +1118,10 @@
 
 		<wsdl:operation name="paaSILPrenotaExportFlusso">
 			<soap:operation soapAction="paaSILPrenotaExportFlusso"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILPrenotaExportFlusso">
 				<soap:header message="tns:paaSILPrenotaExportFlusso"
-					part="header" use="literal">
+							 part="header" use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -1026,13 +1129,27 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+
+		<wsdl:operation name="paaSILPrenotaExportFlussoScaduti">
+			<soap:operation soapAction="paaSILPrenotaExportFlussoScaduti"
+				style="document" />
+			<wsdl:input name="paaSILPrenotaExportFlussoScaduti">
+				<soap:header message="tns:paaSILPrenotaExportFlussoScaduti"
+					part="header" use="literal">
+				</soap:header>
+				<soap:body parts="bodyrichiesta" use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="paaSILPrenotaExportFlussoScadutiResponse">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>		
 		
 		<wsdl:operation name="paaSILPrenotaExportFlussoIncrementaleConRicevuta">
 			<soap:operation soapAction="paaSILPrenotaExportFlussoIncrementaleConRicevuta"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILPrenotaExportFlussoIncrementaleConRicevuta">
 				<soap:header message="tns:paaSILPrenotaExportFlussoIncrementaleConRicevuta"
-					part="header" use="literal">
+							 part="header" use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -1043,10 +1160,10 @@
 
 		<wsdl:operation name="paaSILChiediStatoExportFlusso">
 			<soap:operation soapAction="paaSILChiediStatoExportFlusso"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILChiediStatoExportFlusso">
 				<soap:header message="tns:paaSILChiediStatoExportFlusso"
-					part="header" use="literal">
+							 part="header" use="literal">
 				</soap:header>
 				<soap:body parts="bodyrichiesta" use="literal"/>
 			</wsdl:input>
@@ -1054,10 +1171,24 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+		
+		<wsdl:operation name="paaSILChiediStatoExportFlussoScaduti">
+			<soap:operation soapAction="paaSILChiediStatoExportFlussoScaduti"
+				style="document" />
+			<wsdl:input name="paaSILChiediStatoExportFlussoScaduti">
+				<soap:header message="tns:paaSILChiediStatoExportFlussoScaduti"
+					part="header" use="literal">
+				</soap:header>
+				<soap:body parts="bodyrichiesta" use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="paaSILChiediStatoExportFlussoScadutiResponse">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>		
 
 		<wsdl:operation name="paaSILChiediAvvisiPendenti">
 			<soap:operation soapAction="paaSILChiediAvvisiPendenti"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILChiediAvvisiPendenti">
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -1065,10 +1196,10 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-    
-    <wsdl:operation name="paaSILChiediEsitoCarrelloDovuti">
+
+		<wsdl:operation name="paaSILChiediEsitoCarrelloDovuti">
 			<soap:operation soapAction="paaSILChiediEsitoCarrelloDovuti"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILChiediEsitoCarrelloDovuti">
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -1080,7 +1211,7 @@
 
 		<wsdl:operation name="paaSILChiediPosizioniAperte">
 			<soap:operation soapAction="paaSILChiediPosizioniAperte"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILChiediPosizioniAperte">
 				<soap:body use="literal" />
 			</wsdl:input>
@@ -1090,7 +1221,7 @@
 		</wsdl:operation>
 		<wsdl:operation name="paaSILChiediStoricoPagamenti">
 			<soap:operation soapAction="paaSILChiediStoricoPagamenti"
-				style="document" />
+							style="document" />
 			<wsdl:input name="paaSILChiediStoricoPagamenti">
 				<soap:body use="literal" />
 			</wsdl:input>
@@ -1102,12 +1233,9 @@
 
 	<wsdl:service name="PagamentiTelematiciDovutiPagatiService">
 		<wsdl:port name="PagamentiTelematiciDovutiPagatiPort"
-			binding="tns:PagamentiTelematiciDovutiPagatiBinding">
+				   binding="tns:PagamentiTelematiciDovutiPagatiBinding">
 			<soap:address location="/ws/pa/"/>
 		</wsdl:port>
 	</wsdl:service>
 
 </wsdl:definitions>
-
-
-

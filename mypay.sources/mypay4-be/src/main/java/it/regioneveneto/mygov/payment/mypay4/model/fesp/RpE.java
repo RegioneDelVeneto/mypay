@@ -36,8 +36,8 @@ import java.util.Date;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "mygovRpEId")
 public class RpE extends BaseEntity {
 
-  public final static String ALIAS = "FESP_RpE";
-  public final static String FIELDS = ""+ALIAS+".mygov_rp_e_id as FESP_RpE_mygovRpEId,"+ALIAS+".version as FESP_RpE_version"+
+  public static final String ALIAS = "FESP_RpE";
+  public static final String FIELDS = ""+ALIAS+".mygov_rp_e_id as FESP_RpE_mygovRpEId,"+ALIAS+".version as FESP_RpE_version"+
       ","+ALIAS+".mygov_carrello_rp_id as FESP_RpE_mygovCarrelloRpId,"+ALIAS+".cod_ack_e as FESP_RpE_codAckE"+
       ","+ALIAS+".dt_creazione_rp as FESP_RpE_dtCreazioneRp,"+ALIAS+".dt_ultima_modifica_rp as FESP_RpE_dtUltimaModificaRp"+
       ","+ALIAS+".dt_creazione_e as FESP_RpE_dtCreazioneE,"+ALIAS+".dt_ultima_modifica_e as FESP_RpE_dtUltimaModificaE"+

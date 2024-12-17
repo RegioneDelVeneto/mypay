@@ -20,12 +20,14 @@ package it.regioneveneto.mygov.payment.mypay4.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
 
 import javax.jms.ConnectionFactory;
 
 @Configuration
 @Slf4j
+@EnableJms
 public class JmsConfig {
   @Bean
   public JmsTemplate jmsTemplate(ConnectionFactory connectionFactory)
@@ -38,8 +40,35 @@ public class JmsConfig {
   }
 
 //  @Bean
+//  public ConnectionFactoryBeanProcessor connectionFactoryBeanProcessor(){
+//    return new ConnectionFactoryBeanProcessor();
+//  }
+
+//  @Bean
 //  public PlatformTransactionManager transactionManager(ConnectionFactory connectionFactory) {
 //    return new JmsTransactionManager(connectionFactory);
 //  }
 
 }
+
+
+//@Slf4j
+//class ConnectionFactoryBeanProcessor implements BeanPostProcessor {
+//  @Override
+//  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+//    if (bean instanceof ActiveMQConnectionFactory) {
+//      log.info("processing bean name[{}] class[{}]", beanName, bean.getClass().getName());
+//      ActiveMQConnectionFactory activeMQConnectionFactory = (ActiveMQConnectionFactory) bean;
+//      if (activeMQConnectionFactory.getConsumerWindowSize() != 0) {
+//        log.info("setting ConsumerWindowSize to 0 (see https://issues.apache.org/jira/browse/ARTEMIS-2417)");
+//        try{
+//          activeMQConnectionFactory.setConsumerWindowSize(0);
+//        }catch(Exception e){
+//          log.error("error setting ConsumerWindowSize to 0; ignoring it", e);
+//        }
+//        log.info("Connection factory [{}]", activeMQConnectionFactory);
+//      }
+//    }
+//    return bean;
+//  }
+//}

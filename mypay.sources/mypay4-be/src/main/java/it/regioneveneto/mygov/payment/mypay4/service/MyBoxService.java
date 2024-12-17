@@ -18,8 +18,11 @@
 package it.regioneveneto.mygov.payment.mypay4.service;
 
 import it.regioneveneto.mygov.payment.mypay4.exception.FileStorageException;
+import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -29,6 +32,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -92,10 +96,64 @@ public class MyBoxService implements Serializable {
   public Pair<Resource,Long> downloadFile(String relativePath, String filename){
     try {
       File file = Paths.get(myBoxRootPath, relativeDataPath, relativePath, filename).toFile();
-      return Pair.of(new InputStreamResource(new FileInputStream(file)), file.length());
+      if(!file.exists() || !file.isFile()){
+        log.warn("downloadFile - file[{}] not found",file.getAbsolutePath());
+        return null;
+      }
+      long fileLength = 0;
+      try{
+        long start = System.currentTimeMillis();
+        while(System.currentTimeMillis() - start < 20000 && fileLength==0){
+          fileLength = file.length();
+          if(fileLength==0) {
+            log.info("file [{}] has length 0, checking again in 1s", file.getAbsolutePath());
+            Thread.sleep(1000);
+          }
+        }
+      } catch(Exception e){
+        log.warn("ignoring error checking file length [{}]",file.getAbsolutePath(), e);
+      }
+
+      if(fileLength==0)
+        throw new MyPayException("File momentaneamente non disponibile, si prega riprovare in seguito");
+
+      return Pair.of(new InputStreamResource(new FileInputStream(file)), fileLength);
     } catch(FileNotFoundException e){
-      log.debug("downloadFile - file not found: "+e.getMessage());
+      log.warn("downloadFile - relativePath[{}] filename[{}] not found", relativePath, filename, e);
       return null;
+    }
+  }
+
+  public File saveFile(String relativePath, String filename, CharSequence content) {
+    try {
+      var fileLocation = Path.of(myBoxRootPath, relativeDataPath, relativePath, filename);
+      if(!fileLocation.toAbsolutePath().getParent().toFile().exists())
+        Files.createDirectories(fileLocation.toAbsolutePath().getParent());
+      Files.writeString(fileLocation, content, StandardCharsets.UTF_8);
+      log.debug("[{}], close writer", filename);
+      return fileLocation.toFile();
+    } catch (Exception e) {
+      log.error("error saving file "+filename, e);
+      throw new FileStorageException("Errore nel salvataggio del file " + filename + "["+e.getMessage()+"]");
+    }
+  }
+
+  public String archiveFileToZip(File fileToArchive, String relativePath, String filename) {
+    var fileLocation = Path.of(myBoxRootPath, relativeDataPath, relativePath, filename);
+    try {
+      if(!fileLocation.toAbsolutePath().getParent().toFile().exists())
+        Files.createDirectories(fileLocation.toAbsolutePath().getParent());
+      try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(fileLocation)) {
+        ArchiveEntry entry = zos.createArchiveEntry(fileToArchive, fileToArchive.getName());
+        zos.putArchiveEntry(entry);
+        zos.write(Files.readAllBytes(fileToArchive.toPath()));
+        zos.closeArchiveEntry();
+        zos.finish();
+      }
+      return Paths.get(relativePath, filename).toString();
+    } catch (Exception e) {
+      log.error("exception on zipfile management", e);
+      throw new FileStorageException("Errore nella creazione del file archivio: "+fileToArchive.getName());
     }
   }
 }

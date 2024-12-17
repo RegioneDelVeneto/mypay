@@ -43,7 +43,7 @@ import java.lang.invoke.MethodHandles;
 @Slf4j
 @ConditionalOnProperty(name=AbstractApplication.NAME_KEY, havingValue=InvioEmailEsitoTaskApplication.NAME)
 public class InvioEmailEsitoTaskApplication extends AbstractTaskApplication {
-  final static public String NAME = "InvioEmailEsitoTaskApplication";
+  static final public String NAME = "InvioEmailEsitoTaskApplication";
   public static void main(String[] args) {
     log.debug("starting main class {}", NAME);
     SpringApplication application = new SpringApplication(MethodHandles.lookup().lookupClass());

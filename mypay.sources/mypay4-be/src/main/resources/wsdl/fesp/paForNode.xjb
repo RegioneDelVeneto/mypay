@@ -19,10 +19,11 @@
 
 -->
 <jaxb:bindings version="2.1"
-                xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-                xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-                xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-                xmlns:xs="http://www.w3.org/2001/XMLSchema">
+               xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema"
+               xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+               xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+               jaxb:extensionBindingPrefixes="xjc annox">
 
     <jaxws:bindings xmlns:jaxws="http://java.sun.com/xml/ns/jaxws">
         <jaxws:enableWrapperStyle>true</jaxws:enableWrapperStyle>
@@ -37,5 +38,10 @@
         <jaxb:package name="it.gov.pagopa.pagopa_api.pa.pafornode" />
       </jaxb:schemaBindings>
     </jaxb:bindings>
+    <!--jaxb:bindings schemaLocation="paForNode.xsd" node="xs:complexType[@name='ctReceipt']">
+        <annox:annotate>
+            <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement" name="ctReceipt" />
+        </annox:annotate>
+    </jaxb:bindings-->
 
 </jaxb:bindings>

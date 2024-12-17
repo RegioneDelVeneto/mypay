@@ -35,6 +35,7 @@ public class DovutoElaboratoTo extends BaseTo implements Serializable {
   private long id;
   private String causale;
   private String importo;
+  private long importoAsCent;
   private String valuta;
   private LocalDate dataScadenza;
   private LocalDate dataPagamento;
@@ -57,13 +58,23 @@ public class DovutoElaboratoTo extends BaseTo implements Serializable {
   private String allegatoRicevutaTipo;
   private String allegatoRicevutaTest;
 
+  private String email;
+
   private boolean showStampaRicevutaButton;
 
   private Long enteId;
+  private String codIpaEnte;
+  private String codFiscaleEnte;
   private String enteDeNome;
   private String codTipoDovuto;
   private String deTipoDovuto;
 
   private String codIuv;
+  private String numeroAvviso;
   private String securityTokenRt;
+
+  private DovutoElaboratoEntePrimarioTo entePrimarioElaboratoDetail;
+
+  private DovutoMultibeneficiarioElaboratoTo dovutoMultibeneficiario;
+  private boolean isMultibeneficiario;
 }

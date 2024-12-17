@@ -27,6 +27,7 @@ import io.jsonwebtoken.security.Keys;
 import it.regioneveneto.mygov.payment.mypay4.dto.WsImportTo;
 import it.regioneveneto.mygov.payment.mypay4.exception.MyPayException;
 import it.regioneveneto.mygov.payment.mypay4.util.Possibly;
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -34,7 +35,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -45,56 +45,69 @@ import java.net.URL;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Component
 @Slf4j
 public class JwtTokenUtil {
 
-  private final static String TOKEN_TYPE = "type";
-  private final static String TOKEN_TYPE_AUTH = "auth";
-  private final static String TOKEN_TYPE_LOGIN = "login";
-  private final static String TOKEN_TYPE_SECURITY = "sec";
-  private final static String TOKEN_TYPE_WSAUTH = "ws";
-  private final static String TOKEN_TYPE_A2A = "a2a";
+  private static final String TOKEN_TYPE = "type";
+  private static final String TOKEN_TYPE_AUTH = "auth";
+  private static final String TOKEN_TYPE_LOGIN = "login";
+  private static final String TOKEN_TYPE_SECURITY = "sec";
+  private static final String TOKEN_TYPE_POLLING = "poll";
+  private static final String TOKEN_TYPE_WSAUTH = "ws";
+  private static final String TOKEN_TYPE_A2A = "a2a";
+  private static final String TOKEN_TYPE_FEDERATED_LOGIN = "feder";
 
-  public final static String JWT_CLAIM_COGNOME = "cognome";
-  public final static String JWT_CLAIM_NOME = "nome";
-  public final static String JWT_CLAIM_CODICE_FISCALE = "cf";
-  public final static String JWT_CLAIM_EMAIL = "email";
-  public final static String JWT_CLAIM_EMAIL_NEW = "emailNew";
-  public final static String JWT_CLAIM_USERID = "userid";
-  public final static String JWT_CLAIM_ENTE = "ente";
-  public final static String JWT_CLAIM_UPLOAD_TYPE = "uploadType";
-  public final static String JWT_CLAIM_IMPORT_PATH = "importPath";
-  public final static String JWT_CLAIM_OID = "oid";
-  public final static String JWT_CLAIM_TOKEN_ID = "jti";
-  public final static String JWT_CLAIM_INITIAL_TOKEN_ID = "ijti";
-  public final static String JWT_CLAIM_EMAIL_SOURCE_TYPE = "emailSrc";
-  public final static String JWT_CLAIM_NAZIONE_NASCITA = "nazNas";
-  public final static String JWT_CLAIM_PROV_NASCITA = "prNas";
-  public final static String JWT_CLAIM_COMUNE_NASCITA = "comNas";
-  public final static String JWT_CLAIM_DATA_NASCITA = "dtNas";
-  public final static String JWT_CLAIM_AUTH_AUTHORITY = "authAuth";
-  public final static String JWT_CLAIM_AUTH_METHOD = "authMeth";
-  public final static String JWT_CLAIM_NAZIONE_RESIDENZA = "nazRes";
-  public final static String JWT_CLAIM_PROV_RESIDENZA = "prRes";
-  public final static String JWT_CLAIM_COMUNE_RESIDENZA = "comRes";
-  public final static String JWT_CLAIM_CAP_RESIDENZA = "capRes";
-  public final static String JWT_CLAIM_INDIRIZZO_RESIDENZA = "indRes";
-  public final static String JWT_CLAIM_CIVICO_RESIDENZA = "civRes";
-  public final static String JWT_CLAIM_LEGAL_ENTITY = "legEnt";
-  public final static String JWT_CLAIM_FED_AUTH = "fedAuth";
+  public static final String JWT_CLAIM_COGNOME = "cognome";
+  public static final String JWT_CLAIM_NOME = "nome";
+  public static final String JWT_CLAIM_CODICE_FISCALE = "cf";
+  public static final String JWT_CLAIM_EMAIL = "email";
+  public static final String JWT_CLAIM_EMAIL_NEW = "emailNew";
+  public static final String JWT_CLAIM_USERID = "userid";
+  public static final String JWT_CLAIM_ENTE = "ente";
+  public static final String JWT_CLAIM_UPLOAD_TYPE = "uploadType";
+  public static final String JWT_CLAIM_IMPORT_PATH = "importPath";
+  public static final String JWT_CLAIM_OID = "oid";
+  public static final String JWT_CLAIM_TOKEN_ID = "jti";
+  public static final String JWT_CLAIM_INITIAL_TOKEN_ID = "ijti";
+  public static final String JWT_CLAIM_EMAIL_SOURCE_TYPE = "emailSrc";
+  public static final String JWT_CLAIM_NAZIONE_NASCITA = "nazNas";
+  public static final String JWT_CLAIM_PROV_NASCITA = "prNas";
+  public static final String JWT_CLAIM_COMUNE_NASCITA = "comNas";
+  public static final String JWT_CLAIM_DATA_NASCITA = "dtNas";
+  public static final String JWT_CLAIM_AUTH_AUTHORITY = "authAuth";
+  public static final String JWT_CLAIM_AUTH_METHOD = "authMeth";
+  public static final String JWT_CLAIM_NAZIONE_RESIDENZA = "nazRes";
+  public static final String JWT_CLAIM_PROV_RESIDENZA = "prRes";
+  public static final String JWT_CLAIM_COMUNE_RESIDENZA = "comRes";
+  public static final String JWT_CLAIM_CAP_RESIDENZA = "capRes";
+  public static final String JWT_CLAIM_INDIRIZZO_RESIDENZA = "indRes";
+  public static final String JWT_CLAIM_CIVICO_RESIDENZA = "civRes";
+  public static final String JWT_CLAIM_LEGAL_ENTITY = "legEnt";
+  public static final String JWT_CLAIM_FED_AUTH = "fedAuth";
+  public static final String JWT_CLAIM_APP = "app";
 
 
 
   @Value("${cors.enabled:false}")
-  private String corsEnabled;
+  private boolean corsEnabled;
+
+  @Value("${jwt.use-header-auth.enabled:false}")
+  private boolean useHeaderAuth;
 
   @Value("${app.be.absolute-path}")
   private String appBeAbsolutePath;
@@ -107,17 +120,14 @@ public class JwtTokenUtil {
 
   private final Map<String, PublicKey> clientApplicationsPublicKey;
 
+  private final Map<String, PublicKey> federatedLoginPublicKey;
+
   public JwtTokenUtil(@Autowired ConfigurableEnvironment env){
-    this.clientApplicationsPublicKey = StreamSupport.stream(env.getPropertySources().spliterator(), false)
-        .filter(ps -> ps instanceof EnumerablePropertySource)
-        .map(ps -> ((EnumerablePropertySource<?>) ps).getPropertyNames())
-        .flatMap(Arrays::stream)
-        .filter(name -> name.startsWith("a2a.public."))
-        .distinct()
-        .map(name -> Pair.of(name.substring("a2a.public.".length()), this.getPublicKeyFromString(env.getProperty(name))))
-        //.map(pair -> {log.debug(pair.getKey()+":"+pair.getValue()); return pair;})
-        .collect(Collectors.toUnmodifiableMap(Pair::getKey, Pair::getValue));
+    this.clientApplicationsPublicKey = Utilities.envToMap(env, "a2a.public.", JwtTokenUtil::getPublicKeyFromString);
     log.debug("A2A client applications: "+clientApplicationsPublicKey.keySet());
+
+    this.federatedLoginPublicKey = Utilities.envToMap(env, "federated-login.public.", JwtTokenUtil::getPublicKeyFromString);
+    log.debug("Federated login entries: "+federatedLoginPublicKey.keySet());
   }
 
 
@@ -161,7 +171,7 @@ public class JwtTokenUtil {
         .from("jwtToken", jwtToken)
         .path(getAppBePath())
         .httpOnly(true)
-        //.sameSite("None")
+        .sameSite(this.corsEnabled?"None":null)
         .secure(true)
         .maxAge(maxAge)
         .build().toString();
@@ -169,7 +179,7 @@ public class JwtTokenUtil {
 
   public AbstractMap.SimpleImmutableEntry<String, String> generateCookieRemovalHeader(){
     String authHeaderName,authHeaderValue;
-    if("true".equalsIgnoreCase(corsEnabled)) {
+    if(this.useHeaderAuth) {
       return null;
     } else {
       authHeaderName = HttpHeaders.SET_COOKIE;
@@ -180,7 +190,7 @@ public class JwtTokenUtil {
 
   public AbstractMap.SimpleImmutableEntry<String, String> generateAuthorizationHeader(String jwtToken){
     String authHeaderName,authHeaderValue;
-    if("true".equalsIgnoreCase(corsEnabled)) {
+    if(this.useHeaderAuth) {
       authHeaderName = JwtRequestFilter.AUTHORIZATION_HEADER;
       authHeaderValue = "Bearer "+jwtToken;
     } else {
@@ -191,7 +201,7 @@ public class JwtTokenUtil {
   }
 
   public boolean isTokenInCookie(){
-    return !"true".equalsIgnoreCase(corsEnabled);
+    return !this.useHeaderAuth;
   }
 
   public String extractTokenFromCookies(Cookie[] cookies){
@@ -211,11 +221,18 @@ public class JwtTokenUtil {
   public boolean isSecurityToken(Jws<Claims> token){
     return TOKEN_TYPE_SECURITY.equals(token.getBody().getOrDefault(TOKEN_TYPE, null));
   }
+  public boolean isPollingToken(Jws<Claims> token){
+    return TOKEN_TYPE_POLLING.equals(token.getBody().getOrDefault(TOKEN_TYPE, null));
+  }
   public boolean isWsAuthToken(Jws<Claims> token){
     return TOKEN_TYPE_WSAUTH.equals(token.getBody().getOrDefault(TOKEN_TYPE, null));
   }
   public boolean isA2AAuthToken(Jws<Claims> token){
     return TOKEN_TYPE_A2A.equals(token.getBody().getOrDefault(TOKEN_TYPE, null));
+  }
+
+  public boolean isFederatedLoginAuthToken(Jws<Claims> token){
+    return TOKEN_TYPE_FEDERATED_LOGIN.equals(token.getBody().getOrDefault(TOKEN_TYPE, null));
   }
 
   public String generateToken(String username, UserWithAdditionalInfo user) {
@@ -271,7 +288,7 @@ public class JwtTokenUtil {
   }
 
   public String generateSecurityToken(UserWithAdditionalInfo user, String objectId) {
-    return generateSecurityToken(user, objectId, 2 * 3600); //2 hours
+    return generateSecurityToken(user, objectId, 2l * 3600); //2 hours
   }
 
   public String generateSecurityToken(UserWithAdditionalInfo user, String objectId, long expirationInSeconds) {
@@ -287,6 +304,31 @@ public class JwtTokenUtil {
     String username = user!=null ? user.getUsername() : "<ANONIMO>";
     Jws<Claims> jws = parseJwsTokenImpl(token);
     if (!isSecurityToken(jws)){
+      throw new InvalidJwtException(jws.getHeader(), jws.getBody(), "Invalid token type");
+    }
+    if(!username.equals(jws.getBody().getSubject())){
+      throw new InvalidJwtException(jws.getHeader(), jws.getBody(), "Username mismatch");
+    }
+    return (String)jws.getBody().getOrDefault(JWT_CLAIM_OID,null);
+  }
+
+  public String generatePollingToken(UserWithAdditionalInfo user, String objectId) {
+    return generatePollingToken(user, objectId, 1L * 60); //1 minute
+  }
+
+  public String generatePollingToken(UserWithAdditionalInfo user, String objectId, long expirationInSeconds) {
+    String username = user!=null ? user.getUsername() : "<ANONIMO>";
+    Map<String, Object> claims = new HashMap<>();
+    claims.put(Claims.SUBJECT, username);
+    claims.put(JWT_CLAIM_OID,objectId);
+    claims.put(TOKEN_TYPE,TOKEN_TYPE_POLLING);
+    return doGenerateToken(claims, username, new Date(System.currentTimeMillis() + expirationInSeconds * 1000));
+  }
+
+  public String parsePollingToken(UserWithAdditionalInfo user, String token) {
+    String username = user!=null ? user.getUsername() : "<ANONIMO>";
+    Jws<Claims> jws = parseJwsTokenImpl(token);
+    if (!isPollingToken(jws)){
       throw new InvalidJwtException(jws.getHeader(), jws.getBody(), "Invalid token type");
     }
     if(!username.equals(jws.getBody().getSubject())){
@@ -347,7 +389,7 @@ public class JwtTokenUtil {
         .signWith(key, SignatureAlgorithm.HS512).compact();
   }
 
-  private PublicKey getPublicKeyFromString(String encodedKey) {
+  private static PublicKey getPublicKeyFromString(String encodedKey) {
     try {
       X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(Decoders.BASE64.decode(encodedKey));
       KeyFactory kf = KeyFactory.getInstance("RSA");
@@ -373,11 +415,57 @@ public class JwtTokenUtil {
     return pairAppJws;
   }
 
+  public Pair<String, Jws<Claims>> parseFederatedLoginToken(String token) {
+    ImmutablePair<String, Jws<Claims>> pairAppJws = this.federatedLoginPublicKey.keySet().stream()
+      .map(Possibly.of((String app) -> new ImmutablePair<>(app,
+        parseJwsTokenImpl(token, this.federatedLoginPublicKey.get(app)))))
+      .filter(Possibly::is)
+      .map(Possibly::orNull)
+      .findFirst()
+      .orElseThrow(() -> new InvalidJwtException(null, null, "Invalid token for federated-login call"));
+
+    if (!isFederatedLoginAuthToken(pairAppJws.getRight())){
+      throw new InvalidJwtException(pairAppJws.getRight().getHeader(), pairAppJws.getRight().getBody(), "Invalid token type");
+    }
+
+    return pairAppJws;
+  }
+
   public static void main(String[] args) {
     //this is used to generate a random key secret
     System.out.println("HS512:\n"+Encoders.BASE64.encode(Keys.secretKeyFor(SignatureAlgorithm.HS512).getEncoded()));
     KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS512);
-    System.out.println("RS512, public:\n"+Encoders.BASE64.encode(keyPair.getPublic().getEncoded()));
-    System.out.println("RS512, private:\n"+Encoders.BASE64.encode(keyPair.getPrivate().getEncoded()));
+    String publicKeyEncoded = Encoders.BASE64.encode(keyPair.getPublic().getEncoded());
+    String privateKeyEncoded = Encoders.BASE64.encode(keyPair.getPrivate().getEncoded());
+    System.out.println("RS512, public:\n"+publicKeyEncoded);
+    System.out.println("RS512, private:\n"+privateKeyEncoded);
+
+    JwtTokenUtil.checkKeyPairMatch(publicKeyEncoded, privateKeyEncoded);
+  }
+
+  private static void checkKeyPairMatch(String publicKeyEncoded, String privateKeyEncoded) {
+    try {
+      PublicKey publicKey = getPublicKeyFromString(publicKeyEncoded);
+      PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Decoders.BASE64.decode(privateKeyEncoded));
+      KeyFactory kf = KeyFactory.getInstance("RSA");
+      PrivateKey privateKey = kf.generatePrivate(keySpec);
+
+      // create a challenge
+      byte[] challenge = new byte[10000];
+      ThreadLocalRandom.current().nextBytes(challenge);
+      // sign using the private key
+      Signature sig = Signature.getInstance("SHA256withRSA");
+      sig.initSign(privateKey);
+      sig.update(challenge);
+      byte[] signature = sig.sign();
+      // verify signature using the public key
+      sig.initVerify(publicKey);
+      sig.update(challenge);
+      boolean keyPairMatches = sig.verify(signature);
+      System.out.println("KyPair match: "+keyPairMatches);
+
+    }catch(Exception e){
+      e.printStackTrace();
+    }
   }
 }

@@ -29,6 +29,7 @@
     <p>Dovuti on line </p>
     <p>Gli stati del dovuto possono essere: da pagare, pagamento iniziato, scaduto.</p>
     <ul>
+      <li>predisposto: in fase di validazione da mypay, in questo stato non è possibile modificare e/o pagare il dovuto.</li>
       <li>da pagare: il dovuto può essere pagato;</li>
       <li>pagamento iniziato: il pagamento è già stato avviato, ma non si è ancora concluso;</li>
       <li>scaduto: il dovuto aveva una data di scadenza impostata che è stata superata.</li>
@@ -86,7 +87,7 @@
 
               <mat-form-field fxFlex="100%" fxFlex.gt-sm="12em" fxFlex.gt-md="17em" appearance="{{'appearance'|global}}">
                   <mat-label>{{formDef['iuv'].label}}</mat-label>
-                  <input matInput formControlName="iuv" placeholder="Inserire un testo">
+                  <input matInput removeSpace="blur" formControlName="iuv" placeholder="Inserire un testo">
                   <mat-error *ngIf="formErrors['iuv']">{{ formErrors.iuv }}</mat-error>
               </mat-form-field>
 

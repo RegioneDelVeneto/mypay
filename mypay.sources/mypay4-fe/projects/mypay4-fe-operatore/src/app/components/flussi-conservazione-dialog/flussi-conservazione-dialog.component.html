@@ -1,0 +1,57 @@
+<!--
+
+        MyPay - Payment portal of Regione Veneto.
+        Copyright (C) 2022  Regione Veneto
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Affero General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Affero General Public License for more details.
+
+        You should have received a copy of the GNU Affero General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+<div class="container">
+    <div fxFlex fxLayout="column" fxLayoutAlign="start center">
+      <h1 class="mat-h1" id="sr-pe">Prenota Export Conservazione</h1>
+      <mat-dialog-content novalidate #iForm="ngForm" [formGroup]="insertForm" (ngSubmit)="onInsert()"
+        aria-labelledby="sr-pe">
+        <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px">
+          <mat-form-field fxFlex="100%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+            <mat-label>Data pagamento dal</mat-label>
+            <input matInput required formControlName="dateFrom" [matDatepicker]="insertPickerFrom">
+            <mat-datepicker-toggle matSuffix [for]="insertPickerFrom"></mat-datepicker-toggle>
+            <mat-datepicker #insertPickerFrom></mat-datepicker>
+            <mat-error *ngIf="insertFormErrors['dateFrom']">{{ insertFormErrors.dateFrom }}</mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="100%" fxFlex.gt-sm="33%" appearance="{{'appearance'|global}}">
+            <mat-label>al</mat-label>
+            <input matInput required formControlName="dateTo" [matDatepicker]="insertPickerTo">
+            <mat-datepicker-toggle matSuffix [for]="insertPickerTo"></mat-datepicker-toggle>
+            <mat-datepicker #insertPickerTo></mat-datepicker>
+            <mat-error *ngIf="insertFormErrors['dateTo']">{{ insertFormErrors.dateTo }}</mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="100%" fxFlex.gt-sm="30%" fxFlex.gt-sm appearance="{{'appearance'|global}}">
+            <mat-label>Versione tracciato</mat-label>
+            <mat-select required formControlName="versioneTracciato" name="versioneTracciato">
+              <mat-option *ngFor="let aVersioneTracciato of versioniTracciato" [value]="aVersioneTracciato">
+                {{aVersioneTracciato}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="0px" class="mx-2 mb-3 mat-button-bar">
+          <button fxFlex="12" type="button" mat-flat-button (click)="onInsert()"
+            [disabled]="insertForm.invalid || blockingError" color="accent">Prenota</button>
+          <div fxFlex></div>
+          <button fxFlex="10" type="button" mat-flat-button (click)="close()" color="primary">Chiudi</button>
+        </div>
+      </mat-dialog-content>
+    </div>
+  </div>

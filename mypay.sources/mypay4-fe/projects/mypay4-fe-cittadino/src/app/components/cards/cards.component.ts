@@ -17,12 +17,12 @@
  */
 import { ToastrService } from 'ngx-toastr';
 import {
-    manageError, OverlaySpinnerService, WithTitle
+  manageError, OverlaySpinnerService, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
 
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import {
-    faAngleRight, faCashRegister, faCreditCard, faFileInvoice, faHome, faInfoCircle, faTags
+  faAngleRight, faCashRegister, faCreditCard, faFileInvoice, faHome, faInfoCircle, faTags
 } from '@fortawesome/free-solid-svg-icons';
 
 import { Debito } from '../../model/debito';
@@ -35,7 +35,7 @@ import { PagatoService } from '../../services/pagato.service';
   templateUrl: './cards.component.html',
   styleUrls: ['./cards.component.scss']
 })
-export class CardsComponent implements OnInit, AfterViewInit, WithTitle {
+export class CardsComponent implements AfterViewInit, WithTitle {
 
   @ViewChild('cardPagati', { read: ElementRef }) cardPagati: ElementRef;
   @ViewChild('cardDebiti', { read: ElementRef }) cardDebiti: ElementRef;
@@ -58,10 +58,6 @@ export class CardsComponent implements OnInit, AfterViewInit, WithTitle {
     private debitoService: DebitoService,
     private toastrService: ToastrService,
     private overlaySpinnerService: OverlaySpinnerService) {
-  }
-
-  ngOnInit(): void {
-
   }
 
   ngAfterViewInit() {

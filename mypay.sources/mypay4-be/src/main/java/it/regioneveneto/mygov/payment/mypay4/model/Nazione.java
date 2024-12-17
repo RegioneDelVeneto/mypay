@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "nazioneId")
 public class Nazione extends BaseEntity {
 
-  public final static String ALIAS = "Nazione";
-  public final static String FIELDS = ""+ALIAS+".nazione_id as Nazione_nazioneId,"+ALIAS+".nome_nazione as Nazione_nomeNazione"+
+  public static final String ALIAS = "Nazione";
+  public static final String FIELDS = ""+ALIAS+".nazione_id as Nazione_nazioneId,"+ALIAS+".nome_nazione as Nazione_nomeNazione"+
       ","+ALIAS+".codice_iso_alpha_2 as Nazione_codiceIsoAlpha2";
 
   private Long nazioneId;

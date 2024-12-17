@@ -58,4 +58,8 @@ export class DebitoService {
       (this.baseUrlService.getCittadinoUrl() + 'dovuti/last', {params:params}, new Mappers({mapperS2C: Debito}));
   }
 
+  removeDovuto(mygovDovutoId: number): Observable<any> {
+    return this.apiInvokerService.post<any>(this.baseUrlService.getCittadinoUrl() + 'dovuti/remove/' + mygovDovutoId, null);
+  }
+
 }

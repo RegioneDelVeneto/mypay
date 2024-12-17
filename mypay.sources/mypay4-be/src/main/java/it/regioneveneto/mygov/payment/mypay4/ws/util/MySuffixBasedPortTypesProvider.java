@@ -25,19 +25,18 @@ import javax.wsdl.Operation;
 import javax.wsdl.PortType;
 import javax.wsdl.WSDLException;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MySuffixBasedPortTypesProvider extends SuffixBasedPortTypesProvider {
 
   private String requestSuffix = DEFAULT_REQUEST_SUFFIX;
 
+  @Override
   public String getRequestSuffix() {
     return requestSuffix;
   }
 
+  @Override
   public void setRequestSuffix(String requestSuffix) {
     this.requestSuffix = requestSuffix;
   }
@@ -65,6 +64,7 @@ public class MySuffixBasedPortTypesProvider extends SuffixBasedPortTypesProvider
     return messageName != null && !messageName.endsWith(getResponseSuffix());
   }
 
+  @SuppressWarnings("java:S2177")
   private String getMessageName(Message message) {
     return message.getQName().getLocalPart();
   }
@@ -82,8 +82,8 @@ public class MySuffixBasedPortTypesProvider extends SuffixBasedPortTypesProvider
           toRemove.get(portType.getQName()).add(operation);
       }
     }
-    for(QName qName : toRemove.keySet())
-      for(Operation operation : toRemove.get(qName))
-        definition.getPortType(qName).removeOperation(operation.getName(), operation.getInput().getName(), null);
+    for(Map.Entry<QName, List<Operation>> entry: toRemove.entrySet())
+      for(Operation operation : entry.getValue())
+        definition.getPortType(entry.getKey()).removeOperation(operation.getName(), operation.getInput().getName(), null);
   }
 }

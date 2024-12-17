@@ -34,6 +34,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,9 @@ public class MailService {
   @Value("${pa.mail.to.maintainer.addresses}")
   private String[] maintainerToAddresses;
 
+  @Value("${pa.mail.from.name.custom}")
+  private String mailFromNameCustom;
+
   @Autowired
   private Environment templates;
 
@@ -61,22 +65,32 @@ public class MailService {
 
 
 
-  public void sendMailAddressValidationMail(String to, String code){
+  public void sendMailAddressValidationMail(String to, String code, String nomeEnte){
     Map<String, String> params = Map.of(
+        "nomeEnte", StringUtils.firstNonBlank(nomeEnte, "MyPay"),
         "to", to,
         "pinCode", code
     );
     String templateName = "mail-address-validation";
-    sendMailFromTemplate(new String[]{to}, null, params, templateName);
+    String customEmailFromName = null;
+    if(StringUtils.isNotBlank(nomeEnte)) {
+      customEmailFromName = StringSubstitutor.replace(mailFromNameCustom, Map.of("nomeEnte", nomeEnte), "{", "}");
+    }
+    sendMailFromTemplate(new String[]{to}, null, params, templateName, customEmailFromName);
   }
 
-  public void sendUserMailValidationMail(String to, String code){
+  public void sendUserMailValidationMail(String to, String code, String nomeEnte){
     Map<String, String> params = Map.of(
+        "nomeEnte", StringUtils.firstNonBlank(nomeEnte, "MyPay"),
         "to", to,
         "pinCode", code
     );
     String templateName = "user-mail-validation";
-    sendMailFromTemplate(new String[]{to}, null, params, templateName);
+    String customEmailFromName = null;
+    if(StringUtils.isNotBlank(nomeEnte)) {
+      customEmailFromName = StringSubstitutor.replace(mailFromNameCustom, Map.of("nomeEnte", nomeEnte), "{", "}");
+    }
+    sendMailFromTemplate(new String[]{to}, null, params, templateName, customEmailFromName);
   }
 
   public void sendMailEsitoPagamento(String to, String[] cc, Map<String, String> params) {
@@ -89,12 +103,46 @@ public class MailService {
     sendMailFromTemplate(maintainerToAddresses, null, params, templateName);
   }
 
+  public void sendMailImportFlussoOk(String to[], String[] cc, Map<String, String> params) {
+    String templateName = "mail-importFlusso-ok";
+    sendMailFromTemplate(to, cc, params, templateName);
+  }
+
+  public void sendMailImportFlussoScarti(String to[], String[] cc, Map<String, String> params) {
+    String templateName = "mail-importFlusso-scarti";
+    sendMailFromTemplate(to, cc, params, templateName);
+  }
+
+  public void sendMailImportFlussoError(String to[], String[] cc, Map<String, String> params) {
+    String templateName = "mail-importFlusso-error";
+    sendMailFromTemplate(to, cc, params, templateName);
+  }
+
+  public void sendMailExportDovutiOk(String to[], String[] cc, Map<String, String> params) {
+    String templateName = "mail-exportDovuti-ok";
+    sendMailFromTemplate(to, cc, params, templateName);
+  }
+
+  public void sendMailExpiringTaxonomy(Map<String, String> params) {
+    String templateName = "mail-expiring-taxonomy";
+    sendMailFromTemplate(maintainerToAddresses, null, params, templateName);
+  }
+
+  public void sendMailTaxonomyChanges(Map<String, String> params) {
+    String templateName = "mail-taxonomy-changes";
+    sendMailFromTemplate(maintainerToAddresses, null, params, templateName);
+  }
+
   private void sendMailFromTemplate(String[] to, String[] cc, Map<String, String> params, String templateName){
+    sendMailFromTemplate(to, cc, params, templateName, null);
+  }
+
+  private void sendMailFromTemplate(String[] to, String[] cc, Map<String, String> params, String templateName, String customEmailFromName){
     Assert.isTrue(templates.containsProperty("template."+templateName+".subject"), "Invalid email template (missing subject) "+templateName);
     Assert.isTrue(templates.containsProperty("template."+templateName+".body"), "Invalid email template (missing body) "+templateName);
     String subject = StringSubstitutor.replace(templates.getRequiredProperty("template."+templateName+".subject"), params, "{", "}");
     String text = StringSubstitutor.replace(templates.getRequiredProperty("template."+templateName+".body"), params, "{", "}");
-    sendMailService.sendMail(to, cc, subject, text);
+    sendMailService.sendMail(to, cc, subject, text, customEmailFromName);
   }
 
 }
@@ -147,7 +195,11 @@ class AsyncSendMailService {
       //listeners = {"sendMailService"},
       backoff = @Backoff(random = true, delayExpression = "${async.sendMail.retry.delay}",
           maxDelayExpression = "${async.sendMail.retry.maxDelay}", multiplierExpression = "${async.sendMail.retry.multiplier}"))
-  public void sendMail(String[] to, String[] cc, String subject, String htmlText) {
+  public void sendMail(String[] to, String[] cc, String subject, String htmlText, String customEmailFromName) {
+
+    int retry = RetrySynchronizationManager.getContext().getRetryCount();
+    if(retry>0)
+      log.info("send mail, retry #{}", retry);
 
     to = filterRecipients(to, "TO");
     cc = filterRecipients(cc, "CC");
@@ -166,7 +218,7 @@ class AsyncSendMailService {
 
     emailSender.send( mimeMessage -> {
       MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-      message.setFrom(emailFromAddress, emailFromName);
+      message.setFrom(emailFromAddress, StringUtils.firstNonBlank(customEmailFromName, this.emailFromName));
       message.setTo(finalTo);
       if(ArrayUtils.isNotEmpty(finalCC))
         message.setCc(finalCC);

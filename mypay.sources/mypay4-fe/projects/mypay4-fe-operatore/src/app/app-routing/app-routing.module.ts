@@ -52,6 +52,9 @@ import { FlussiSpcComponent } from '../components/flussi-spc/flussi-spc.componen
 import { HomeComponent } from '../components/home/home.component';
 import { NotAuthorizedComponent } from '../components/not-authorized/not-authorized.component';
 import { ForcedMailValidationGuard } from './forced-mail-validation-guard';
+import { TaxonomyComponent } from '../components/admin/taxonomy/taxonomy.component';
+import { FlussiConservazioneComponent } from '../components/flussi-conservazione/flussi-conservazione.component';
+
 
 export const routes: Routes = [
   {path: 'home', component: HomeComponent, data:{breadcrumbs:{home:true}}},
@@ -60,6 +63,7 @@ export const routes: Routes = [
   {path: 'not-authorized', component: NotAuthorizedComponent, data:{needEnte:false, requiresLogin: true, breadcrumb:{label:"Errore"}}, canActivate: [ AccessGuard ]},
   {path: 'flussi', component: FlussiCardsComponent, data:{requiresLogin: true, menuItemId: 21, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'flussi-import', component: FlussiImportComponent, data:{requiresLogin: true, menuItemId: 31, breadcrumb:{label:"Importazione flussi"}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
+  {path: 'flussi-conservazione', component: FlussiConservazioneComponent, data:{requiresLogin: true, menuItemId: 35, breadcrumb:{label:"Flussi di conservazione"}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'flussi-export', component: FlussiExportComponent, data:{requiresLogin: true, menuItemId: 32, breadcrumb:{label:"Flussi RT"}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'flussi-spc/quadratura', component: FlussiSpcComponent, data:{requiresLogin: true, tipoFlusso: 'quadratura', menuItemId: 33, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'flussi-spc/rendicontazione', component: FlussiSpcComponent, data:{requiresLogin: true, tipoFlusso: 'rendicontazione', menuItemId: 34, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
@@ -71,7 +75,8 @@ export const routes: Routes = [
   {path: 'admin/utenti', component: UtentiComponent, data:{requiresLogin: true, menuItemId: 42, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'admin/tipiDovuto', component: TipoListComponent, data:{requiresLogin: true, menuItemId: 43, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'admin/tipiDovuto/tipo/:codTipo', component: TipoEntiAnagraficaComponent, data:{requiresLogin: true, menuItemId: 43, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
-  {path: 'admin/tassonomie', component: TassonomieComponent, data:{requiresLogin: true, menuItemId: 44, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
+  //{path: 'admin/tassonomie', component: TassonomieComponent, data:{requiresLogin: true, menuItemId: 44, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
+  {path: 'admin/taxonomy', component: TaxonomyComponent, data:{requiresLogin: true, menuItemId: 44, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   //{path: 'admin/massive', component: MassiveComponent, data:{requiresLogin: true, menuItemId: 44}, canActivate: [ AccessGuard ]},
   {path: 'admin/utenti/:id', component: UtenteComponent, data:{requiresLogin: true, menuItemId: [42,41], breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},
   {path: 'admin/enti/anagrafica/:mode/:id', component: AnagraficaComponent, data:{requiresLogin: true, menuItemId: 41, breadcrumb:{}}, canActivate: [ AccessGuard, ForcedMailValidationGuard ]},

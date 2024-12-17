@@ -1,0 +1,1 @@
+ALTER TABLE public.mygov_spontaneo_anonimo DROP CONSTRAINT mygov_spontaneo_anonimo_mygov_carrello_fkey;

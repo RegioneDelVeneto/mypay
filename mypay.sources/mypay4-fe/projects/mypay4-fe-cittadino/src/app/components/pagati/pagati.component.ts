@@ -19,8 +19,8 @@ import { DateTime } from 'luxon';
 import { FileSaverService } from 'ngx-filesaver';
 import { ToastrService } from 'ngx-toastr';
 import {
-    ApiInvokerService, DateValidators, Ente, manageError, OverlaySpinnerService, TableAction,
-    TableColumn, TipoDovuto, validateFormFun, WithTitle
+  ApiInvokerService, CodeLabel, DateValidators, Ente, manageError, OverlaySpinnerService, TableAction,
+  TableColumn, TipoDovuto, validateFormFun, WithTitle
 } from 'projects/mypay4-fe-common/src/public-api';
 import { Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -50,6 +50,15 @@ export class PagatiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
 
   enteOptions: Ente[];
   enteFilteredOptions: Observable<Ente[]>;
+
+  stateOptions = [
+    new CodeLabel('tutti', 'Tutti'),
+    new CodeLabel('annullato', 'Annullato'),
+    new CodeLabel('pagato', 'Pagato'),
+    new CodeLabel('nonPagato', 'Non pagato'),
+    new CodeLabel('abortito', 'Transazione non completata'),
+    new CodeLabel('scaduto', 'Scaduto')
+  ];
 
   tipoDovutoOptionsMap: Map<String, TipoDovuto[]>;
   tipoDovutoOptions: TipoDovuto[];
@@ -94,12 +103,15 @@ export class PagatiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
     private elementRef: ElementRef,
     private fileSaverService: FileSaverService) {
     this.form = this.formBuilder.group({
-      ente: ['', [this.enteValidator]],
-      tipoDovuto: ['', [this.tipoDovutoValidator]],
-      dateFrom: [DateTime.now().startOf('day').minus({years: 2}), [Validators.required]],
-      dateTo: [DateTime.now().startOf('day'), [Validators.required]],
-      causale: ['']
+      ente: [null, [this.enteValidator]],
+      tipoDovuto: [null, [this.tipoDovutoValidator]],
+      dateFrom: [null, [Validators.required]],
+      dateTo: [null, [Validators.required]],
+      state: [null, [Validators.required]],
+      causale: [null],
     },{validators: DateValidators.dateRangeForRangePicker('dateFrom','dateTo')});
+    //set initial values
+    this.onReset();
   }
 
   get placeholderTipoDovuto() {
@@ -191,19 +203,55 @@ export class PagatiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
   onSubmit(){
     const i = this.form.value;
     const spinner = this.overlaySpinnerService.showProgress(this.elementRef);
-    this.pagatoService.searchPagati(i.ente, i.dateFrom, i.dateTo, i.causale, i.tipoDovuto)
+    this.pagatoService.searchPagati(i.ente, i.dateFrom, i.dateTo, i.causale, i.tipoDovuto, i.state)
       .subscribe(data => {
         this.hasSearched = true;
+     
         data.forEach(element => {
           element.details = [
             {key:'Causale', value:element.causale},
+            {key: 'Stato', value: new TitleCasePipe().transform(element.statoComplessivo)},
             {key:'Data scadenza', value:element.dataScadenza?.toFormat('dd/MM/yyyy')},
             {key:'Data inizio transazione', value:element.dataInizioTransazione?.toFormat('dd/MM/yyyy HH:mm:ss')},
             {key:'Identificativo transazione', value:element.identificativoTransazione},
             {key:'Codice IUV', value:element.codIuv},
             {key:'Intestatario', value:element.intestatario},
-            {key:'PSP scelto', value:element.pspScelto},
+            {key:'PSP scelto', value:element.pspScelto}
+           
           ];
+
+
+          /*
+          if (element.entePrimarioElaboratoDetail != null) {
+            element.detailEntePrimario = [
+              { id: 'denominazioneBeneficiario', key: 'Denomincazione Ente', value: element.entePrimarioElaboratoDetail?.denominazioneBeneficiario },
+              { id: 'codiceIdentificativoUnivoco', key: 'Codice Fiscale', value: element.entePrimarioElaboratoDetail?.codiceIdentificativoUnivoco },
+              { id: 'ibanAddebito', key: 'IBAN addebito', value: element.entePrimarioElaboratoDetail?.ibanAddebito },
+              { id: 'indirizzoBeneficiario', key: 'Indirizzo', value: element.entePrimarioElaboratoDetail?.indirizzoBeneficiario },
+              { id: 'civicoBeneficiario', key: 'Civico', value: element.entePrimarioElaboratoDetail?.civicoBeneficiario },
+              { id: 'capBeneficiario', key: 'CAP', value: element.entePrimarioElaboratoDetail?.capBeneficiario },
+              { id: 'nazioneBeneficiario', key: 'Nazione', value: element.entePrimarioElaboratoDetail?.nazioneBeneficiario },
+              { id: 'provinciaBeneficiario', key: 'Provincia', value: element.entePrimarioElaboratoDetail?.provinciaBeneficiario },
+              { id: 'localitaBeneficiario', key: 'Località', value: element.entePrimarioElaboratoDetail?.localitaBeneficiario },
+              { id: 'importoSecondario', key: 'Importo', value: numberToFormattedAmount(element.entePrimarioElaboratoDetail?.importo) + ' €' }
+            ]
+          }
+
+          if(element.dovutoMultibeneficiario != null) {// if is true, i set dovuto multibeneficiario detail 
+            element.detailMultiBeneficiario = [
+              {id:'denominazioneBeneficiario', key:'Denomincazione Ente', value:element.dovutoMultibeneficiario?.denominazioneBeneficiario},
+              {id:'codiceIdentificativoUnivoco', key:'Codice Fiscale', value:element.dovutoMultibeneficiario?.codiceIdentificativoUnivoco},
+              {id:'ibanAddebito', key:'IBAN addebito', value:element.dovutoMultibeneficiario?.ibanAddebito},
+              {id:'indirizzoBeneficiario', key:'Indirizzo', value:element.dovutoMultibeneficiario?.indirizzoBeneficiario},
+              {id:'civicoBeneficiario', key:'Civico', value:element.dovutoMultibeneficiario?.civicoBeneficiario},
+              {id:'capBeneficiario', key:'CAP', value:element.dovutoMultibeneficiario?.capBeneficiario},
+              {id:'nazioneBeneficiario', key:'Nazione', value:element.dovutoMultibeneficiario?.nazioneBeneficiario},
+              {id:'provinciaBeneficiario', key:'Provincia', value:element.dovutoMultibeneficiario?.provinciaBeneficiario},
+              {id:'localitaBeneficiario', key:'Località', value:element.dovutoMultibeneficiario?.localitaBeneficiario},
+              {id:'importoSecondario', key:'Importo', value:numberToFormattedAmount(element.dovutoMultibeneficiario?.importoSecondario)+' €'}
+            ];
+          }*/
+
         })
         this.tableData = data;
         this.overlaySpinnerService.detach(spinner);
@@ -212,6 +260,9 @@ export class PagatiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
 
   onReset(){
     this.form.reset();
+    this.form.get('dateFrom').setValue( DateTime.now().startOf('day').minus({years: 2}) );
+    this.form.get('dateTo').setValue( DateTime.now().startOf('day') );
+    this.form.get('state').setValue( 'tutti' );
     this.hasSearched = false;
     this.tableData = null;
     //this.searchFormDirective.reset();
@@ -226,7 +277,7 @@ export class PagatiComponent implements OnInit, AfterViewInit, OnDestroy, WithTi
       const contentType = response.headers.get('content-type') ?? 'application/pdf; charset=utf-8';
       const blob:any = new Blob([response.body], { type: contentType });
       thisRef.fileSaverService.save(blob, fileName);
-    }, manageError('Errore scaricando la ricevuta telematica', this.toastrService) );
+    }, manageError('Errore scaricando la ricevuta telematica', thisRef.toastrService) );
   }
 
   downloadRtEnabled(elementRef: Pagato, thisRef: PagatiComponent) {

@@ -17,7 +17,11 @@
  */
 package it.regioneveneto.mygov.payment.mypay4.ws.client.fesp;
 
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService;
+import it.regioneveneto.mygov.payment.mypay4.util.Constants;
+import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
 import it.regioneveneto.mygov.payment.mypay4.ws.client.BaseClient;
+import it.regioneveneto.mygov.payment.mypay4.ws.helper.OutcomeHelper;
 import it.regioneveneto.mygov.payment.mypay4.ws.iface.fesp.PagamentiTelematiciAvvisiDigitali;
 import it.veneto.regione.pagamenti.nodoregionalefesp.IntestazionePPT;
 import it.veneto.regione.pagamenti.nodoregionalefesp.NodoSILInviaAvvisoDigitale;
@@ -26,9 +30,37 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PagamentiTelematiciAvvisiDigitaliClient extends BaseClient implements PagamentiTelematiciAvvisiDigitali {
+  private final GiornaleService giornaleCommonService;
+
+  public PagamentiTelematiciAvvisiDigitaliClient(GiornaleService giornaleCommonService){
+    this.giornaleCommonService = giornaleCommonService;
+  }
 
   @Override
-  public NodoSILInviaAvvisoDigitaleRisposta nodoSILInviaAvvisoDigitale(NodoSILInviaAvvisoDigitale bodyrichiesta, IntestazionePPT header) {
-    return (NodoSILInviaAvvisoDigitaleRisposta) getWebServiceTemplate().marshalSendAndReceive(bodyrichiesta, getMessageCallback(header));
+  public NodoSILInviaAvvisoDigitaleRisposta nodoSILInviaAvvisoDigitale(NodoSILInviaAvvisoDigitale request, IntestazionePPT header) {
+    String iuv = null;
+    if(request!=null && request.getAvvisoDigitaleWS()!=null)
+      try{
+        iuv = Utilities.numeroAvvisoToIuvValidator(request.getAvvisoDigitaleWS().getCodiceAvviso());
+      }catch(Exception e){
+        iuv =  request.getAvvisoDigitaleWS().getCodiceAvviso();
+      }
+    return giornaleCommonService.wrapRecordSoapClientEvent(
+      Constants.GIORNALE_MODULO.PA,
+      header.getIdentificativoDominio(),
+      iuv,
+      null,
+      null,
+      null,
+      Constants.COMPONENTE_PA,
+      Constants.GIORNALE_CATEGORIA_EVENTO.INTERNO.toString(),
+      Constants.GIORNALE_TIPO_EVENTO_FESP.nodoSILInviaAvvisoDigitale.toString(),
+      header.getIdentificativoDominio(),
+      header.getIdentificativoIntermediarioPA(),
+      header.getIdentificativoStazioneIntermediarioPA(),
+      null,
+      () -> (NodoSILInviaAvvisoDigitaleRisposta) getWebServiceTemplate().marshalSendAndReceive(request, getMessageCallback(header)),
+      OutcomeHelper::getOutcome
+    );
   }
 }

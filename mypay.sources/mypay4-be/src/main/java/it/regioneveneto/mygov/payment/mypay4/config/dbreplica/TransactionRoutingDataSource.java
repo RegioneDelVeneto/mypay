@@ -27,7 +27,7 @@ import java.util.Objects;
 public class TransactionRoutingDataSource extends AbstractRoutingDataSource {
 
   private String id;
-  private static final ThreadLocal<Map<String,DataSourceType>> currentDataSourcesById = ThreadLocal.withInitial(() -> new HashMap<>());
+  private static final ThreadLocal<Map<String,DataSourceType>> currentDataSourcesById = ThreadLocal.withInitial(HashMap::new);
   private static final ThreadLocal<String> currentDsId = new ThreadLocal<>();
 
   public TransactionRoutingDataSource(String id, DataSource master, DataSource slave) {
@@ -38,6 +38,10 @@ public class TransactionRoutingDataSource extends AbstractRoutingDataSource {
 
     super.setTargetDataSources(dataSources);
     super.setDefaultTargetDataSource(master);
+  }
+
+  public void clean(){
+    currentDataSourcesById.remove();
   }
 
   public String getId(){

@@ -18,7 +18,8 @@
 @import '../my-pay-table-operatore/my-pay-table-operatore.component.scss';
 
 @include mat-table-columns((
-  'name': (width: 70%),
+  'name': (width: 65%),
   dataCreazione: (width: 15%),
-  dimensione: (width: 15%)
+  operatore: (width: 20%),
+  dimensione: (width: 10%)
 ));

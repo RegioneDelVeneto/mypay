@@ -32,7 +32,7 @@ import java.util.Optional;
 
 public interface RptRtDao extends BaseDao {
 
-  public final static String REMOVE_FROM_SCOPE_CHIEDI_STATO_RPT = "SKIP_CHIEDI_STATO_RTP";
+  public static final String REMOVE_FROM_SCOPE_CHIEDI_STATO_RPT = "SKIP_CHIEDI_STATO_RTP";
 
   @SqlUpdate(" insert into mygov_rpt_rt (" +
       "  mygov_rpt_rt_id , version , mygov_carrello_rpt_id , cod_ack_rt , dt_creazione_rpt , dt_ultima_modifica_rpt "+

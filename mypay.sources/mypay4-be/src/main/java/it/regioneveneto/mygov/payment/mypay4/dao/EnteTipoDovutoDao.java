@@ -72,6 +72,10 @@ public interface EnteTipoDovutoDao extends BaseDao {
           " , tipo_servizio" +
           " , motivo_riscossione" +
           " , cod_tassonomico" +
+          " , url_notifica_pnd" +
+          " , user_pnd" +
+          " , psw_pnd" +
+          " , url_notifica_attualizzazione_pnd" +
           " ) values (" +
           "   nextval('mygov_ente_tipo_dovuto_mygov_ente_tipo_dovuto_id_seq')" +
           " , :d.mygovEnteId.mygovEnteId" +
@@ -108,7 +112,11 @@ public interface EnteTipoDovutoDao extends BaseDao {
           " , :d.macroArea" +
           " , :d.tipoServizio" +
           " , :d.motivoRiscossione" +
-          " , :d.codTassonomico)")
+          " , :d.codTassonomico" +
+          " , :d.urlNotificaPnd" +
+          " , :d.userPnd" +
+          " , :d.pswPnd" +
+          " , :d.urlNotificaAttualizzazionePnd)")
   @GetGeneratedKeys("mygov_ente_tipo_dovuto_id")
   long insert(@BindBean("d") EnteTipoDovuto d);
 
@@ -149,6 +157,10 @@ public interface EnteTipoDovutoDao extends BaseDao {
           " , tipo_servizio = :d.tipoServizio" +
           " , motivo_riscossione = :d.motivoRiscossione" +
           " , cod_tassonomico = :d.codTassonomico" +
+          " , url_notifica_pnd = :d.urlNotificaPnd" +
+          " , user_pnd = :d.userPnd" +
+          " , psw_pnd = :d.pswPnd" +
+          " , url_notifica_attualizzazione_pnd = :d.urlNotificaAttualizzazionePnd" +
           " where mygov_ente_tipo_dovuto_id = :d.mygovEnteTipoDovutoId")
   int update(@BindBean("d") EnteTipoDovuto d);
 
@@ -292,12 +304,26 @@ public interface EnteTipoDovutoDao extends BaseDao {
           "  join mygov_ente " + Ente.ALIAS +
           "    on "+EnteTipoDovuto.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
           " where "+Ente.ALIAS+".mygov_ente_id = :mygovEnteId " +
-          "   and ("+ EnteTipoDovuto.ALIAS+".spontaneo = :spontaneo "+" or :spontaneo is null) " +
-          "   and ("+ EnteTipoDovuto.ALIAS+".flg_scadenza_obbligatoria = :flgScadenzaObbligatoria "+" or :flgScadenzaObbligatoria  is null) " +
+          "   and ("+ EnteTipoDovuto.ALIAS+".spontaneo = :spontaneoOrUrlEsterna or " +
+          "         :spontaneoOrUrlEsterna and "+ EnteTipoDovuto.ALIAS+".de_url_pagamento_dovuto is not null or " +
+          "         :spontaneoOrUrlEsterna is null) " +
+          "   and ("+ EnteTipoDovuto.ALIAS+".flg_scadenza_obbligatoria = :flgScadenzaObbligatoria or :flgScadenzaObbligatoria  is null) " +
           "   and "+EnteTipoDovuto.ALIAS+".flg_attivo = true " +
           " order by " + EnteTipoDovuto.ALIAS + ".de_tipo")
   @RegisterFieldMapper(EnteTipoDovuto.class)
-  List<EnteTipoDovuto> getAttiviByMygovEnteIdAndFlags(Long mygovEnteId, Boolean spontaneo, Boolean flgScadenzaObbligatoria);
+  List<EnteTipoDovuto> getAttiviByMygovEnteIdAndFlags(Long mygovEnteId, Boolean spontaneoOrUrlEsterna, Boolean flgScadenzaObbligatoria);
+
+  @SqlQuery(
+          "  select " + EnteTipoDovuto.ALIAS + ALL_FIELDS +", " + Ente.FIELDS_WITHOUT_LOGO +
+                  "  from mygov_ente_tipo_dovuto " + EnteTipoDovuto.ALIAS +
+                  "  join mygov_ente " + Ente.ALIAS +
+                  "    on "+EnteTipoDovuto.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
+                  " where "+ EnteTipoDovuto.ALIAS+".cod_tipo = :codTipoDovuto " +
+                  "   and "+ Ente.ALIAS+".cod_ipa_ente = :codIpaEnte " +
+                  "   and "+ EnteTipoDovuto.ALIAS+".spontaneo = true " +
+                  "   and "+EnteTipoDovuto.ALIAS+".flg_attivo = true " )
+  @RegisterFieldMapper(EnteTipoDovuto.class)
+  Optional<EnteTipoDovuto> getSpontaneo(String codIpaEnte, String codTipoDovuto);
 
   @SqlQuery(
       "    select " + EnteTipoDovuto.ALIAS + ALL_FIELDS +", " + Ente.FIELDS_WITHOUT_LOGO +
@@ -359,6 +385,15 @@ public interface EnteTipoDovutoDao extends BaseDao {
   @RegisterFieldMapper(EnteTipoDovuto.class)
   List<EnteTipoDovuto> getAllByEnte(long mygovEnteId);
 
+    @SqlQuery(
+          "    select " + EnteTipoDovuto.ALIAS + ALL_FIELDS +", " + Ente.FIELDS_WITHOUT_LOGO +
+                  "  from mygov_ente_tipo_dovuto " + EnteTipoDovuto.ALIAS +
+                  "  join mygov_ente " + Ente.ALIAS +
+                  "    on "+EnteTipoDovuto.ALIAS+".mygov_ente_id = "+Ente.ALIAS+".mygov_ente_id " +
+                  " order by " + EnteTipoDovuto.ALIAS + ".mygov_ente_tipo_dovuto_id")
+  @RegisterFieldMapper(EnteTipoDovuto.class)
+  List<EnteTipoDovuto> getAll();
+
   @SqlQuery(
       "    select " + EnteTipoDovuto.ALIAS + ALL_FIELDS +", " + Ente.FIELDS_WITHOUT_LOGO +
           "  from mygov_ente_tipo_dovuto " + EnteTipoDovuto.ALIAS +
@@ -389,4 +424,13 @@ public interface EnteTipoDovutoDao extends BaseDao {
           "   and "+Dovuto.ALIAS+".dt_rp_dati_vers_data_esecuzione_pagamento is null"
   )
   boolean dataScadenzaObbligatoriaEnable(String codIpaEnte, String codTipo);
+
+  @SqlQuery("SELECT EXISTS ( " +
+      " SELECT 1 from mygov_ente_tipo_dovuto " + EnteTipoDovuto.ALIAS +
+      " WHERE "+ EnteTipoDovuto.ALIAS+".mygov_ente_id = :mygovEnteId " +
+      " AND "+ EnteTipoDovuto.ALIAS+".spontaneo = true " +
+      " and "+ EnteTipoDovuto.ALIAS+".flg_attivo = true " +
+      ")"
+  )
+  boolean existsAnyFlagSpontaneo(Long mygovEnteId);
 }

@@ -43,7 +43,7 @@ import java.lang.invoke.MethodHandles;
 @Slf4j
 @ConditionalOnProperty(name=AbstractApplication.NAME_KEY, havingValue=ChiediCopiaEsitoTaskApplication.NAME)
 public class ChiediCopiaEsitoTaskApplication extends AbstractTaskApplication {
-  final static public String NAME = "ChiediCopiaEsitoTaskApplication";
+  static final public String NAME = "ChiediCopiaEsitoTaskApplication";
   public static void main(String[] args) {
     log.debug("starting main class {}", NAME);
     SpringApplication application = new SpringApplication(MethodHandles.lookup().lookupClass());

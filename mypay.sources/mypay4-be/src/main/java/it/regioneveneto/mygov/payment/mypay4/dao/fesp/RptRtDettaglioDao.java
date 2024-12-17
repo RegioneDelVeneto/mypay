@@ -37,6 +37,7 @@ public interface RptRtDettaglioDao extends BaseDao {
           ", dt_creazione" +
           ", dt_ultima_modifica" +
           ", mygov_rpt_rt_id" +
+          ", mygov_carrello_rpt_pagopa_id" +
           ", num_rpt_dati_vers_dati_sing_vers_importo_singolo_versamento" +
           ", num_rpt_dati_vers_dati_sing_vers_commissione_carico_pa" +
           ", de_rpt_dati_vers_dati_sing_vers_iban_accredito" +
@@ -64,6 +65,7 @@ public interface RptRtDettaglioDao extends BaseDao {
           ", coalesce(:d.dtCreazione, now())" +
           ", coalesce(:d.dtUltimaModifica, now())" +
           ", :d.mygovRptRtId.mygovRptRtId" +
+          ", :d.mygovCarrelloRptPagopaId"+
           ", :d.numRptDatiVersDatiSingVersImportoSingoloVersamento" +
           ", :d.numRptDatiVersDatiSingVersCommissioneCaricoPa" +
           ", :d.deRptDatiVersDatiSingVersIbanAccredito" +

@@ -26,6 +26,7 @@ import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public interface GiornaleDao extends BaseDao {
           ") values ("+
           "   nextval('mygov_giornale_mygov_giornale_id_seq')"+
           " , :g.version"+
-          " , :g.dataOraEvento"+
+          " , coalesce(:g.dataOraEvento, now())"+
           " , :g.identificativoDominio"+
           " , :g.identificativoUnivocoVersamento"+
           " , :g.codiceContestoPagamento"+
@@ -128,5 +129,26 @@ public interface GiornaleDao extends BaseDao {
 
   @RegisterFieldMapper(Giornale.class)
   Giornale getGiornaleById(Long mygovGiornaleId);
+
+  @SqlQuery(
+          "select " + Giornale.ALIAS + ALL_FIELDS +
+                  "  from mygov_giornale " + Giornale.ALIAS +
+                  " where " + Giornale.ALIAS + ".codice_contesto_pagamento = :receiptId " +
+                  " and "  + Giornale.ALIAS + ".tipo_evento = :paSendRT " +
+                  " and "  + Giornale.ALIAS + ".sotto_tipo_evento = :req "
+  )
+  @RegisterFieldMapper(Giornale.class)
+  List<Giornale> getByCCPandTipoEvento(String receiptId, String paSendRT, String req);
+
+  @SqlQuery(
+          "select " + Giornale.ALIAS + ALL_FIELDS +
+                  "  from mygov_giornale " + Giornale.ALIAS +
+                  " where "  + Giornale.ALIAS + ".tipo_evento = :paGetPayment " +
+                  " and "  + Giornale.ALIAS + ".sotto_tipo_evento = :res " +
+                  " and "  + Giornale.ALIAS + ".data_ora_evento >=  :dataInizioRecuperoConservazione "
+
+  )
+  @RegisterFieldMapper(Giornale.class)
+  List<Giornale> getByTipoAndSottoTipo(String paGetPayment, String res, LocalDate dataInizioRecuperoConservazione);
 
 }

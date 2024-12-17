@@ -21,6 +21,7 @@ import it.regioneveneto.mygov.payment.mypay4.dao.fesp.GiornaleDao;
 import it.regioneveneto.mygov.payment.mypay4.dto.GiornaleTo;
 import it.regioneveneto.mygov.payment.mypay4.model.fesp.Giornale;
 import it.regioneveneto.mygov.payment.mypay4.service.common.CacheService;
+import it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleUUIDService;
 import it.regioneveneto.mygov.payment.mypay4.util.Constants;
 import it.regioneveneto.mygov.payment.mypay4.util.MaxResultsHelper;
 import it.regioneveneto.mygov.payment.mypay4.util.Utilities;
@@ -43,19 +44,33 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GiornaleService {
 
-  private final static String EMPTY = "-";
+  private static final String EMPTY = "-";
 
   @Autowired
   GiornaleDao giornaleDao;
 
   @Autowired
+  GiornaleUUIDService giornaleUUIDService;
+
+
+  @Autowired
   private MaxResultsHelper maxResultsHelper;
+
+
 
   // |---------------------------------------------|
   // |DO NOT ADD OTHER METHODS TO WRITE TO GIORNALE|
-  // |ONLY USE registraEvento()                    |
-  // ----------------------------------------------|
+  // |---------------------------------------------|
 
+  @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
+  public void insert(Giornale giornale) {
+    giornaleDao.insert(giornale);
+  }
+
+  /**
+   * @deprecated "use @it.regioneveneto.mygov.payment.mypay4.service.common.GiornaleService methods instead"
+   */
+  @Deprecated()
   @Transactional(transactionManager = "tmFesp", propagation = Propagation.REQUIRES_NEW)
   public void registraEvento(Date dataOraEvento, String identificativoDominio, String identificativoUnivocoVersamento, String codiceContestoPagamento,
                              String identificativoPrestatoreServiziPagamento, String tipoVersamento, String componente, String categoriaEvento, String tipoEvento,
